@@ -16,12 +16,12 @@ const disconnect = require('./app/dbHelpers')
 app.prepare().then(() => {
     const server = new Koa()
 
-    server.use(async (ctx, next) => {
-        const start = Date.now()
-        await next()
-        const ms = Date.now() - start
-        console.log(`${ctx.method} ${ctx.url} ${ms}ms`)
-    })
+    // server.use(async (ctx, next) => {
+    //     const start = Date.now()
+    //     await next()
+    //     const ms = Date.now() - start
+    //     console.log(`${ctx.method} ${ctx.url} ${ms}ms`)
+    // })
 
     server.use(cors())
     server.use(bodyParser())
@@ -35,7 +35,7 @@ app.prepare().then(() => {
 
     server.listen(3000, () => {
         console.log(
-            '> ready - started server on 0.0.0.0:3000, url: http://localhost:3000'
+            'ready - started server on 0.0.0.0:3000, url: http://localhost:3000'
         )
     })
 })

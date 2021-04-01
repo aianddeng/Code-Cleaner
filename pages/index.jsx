@@ -1,79 +1,142 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import { useRef, useState, useCallback } from 'react'
+import { Input, Table, Space, Button, message } from 'antd'
+import axios from 'axios'
 
-export default function Home() {
+const { Search } = Input
+
+const Index = ({ stores }) => {
+    const key = useRef('addtotasks')
+
+    const [storesList, dispatchStoresList] = useState(stores)
+
+    const onSearch = useCallback(
+        value => {
+            if (value) {
+                const matchValue = new RegExp(value.replace(/\s/g, ''), 'i')
+                const matchStore = stores.filter(el =>
+                    (el.name + el.domain + el.id)
+                        .replace(/\s/g, '')
+                        .match(matchValue)
+                )
+                dispatchStoresList(matchStore)
+            } else {
+                dispatchStoresList(stores)
+            }
+        },
+        [storesList]
+    )
+
+    const onChange = useCallback(
+        e => {
+            const { value } = e.target
+            onSearch(value)
+        },
+        [storesList]
+    )
+
+    const handleSubmitTask = useCallback(async (storeId, storeName) => {
+        message.loading({
+            content: 'Waiting...',
+            duration: 0,
+            key: key.current,
+        })
+
+        const { data } = await axios.put('http://localhost:3000/api/tasks', {
+            storeId,
+            storeName,
+        })
+        await new Promise(resolve => setTimeout(resolve, 500))
+
+        message.success({
+            content: `Create a new task: ${data._id}`,
+            duration: 2.5,
+            key: key.current,
+        })
+    }, [])
+
     return (
-        <div className={styles.container}>
-            <Head>
-                <title>Create Next App</title>
-                <link rel="icon" href="/favicon.ico" />
-            </Head>
-
-            <main className={styles.main}>
-                <h1 className={styles.title}>
-                    Welcome to <a href="https://nextjs.org">Next.js!</a>
-                </h1>
-
-                <p className={styles.description}>
-                    Get started by editing{' '}
-                    <code className={styles.code}>pages/index.js</code>
-                </p>
-
-                <div className={styles.grid}>
-                    <a href="https://nextjs.org/docs" className={styles.card}>
-                        <h3>Documentation &rarr;</h3>
-                        <p>
-                            Find in-depth information about Next.js features and
-                            API.
-                        </p>
-                    </a>
-
-                    <a href="https://nextjs.org/learn" className={styles.card}>
-                        <h3>Learn &rarr;</h3>
-                        <p>
-                            Learn about Next.js in an interactive course with
-                            quizzes!
-                        </p>
-                    </a>
-
-                    <a
-                        href="https://github.com/vercel/next.js/tree/master/examples"
-                        className={styles.card}
-                    >
-                        <h3>Examples &rarr;</h3>
-                        <p>
-                            Discover and deploy boilerplate example Next.js
-                            projects.
-                        </p>
-                    </a>
-
-                    <a
-                        href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-                        className={styles.card}
-                    >
-                        <h3>Deploy &rarr;</h3>
-                        <p>
-                            Instantly deploy your Next.js site to a public URL
-                            with Vercel.
-                        </p>
-                    </a>
-                </div>
-            </main>
-
-            <footer className={styles.footer}>
-                <a
-                    href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Powered by{' '}
-                    <img
-                        src="/vercel.svg"
-                        alt="Vercel Logo"
-                        className={styles.logo}
+        <div
+            style={{
+                padding: '12px',
+                width: '100vw',
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            <div
+                style={{
+                    width: '1024px',
+                }}
+            >
+                <Space direction="vertical">
+                    <Search
+                        placeholder="input search text"
+                        onSearch={e => onSearch(e)}
+                        onBlur={e => onChange(e)}
+                        enterButton
                     />
-                </a>
-            </footer>
+                    <Table
+                        dataSource={storesList}
+                        rowKey="id"
+                        title={() => <h2>Store List</h2>}
+                        pagination={{
+                            showSizeChanger: true,
+                            defaultPageSize: 50,
+                        }}
+                        scroll={{ y: 400 }}
+                        bordered
+                    >
+                        <Table.Column key="id" title="ID" dataIndex="id" />
+                        <Table.Column
+                            key="name"
+                            title="Store Name"
+                            dataIndex="name"
+                        />
+                        <Table.Column
+                            key="domain"
+                            title="Website Domain"
+                            dataIndex="domain"
+                        />
+                        <Table.Column
+                            key="mapping"
+                            title="Action"
+                            dataIndex="mapping"
+                            render={(value, record) => (
+                                <Button
+                                    disabled={!value}
+                                    onClick={() =>
+                                        handleSubmitTask(record.id, record.name)
+                                    }
+                                >
+                                    Add to Tasks
+                                </Button>
+                            )}
+                            sorter={(a, b) =>
+                                Number(a.mapping) - Number(b.mapping)
+                            }
+                            defaultSortOrder="descend"
+                            sortDirections={['descend']}
+                            showSorterTooltip={{
+                                title: 'sort mappings store',
+                            }}
+                        />
+                    </Table>
+                </Space>
+            </div>
         </div>
     )
 }
+
+export const getServerSideProps = async () => {
+    const { data } = await axios.get('http://localhost:3000/api/stores')
+
+    return {
+        props: {
+            stores: data,
+        },
+    }
+}
+
+export default Index
