@@ -12,6 +12,7 @@ const handle = app.getRequestHandler()
 
 // mongoose
 const disconnect = require('./app/dbHelpers')
+const agenda = require('./app/jobs/agenda')
 
 app.prepare().then(() => {
     const server = new Koa()

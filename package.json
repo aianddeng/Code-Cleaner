@@ -8,6 +8,7 @@
         "start": "NODE_ENV=production node app.js"
     },
     "dependencies": {
+        "agenda": "^4.1.0",
         "antd": "^4.15.0",
         "axios": "^0.21.1",
         "koa": "^2.13.1",
