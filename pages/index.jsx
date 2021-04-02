@@ -1,13 +1,12 @@
+import axios from 'axios'
 import { useRef, useState, useCallback } from 'react'
 import { Input, Table, Space, Button, message } from 'antd'
-import axios from 'axios'
-
-const { Search } = Input
+import useActionLoading from '../hooks/useActionLoading'
 
 const Index = ({ stores }) => {
-    const key = useRef('addtotasks')
-
+    const actionKey = useRef('addtotasks')
     const [storesList, dispatchStoresList] = useState(stores)
+    const { checkLoading, pushLoading, popLoading } = useActionLoading()
 
     const onSearch = useCallback(
         value => {
@@ -35,23 +34,25 @@ const Index = ({ stores }) => {
     )
 
     const handleSubmitTask = useCallback(async (storeId, storeName) => {
+        pushLoading(storeId)
         message.loading({
             content: 'Waiting...',
             duration: 0,
-            key: key.current,
+            key: actionKey.current,
         })
 
-        const { data } = await axios.put('http://localhost:3000/api/tasks', {
+        const { data } = await axios.put('/api/tasks', {
             storeId,
             storeName,
         })
-        await new Promise(resolve => setTimeout(resolve, 500))
+        await new Promise(resolve => setTimeout(resolve, 800))
 
         message.success({
             content: `Create a new task: ${data._id}`,
             duration: 2.5,
-            key: key.current,
+            key: actionKey.current,
         })
+        popLoading(storeId)
     }, [])
 
     return (
@@ -71,7 +72,7 @@ const Index = ({ stores }) => {
                 }}
             >
                 <Space direction="vertical">
-                    <Search
+                    <Input.Search
                         placeholder="input search text"
                         onSearch={e => onSearch(e)}
                         onBlur={e => onChange(e)}
@@ -106,6 +107,7 @@ const Index = ({ stores }) => {
                             render={(value, record) => (
                                 <Button
                                     disabled={!value}
+                                    loading={checkLoading(record.id)}
                                     onClick={() =>
                                         handleSubmitTask(record.id, record.name)
                                     }
@@ -130,7 +132,7 @@ const Index = ({ stores }) => {
 }
 
 export const getServerSideProps = async () => {
-    const { data } = await axios.get('http://localhost:3000/api/stores')
+    const { data } = await axios.get('/api/stores')
 
     return {
         props: {

@@ -1,57 +1,47 @@
-import { useRef, useCallback, useState } from 'react'
 import axios from 'axios'
-import useSWR, { mutate } from 'swr'
-import { Table, Button, message } from 'antd'
 import moment from 'moment'
+import useSWR, { mutate } from 'swr'
+import { useRef, useCallback } from 'react'
+import { Table, Button, message } from 'antd'
+import useActionLoading from '../hooks/useActionLoading'
 
 const fetcher = async url => {
-    const { data } = await axios.get('http://localhost:3000/api' + url)
+    const { data } = await axios.get('/api' + url)
     return data
 }
 
 const Tasks = ({ data: initialData }) => {
-    const key = useRef('removetask')
+    const actionKey = useRef('removetask')
+    const { checkLoading, pushLoading, popLoading } = useActionLoading()
 
     const { data: taskList } = useSWR('/tasks', fetcher, {
         initialData,
         refreshInterval: 10000,
     })
 
-    const [taskActionState, dispatchTaskActionState] = useState([])
+    const handleRemoveTask = useCallback(async taskId => {
+        pushLoading(taskId)
+        message.loading({
+            content: 'Waiting...',
+            duration: 0,
+            key: actionKey.current,
+        })
 
-    const handleRemoveTask = useCallback(
-        async taskId => {
-            dispatchTaskActionState([...taskActionState, taskId])
+        await axios.delete('/api/tasks', {
+            data: {
+                taskId,
+            },
+        })
+        await new Promise(resolve => setTimeout(resolve, 800))
 
-            message.loading({
-                content: 'Waiting...',
-                duration: 0,
-                key: key.current,
-            })
-
-            const { data } = await axios.delete(
-                'http://localhost:3000/api/tasks',
-                {
-                    data: {
-                        taskId,
-                    },
-                }
-            )
-            await new Promise(resolve => setTimeout(resolve, 2500))
-
-            message.success({
-                content: `Remove the task: ${taskId}`,
-                duration: 2.5,
-                key: key.current,
-            })
-            mutate('/tasks')
-            dispatchTaskActionState([
-                ...taskActionState.slice().filter(el => el !== taskId),
-            ])
-            console.log(data)
-        },
-        [taskActionState]
-    )
+        message.success({
+            content: `Remove the task: ${taskId}`,
+            duration: 2.5,
+            key: actionKey.current,
+        })
+        popLoading(taskId)
+        mutate('/tasks')
+    }, [])
 
     return (
         <div
@@ -72,7 +62,7 @@ const Tasks = ({ data: initialData }) => {
                 <Table
                     dataSource={taskList}
                     rowKey="_id"
-                    title={() => <h2>Tasks List</h2>}
+                    title={() => <h2>Task List</h2>}
                     pagination={{
                         showSizeChanger: true,
                         defaultPageSize: 10,
@@ -114,7 +104,7 @@ const Tasks = ({ data: initialData }) => {
                         render={value => (
                             <Button
                                 danger
-                                loading={taskActionState.includes(value)}
+                                loading={checkLoading(value)}
                                 onClick={() => handleRemoveTask(value)}
                             >
                                 Remove
@@ -128,7 +118,7 @@ const Tasks = ({ data: initialData }) => {
 }
 
 export const getServerSideProps = async () => {
-    const data = await fetcher('/tasks')
+    const { data } = await axios.get('/api/tasks')
 
     return {
         props: {
