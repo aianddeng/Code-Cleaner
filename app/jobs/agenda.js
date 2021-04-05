@@ -18,18 +18,14 @@ const agenda = new Agenda({
 })
 
 agenda.define('clearCoupon', { concurrency: 1 }, async job => {
-    const { id } = job.attrs.data
-    if (id) {
+    const { storeId } = job.attrs.data
+    if (storeId) {
         console.log('running...')
-        await Tasks.findByIdAndUpdate(id, {
-            status: 'doing',
-        })
 
-        await new Promise(resolve => setTimeout(resolve, 10000))
+        await new Promise(resolve => setTimeout(resolve, 5 * 1000))
 
-        await Tasks.findByIdAndUpdate(id, {
-            status: 'finished',
-        })
+        job.attrs.data.status = 'finished'
+        await job.save()
     }
 })
 

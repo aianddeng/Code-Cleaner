@@ -2,36 +2,42 @@ const fs = require('fs').promises
 const path = require('path')
 const axios = require('axios')
 const Router = require('koa-router')
-const Tasks = require('./models/Tasks')
+const Coupon = require('./helpers/apis/Coupon')
 const agenda = require('./jobs/agenda')
+const ObjectID = require('mongodb').ObjectID
 
 const router = new Router({
     prefix: '/api',
 })
 
 router.get('/tasks', async ctx => {
-    const tasks = await Tasks.find({}).sort({ _id: -1 })
-    ctx.body = tasks
+    const jobs = await agenda.jobs({}, { _id: -1, nextRunAt: 1, priority: -1 })
+    const attrs = jobs.map(el => el.attrs)
+    const datas = attrs.map(el => ({
+        _id: el._id,
+        ...el.data,
+    }))
+
+    ctx.body = datas
 })
 
 router.put('/tasks', async ctx => {
     const body = ctx.request.body
     if (body && body.storeId && body.storeName) {
-        const task = new Tasks({
+        const job = await agenda.create('clearCoupon', {
             storeId: body.storeId,
             storeName: body.storeName,
+            coupons: await Coupon.find(body.storeId),
             type: 'user',
+            status: 'waiting',
         })
-        const result = await task.save()
+        await job.save()
 
-        const task_ = await agenda.create('clearCoupon', {
-            id: result._id,
-            storeId: body.storeId,
-            storeName: body.storeName,
-        })
-        await task_.save()
-
-        ctx.body = result
+        const datas = {
+            _id: job.attrs._id,
+            ...job.attrs.data,
+        }
+        ctx.body = datas
     } else {
         await next()
     }
@@ -40,11 +46,9 @@ router.put('/tasks', async ctx => {
 router.delete('/tasks', async ctx => {
     const body = ctx.request.body
     if (body && body.taskId) {
-        const result = await Tasks.findByIdAndDelete(body.taskId)
+        const count = await agenda.cancel({ _id: ObjectID(body.taskId) })
 
-        await agenda.cancel({ data: { id: result._id } })
-
-        ctx.body = result
+        ctx.body = { status: 'success', count }
     } else {
         await next()
     }
