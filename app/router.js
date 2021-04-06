@@ -2,9 +2,9 @@ const fs = require('fs').promises
 const path = require('path')
 const axios = require('axios')
 const Router = require('koa-router')
-const Coupon = require('./helpers/apis/Coupon')
-const agenda = require('./jobs/agenda')
 const ObjectID = require('mongodb').ObjectID
+const agenda = require('./jobs/agenda')
+const Coupon = require('./helpers/apis/Coupon')
 
 const router = new Router({
     prefix: '/api',
@@ -16,6 +16,7 @@ router.get('/tasks', async ctx => {
     const datas = attrs.map(el => ({
         _id: el._id,
         ...el.data,
+        lastFinishedAt: el.lastFinishedAt,
     }))
 
     ctx.body = datas
@@ -24,14 +25,18 @@ router.get('/tasks', async ctx => {
 router.put('/tasks', async ctx => {
     const body = ctx.request.body
     if (body && body.storeId && body.storeName) {
-        const job = await agenda.create('clearCoupon', {
+        const coupons = (await Coupon.find(body.storeId)).reverse()
+
+        const job = await agenda.now('clearCoupon', {
             storeId: body.storeId,
             storeName: body.storeName,
-            coupons: await Coupon.find(body.storeId),
+            coupons,
+            validCoupons: [],
+            invalidCoupons: [],
             type: 'user',
             status: 'waiting',
+            createdAt: Date.now(),
         })
-        await job.save()
 
         const datas = {
             _id: job.attrs._id,

@@ -1,4 +1,5 @@
 module.exports = {
+    concurrency: 5,
     headless: false,
     extensionPath:
         '/Users/chase/Work-Base/fatcoupon-xtension/dist/extension-production-local',

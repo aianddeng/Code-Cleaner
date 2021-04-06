@@ -24,7 +24,7 @@ app.prepare().then(() => {
 
     server.use(async (ctx, next) => {
         await handle(ctx.req, ctx.res)
-        ctx.response = false
+        ctx.respond = false
     })
 
     server.listen(80, () => {

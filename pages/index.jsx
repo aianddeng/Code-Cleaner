@@ -59,17 +59,19 @@ const Index = ({ stores }) => {
         <div
             style={{
                 padding: '12px',
-                width: '100vw',
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                // width: '100vw',
+                // minHeight: '100vh',
+                // display: 'flex',
+                // alignItems: 'center',
+                // justifyContent: 'center',
             }}
         >
             <div
-                style={{
-                    width: '1024px',
-                }}
+                style={
+                    {
+                        // width: '1024px',
+                    }
+                }
             >
                 <Space direction="vertical">
                     <Input.Search

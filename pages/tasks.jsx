@@ -1,5 +1,5 @@
 import axios from 'axios'
-import moment from 'moment'
+import moment, { invalid } from 'moment'
 import useSWR, { mutate } from 'swr'
 import { useRef, useCallback } from 'react'
 import { Table, Button, message } from 'antd'
@@ -16,7 +16,7 @@ const Tasks = ({ data: initialData }) => {
 
     const { data: taskList } = useSWR('/tasks', fetcher, {
         initialData,
-        refreshInterval: 10000,
+        refreshInterval: 2000,
     })
 
     const handleRemoveTask = useCallback(async taskId => {
@@ -47,17 +47,19 @@ const Tasks = ({ data: initialData }) => {
         <div
             style={{
                 padding: '12px',
-                width: '100vw',
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                // width: '100vw',
+                // minHeight: '100vh',
+                // display: 'flex',
+                // alignItems: 'center',
+                // justifyContent: 'center',
             }}
         >
             <div
-                style={{
-                    width: '1024px',
-                }}
+                style={
+                    {
+                        // width: '1024px',
+                    }
+                }
             >
                 <Table
                     dataSource={taskList}
@@ -82,6 +84,67 @@ const Tasks = ({ data: initialData }) => {
                         dataIndex="status"
                     />
                     <Table.Column
+                        key="coupons"
+                        title="Coupons"
+                        dataIndex="coupons"
+                        render={(coupons, record) => {
+                            const validLength = record.validCoupons.length
+                            const invalidLength = record.invalidCoupons.length
+                            const allLength = coupons.length
+
+                            return validLength && invalidLength ? (
+                                <div>
+                                    <ul
+                                        style={{
+                                            margin: 0,
+                                            padding: 0,
+                                        }}
+                                    >
+                                        <li
+                                            style={{
+                                                listStyle: 'none',
+                                            }}
+                                        >
+                                            All: {allLength}
+                                        </li>
+                                        <li
+                                            style={{
+                                                listStyle: 'none',
+                                            }}
+                                        >
+                                            Valid: {validLength}
+                                        </li>
+                                        <li
+                                            style={{
+                                                listStyle: 'none',
+                                            }}
+                                        >
+                                            Invalid: {invalidLength}
+                                        </li>
+                                    </ul>
+                                    <a>Manage coupons</a>
+                                </div>
+                            ) : (
+                                <div>
+                                    <ul
+                                        style={{
+                                            margin: 0,
+                                            padding: 0,
+                                        }}
+                                    >
+                                        <li
+                                            style={{
+                                                listStyle: 'none',
+                                            }}
+                                        >
+                                            All: {allLength}
+                                        </li>
+                                    </ul>
+                                </div>
+                            )
+                        }}
+                    />
+                    <Table.Column
                         key="createdAt"
                         title="Created Time"
                         dataIndex="createdAt"
@@ -90,24 +153,27 @@ const Tasks = ({ data: initialData }) => {
                         }
                     />
                     <Table.Column
-                        key="updatedAt"
-                        title="Updated Time"
-                        dataIndex="updatedAt"
+                        key="lastFinishedAt"
+                        title="Last Finished Time"
+                        dataIndex="lastFinishedAt"
                         render={value =>
-                            moment(value).format('YYYY-MM-DD HH:mm:ss')
+                            value
+                                ? moment(value).format('YYYY-MM-DD HH:mm:ss')
+                                : '-'
                         }
                     />
                     <Table.Column
                         key="action"
                         title="Action"
                         dataIndex="_id"
-                        render={value => (
+                        render={(value, record) => (
                             <Button
                                 danger
+                                disabled={record.status === 'doing'}
                                 loading={checkLoading(value)}
                                 onClick={() => handleRemoveTask(value)}
                             >
-                                Remove
+                                Remove The Task
                             </Button>
                         )}
                     />

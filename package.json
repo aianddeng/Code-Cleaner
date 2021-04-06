@@ -9,11 +9,13 @@
     },
     "dependencies": {
         "agenda": "^4.1.0",
+        "agendash": "^2.1.1",
         "antd": "^4.15.0",
         "axios": "^0.21.1",
         "koa": "^2.13.1",
         "koa-bodyparser": "^4.3.0",
         "koa-router": "^10.0.0",
+        "koa-static": "^5.0.0",
         "koa2-cors": "^2.0.6",
         "moment": "^2.29.1",
         "mongoose": "^5.12.2",

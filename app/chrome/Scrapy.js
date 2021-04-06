@@ -1,12 +1,32 @@
-const Helpers = require('../helpers')
-
+const puppeteer = require('puppeteer')
+const Helpers = require('../helpers/index')
+const globalConfig = require('../config/config.local')
 class Scrapy {
     // 初始化
-    constructor(browser, config, coupons) {
-        this.config = config
-        this.browser = browser
-        this.coupons = coupons
+    constructor(config, coupons, job, done) {
         this.backgroundPage = null
+        this.lastMessage = null
+
+        this.config = config
+        this.coupons = coupons
+        this.job = job
+        this.done = done
+    }
+
+    async createBrowser() {
+        const browser = await puppeteer.launch({
+            headless: globalConfig.headless,
+            defaultViewport: {
+                width: 0,
+                height: 0,
+            },
+            args: [
+                '--disable-extensions-except=' + globalConfig.extensionPath,
+                '--load-extension=' + globalConfig.extensionPath,
+            ],
+        })
+
+        this.browser = browser
     }
 
     // 监听redux，当找到可用折扣码或扫描完折扣码时，触发console事件
@@ -16,6 +36,8 @@ class Scrapy {
             .targets()
             .find(target => target.type() === 'background_page')
             .page()
+
+        await Helpers.wait(0.5 * 1000)
 
         // 背景页执行以下程序
         await backgroundPage.evaluate(() => {
@@ -34,6 +56,8 @@ class Scrapy {
                         if (currentTabData.applyPopup.curCouponIndex > -1) {
                             console.log(
                                 JSON.stringify({
+                                    master: 'fatcoupon:clear-coupon',
+                                    storeId: currentTabData.storeId,
                                     type:
                                         currentTabData.phase === 4
                                             ? 'applying'
@@ -52,6 +76,8 @@ class Scrapy {
                         ) {
                             console.log(
                                 JSON.stringify({
+                                    master: 'fatcoupon:clear-coupon',
+                                    storeId: currentTabData.storeId,
                                     type: 'applyDone',
                                 })
                             )
@@ -69,24 +95,52 @@ class Scrapy {
 
     async watchApplyCoupon() {
         // 监听redux事件，更新Coupon状态
-        await this.backgroundPage.on('console', async msg => {
-            let data = {}
+        this.backgroundPage.on('console', async msg => {
+            const msgText = msg.text()
+            if (
+                msgText.includes('fatcoupon:clear-coupon') &&
+                this.lastMessage !== msgText
+            ) {
+                this.lastMessage = msgText
 
-            try {
-                data = JSON.parse(msg.text())
-            } catch {}
+                let data = {}
 
-            if (data.type === 'applying') {
-                data.index &&
-                    console.log('invalid: ', this.coupons[data.index - 1].code)
-                console.log('working: ', this.coupons[data.index].code)
-            } else if (data.type === 'applySuccess') {
-                console.log('valid: ', this.coupons[data.index].code)
-                this.coupons.splice(0, data.index + 1)
-                if (this.coupons.length) await this.handleApplyCoupon()
-            } else if (data.type === 'applyDone' || !this.coupons.length) {
-                console.log('Process Finish.')
-                await this.browser.close()
+                try {
+                    data = JSON.parse(msgText)
+                } catch {}
+
+                if (data.storeId === this.config.storeId) {
+                    if (data.type === 'applying') {
+                        if (data.index) {
+                            const currentCoupon = this.coupons[data.index - 1]
+                                .code
+                            const { invalidCoupons } = this.job.attrs.data
+                            invalidCoupons.push(currentCoupon)
+                            await this.job.save()
+                        }
+                        console.log(
+                            'Test code: ',
+                            this.coupons[data.index].code
+                        )
+                    } else if (
+                        data.type === 'applySuccess' &&
+                        this.coupons.length
+                    ) {
+                        const currentCoupon = this.coupons[data.index].code
+                        const { validCoupons } = this.job.attrs.data
+                        validCoupons.push(currentCoupon)
+                        await this.job.save()
+
+                        // continue
+                        this.coupons.splice(0, data.index + 1)
+                        if (this.coupons.length) await this.handleApplyCoupon()
+                    }
+
+                    if (data.type === 'applyDone' || !this.coupons.length) {
+                        await this.browser.close()
+                        await this.done()
+                    }
+                }
             }
         })
     }
@@ -97,7 +151,7 @@ class Scrapy {
 
         // 拒绝请求多媒体资源，节省网络消耗
         await page.setRequestInterception(true)
-        await page.on('request', req => {
+        page.on('request', req => {
             if (
                 ['image', 'media', 'font', 'stylesheet'].includes(
                     req.resourceType()
@@ -120,7 +174,7 @@ class Scrapy {
         await page.waitForSelector(this.config.button, {
             visible: true,
         })
-        await Helpers.wait(2000)
+        await Helpers.wait(0.5 * 1000)
 
         // 添加到购物车
         await page.waitForSelector(this.config.button)
@@ -130,7 +184,7 @@ class Scrapy {
                 btn.click()
             }
         }, this.config.button)
-        await Helpers.wait(2000)
+        await Helpers.wait(0.5 * 1000)
     }
 
     async handleApplyCoupon() {
@@ -156,7 +210,7 @@ class Scrapy {
         // 拒绝请求多媒体资源，节省网络消耗
         const page = await this.browser.newPage()
         await page.setRequestInterception(true)
-        await page.on('request', req => {
+        page.on('request', req => {
             if (
                 ['image', 'media', 'font', 'stylesheet'].includes(
                     req.resourceType()
@@ -190,16 +244,61 @@ class Scrapy {
         )
 
         // 开始扫描折扣码
-        await page.evaluate(() => {
-            const startBtn = document
-                .querySelector('#fatcoupon-root')
-                .shadowRoot.querySelector('.apply-coupon button')
-            startBtn.click()
+        await page.waitForFunction(() => {
+            const handleClickButton = async () => {
+                const startBtn = document
+                    .querySelector('#fatcoupon-root')
+                    .shadowRoot.querySelector('.apply-coupon button')
+                if (startBtn) {
+                    startBtn.click()
+                }
+
+                const restartBtn = document
+                    .querySelector('#fatcoupon-root')
+                    .shadowRoot.querySelector('.finished button')
+                if (restartBtn) {
+                    console.log(
+                        JSON.stringify({
+                            master: 'fatcoupon:clear-coupon',
+                            type: 'reload',
+                        })
+                    )
+                }
+
+                setTimeout(handleClickButton, 1000)
+            }
+
+            setTimeout(handleClickButton, 0)
+
+            return true
+        })
+
+        page.on('console', async msg => {
+            const msgText = msg.text()
+            if (msgText.includes('fatcoupon:clear-coupon')) {
+                let data = {}
+
+                try {
+                    data = JSON.parse(msgText)
+                } catch {}
+
+                if (data.type === 'reload') {
+                    // await this.browser.close()
+                    // await this.start()
+                    // const store = new Scrapy(
+                    //     this.config,
+                    //     this.coupons,
+                    //     this.job,
+                    //     this.done
+                    // )
+                    // await store.start()
+                }
+            }
         })
     }
 
     async start() {
-        console.log('Process Start.')
+        await this.createBrowser()
 
         // 监听redux store变化，并推送到console -> 监听console，对code进行处理
         await this.watchBackground()

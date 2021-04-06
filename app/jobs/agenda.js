@@ -1,46 +1,100 @@
 const Agenda = require('agenda')
-const Tasks = require('../models/Tasks')
+const run = require('../chrome/index')
 const globalConfig = require('../config/config.local')
 
-const agenda = new Agenda({
-    db: {
-        address: globalConfig.mongoPath,
-        collection: 'tasks_queue',
-        options: {
-            useUnifiedTopology: true,
-        },
-    },
-    // processEvery: '5 seconds',
-    // defaultConcurrency: 5,
-    // defaultLockLimit: 0,
-    // defaultLockLifetime: 10 * 60 * 1000,
-    // sort: { nextRunAt: 1, priority: -1 }
-})
+const agenda = new Agenda()
+    .database(globalConfig.mongoPath, 'tasks_queue', {
+        useUnifiedTopology: true,
+    })
+    .name('fatcoupon:clear-coupon')
 
-agenda.define('clearCoupon', { concurrency: 1 }, async job => {
-    const { storeId } = job.attrs.data
-    if (storeId) {
-        console.log('running...')
+agenda.define(
+    'clearCoupon',
+    { priority: 'normal', concurrency: 1 },
+    (job, done) => {
+        const {
+            storeId,
+            coupons,
+            validCoupons,
+            invalidCoupons,
+        } = job.attrs.data
 
-        await new Promise(resolve => setTimeout(resolve, 5 * 1000))
+        const sliceCoupons = coupons
+            .slice()
+            .filter(
+                el => ![].concat(validCoupons, invalidCoupons).includes(el.code)
+            )
 
-        job.attrs.data.status = 'finished'
-        await job.save()
+        if (sliceCoupons.length > globalConfig.concurrency * 2) {
+            const singleBrowserCouponLength = Math.floor(
+                sliceCoupons.length / globalConfig.concurrency
+            )
+
+            while (sliceCoupons.length) {
+                if (sliceCoupons.length < singleBrowserCouponLength * 2) {
+                    run(
+                        storeId,
+                        sliceCoupons.splice(0, sliceCoupons.length),
+                        job,
+                        done
+                    )
+                } else {
+                    run(
+                        storeId,
+                        sliceCoupons.splice(0, singleBrowserCouponLength),
+                        job,
+                        done
+                    )
+                }
+            }
+        } else {
+            run(storeId, sliceCoupons, job, done)
+        }
     }
-})
+)
 
-agenda.on('start', job => {
+agenda.on('start', async job => {
+    job.attrs.data.status = 'doing'
+    job.attrs.data.validCoupons = Array.from(
+        new Set(job.attrs.data.validCoupons)
+    )
+    await job.save()
+
     console.log(
-        `Task <${job.attrs.data.storeName}> (${job.attrs.data.id}) starting`
+        `Task <${job.attrs.data.storeName}> (${job.attrs._id}) starting`
     )
 })
 
-agenda.on('complete', job => {
+agenda.on('complete', async job => {
+    job.attrs.data.status = 'finished'
+    job.attrs.data.invalidCoupons = Array.from(
+        new Set(job.attrs.data.invalidCoupons)
+    )
+    await job.save()
+
     console.log(
-        `Task <${job.attrs.data.storeName}> (${job.attrs.data.id}) finished`
+        `Task <${job.attrs.data.storeName}> (${job.attrs._id}) finished`
     )
 })
 
-agenda.start()
+agenda.on('ready', async () => {
+    console.log('> agenda connected')
+
+    // server restart, continue old jobs
+    const lockedJobs = (await agenda.jobs({})).filter(el => el.attrs.lockedAt)
+    await Promise.all(
+        lockedJobs.map(async el => {
+            el.attrs.lockedAt = null
+            await el.save()
+        })
+    )
+
+    // remove not defind jobs
+    await agenda.purge((err, numRemoved) => {
+        console.log('Remove old tasks: ', numRemoved)
+    })
+
+    await agenda.start()
+})
 
 module.exports = agenda
