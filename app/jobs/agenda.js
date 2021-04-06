@@ -31,21 +31,17 @@ agenda.define(
             )
 
             while (sliceCoupons.length) {
-                if (sliceCoupons.length < singleBrowserCouponLength * 2) {
-                    run(
-                        storeId,
-                        sliceCoupons.splice(0, sliceCoupons.length),
-                        job,
-                        done
-                    )
-                } else {
-                    run(
-                        storeId,
-                        sliceCoupons.splice(0, singleBrowserCouponLength),
-                        job,
-                        done
-                    )
-                }
+                run(
+                    storeId,
+                    sliceCoupons.splice(
+                        0,
+                        sliceCoupons.length < singleBrowserCouponLength * 2
+                            ? sliceCoupons.length
+                            : singleBrowserCouponLength
+                    ),
+                    job,
+                    done
+                )
             }
         } else {
             run(storeId, sliceCoupons, job, done)
