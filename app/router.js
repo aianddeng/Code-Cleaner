@@ -11,7 +11,10 @@ const router = new Router({
 })
 
 router.get('/tasks', async ctx => {
-    const jobs = await agenda.jobs({}, { _id: -1, nextRunAt: 1, priority: -1 })
+    const jobs = await agenda.jobs(
+        { name: 'clearCoupon' },
+        { _id: -1, nextRunAt: 1, priority: -1 }
+    )
     const attrs = jobs.map(el => el.attrs)
     const datas = attrs.map(el => ({
         _id: el._id,
@@ -25,7 +28,7 @@ router.get('/tasks', async ctx => {
 router.put('/tasks', async ctx => {
     const body = ctx.request.body
     if (body && body.storeId && body.storeName) {
-        const coupons = (await Coupon.find(body.storeId)).reverse()
+        const coupons = await Coupon.find(body.storeId)
 
         const job = await agenda.now('clearCoupon', {
             storeId: body.storeId,

@@ -92,7 +92,7 @@ const Tasks = ({ data: initialData }) => {
                             const invalidLength = record.invalidCoupons.length
                             const allLength = coupons.length
 
-                            return validLength && invalidLength ? (
+                            return validLength || invalidLength ? (
                                 <div>
                                     <ul
                                         style={{
