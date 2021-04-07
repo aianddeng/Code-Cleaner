@@ -1,0 +1,7 @@
+ /**************************
+ * Time: 07.04.21 13:35:56 *
+ * Host: iMac-P            *
+ * User: undefined         *
+ **************************/
+
+(()=>{"use strict";var o={d:(e,t)=>{for(var r in t)o.o(t,r)&&!o.o(e,r)&&Object.defineProperty(e,r,{enumerable:!0,get:t[r]})},o:(o,e)=>Object.prototype.hasOwnProperty.call(o,e),r:o=>{"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(o,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(o,"__esModule",{value:!0})}},e={};if(o.r(e),o.d(e,{default:()=>w}),!window.Fatcoupon||!window.Fatcoupon.ModulesImporter)throw Error("window.Fatcoupon.ModulesImporter not set, store connector injection failed");const{StoreConnector,StoreConnectorFunctionResult:t,StoreConnectorHelpers:r,MultipageStoreConnectorWrapper:n,Helpers:a,UIHelpers:p,Cookies:c,Settings:l,AjaxMethod:d,Logger:s,$:i,StoreConnector_Temp:u}=window.Fatcoupon.ModulesImporter;window.Fatcoupon.StoreConnector=new n(new class extends u{constructor(){super(...arguments),this.metadata={storeIds:{dev:[""],prod:["5f35f7ae32455a0011f0db64"]},pageSelector:'[data-locator="os-pretaxtotalprice"]',cartTotalSelector:"",timeouts:{collectAndClearAppliedCoupons:1e4,getCartTotal:5e3,beforeApplyingCoupon:5e3,applyCoupon:5e3,afterApplyingCoupon:5e3}}}}(!1)),s.borderedMessage("FatCoupon: store connector injected!","#a3cc91");const w=window.Fatcoupon.StoreConnector})();

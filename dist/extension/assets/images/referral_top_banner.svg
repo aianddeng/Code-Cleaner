@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="351px" height="169px" viewBox="0 0 351 169" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 55.1 (78136) - https://sketchapp.com -->
+    <title>banner1.2</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="351" height="169" rx="2"></rect>
+    </defs>
+    <g id="页面1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="referrals" transform="translate(-983.000000, -112.000000)">
+            <g id="banner1.2" transform="translate(983.000000, 112.000000)">
+                <g id="路径-2">
+                    <mask id="mask-2" fill="white">
+                        <use xlink:href="#path-1"></use>
+                    </mask>
+                    <use id="蒙版" fill="#304FA2" xlink:href="#path-1"></use>
+                    <path d="M-6,16.7273675 C62.1171312,8.53716704 119.310671,6.26073795 165.580619,9.89808024 C211.850568,13.5354225 273.990361,9.23606244 352,-3 L352,164 C352,165.104569 351.104569,166 350,166 L-4,166 C-5.1045695,166 -6,165.104569 -6,164 L-6,16.7273675 Z" stroke="#FFD706" fill="#304FA2" mask="url(#mask-2)" transform="translate(173.000000, 81.500000) scale(1, -1) translate(-173.000000, -81.500000) "></path>
+                </g>
+                <text id="Refer-&amp;-Earn" font-family="Helvetica-Bold, Helvetica" font-size="36" font-weight="bold" letter-spacing="-2.34895539" fill="#FFD706">
+                    <tspan x="81" y="48">Refer &amp; Earn</tspan>
+                </text>
+                <text id="Refer-a-friend-to-Fa" font-family="Helvetica-Bold, Helvetica" font-size="12" font-weight="bold" letter-spacing="-0.182142857" fill="#FFFFFF">
+                    <tspan x="42" y="82">Refer a friend </tspan>
+                    <tspan x="42" y="96">to FatCoupon</tspan>
+                </text>
+                <text id="They-join-and-Place" font-family="Helvetica-Bold, Helvetica" font-size="12" font-weight="bold" letter-spacing="-0.182142857" fill="#FFFFFF">
+                    <tspan x="163" y="83">They join and</tspan>
+                    <tspan x="163" y="97">Place order</tspan>
+                </text>
+                <text id="They-get-$10" font-family="Helvetica-Bold, Helvetica" font-size="12" font-weight="bold" letter-spacing="-0.1821429" fill="#FFFFFF">
+                    <tspan x="274" y="89">They get $10</tspan>
+                </text>
+                <text id="You-get-$10-+-20%-co" font-family="AvenirNext-Bold, Avenir Next" font-size="14.2" font-weight="bold" letter-spacing="-0.0646607295" fill="#00FFC7">
+                    <tspan x="40" y="126">You get $10 </tspan>
+                    <tspan x="126.227471" y="126" letter-spacing="-0.0802207981">+</tspan>
+                    <tspan x="135.60445" y="126"> 20% commission for 2 years*</tspan>
+                </text>
+                <g id="编组-3" transform="translate(11.000000, 73.000000)">
+                    <text id="1" font-family="MADEGoodTimeGrotesk, MADE GoodTime Grotesk" font-size="17" font-weight="normal" letter-spacing="-0.3" fill="#FFD706">
+                        <tspan x="7" y="19">1</tspan>
+                    </text>
+                    <circle id="椭圆形" stroke="#FFD706" cx="12" cy="12" r="12"></circle>
+                </g>
+                <g id="编组-4" transform="translate(133.000000, 73.000000)">
+                    <text id="2" font-family="MADEGoodTimeGrotesk, MADE GoodTime Grotesk" font-size="17" font-weight="normal" letter-spacing="-0.3" fill="#FFD706">
+                        <tspan x="6" y="17">2</tspan>
+                    </text>
+                    <circle id="椭圆形备份" stroke="#FFD706" cx="12" cy="12" r="12"></circle>
+                </g>
+                <g id="编组-5" transform="translate(247.000000, 73.000000)">
+                    <text id="3" font-family="MADEGoodTimeGrotesk, MADE GoodTime Grotesk" font-size="17" font-weight="normal" letter-spacing="-0.3" fill="#FFD706">
+                        <tspan x="7" y="19">3</tspan>
+                    </text>
+                    <circle id="椭圆形备份-2" stroke="#FFD706" cx="12" cy="12" r="12"></circle>
+                </g>
+                <g id="编组-6" transform="translate(11.000000, 109.000000)">
+                    <text id="4" font-family="MADEGoodTimeGrotesk, MADE GoodTime Grotesk" font-size="17" font-weight="normal" letter-spacing="-0.143181818" fill="#FFD706">
+                        <tspan x="5" y="17">4</tspan>
+                    </text>
+                    <circle id="椭圆形备份-3" stroke="#FFD706" cx="12" cy="12" r="12"></circle>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

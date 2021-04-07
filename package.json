@@ -5,7 +5,8 @@
     "scripts": {
         "dev": "node app.js",
         "build": "next build",
-        "start": "NODE_ENV=production node app.js"
+        "start": "NODE_ENV=production node app.js",
+        "background": "NODE_ENV=production pm2 start app.js --watch"
     },
     "dependencies": {
         "agenda": "4.1.0",

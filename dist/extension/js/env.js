@@ -1,0 +1,7 @@
+ /**************************
+ * Time: 30.03.21 15:45:53 *
+ * Host: iMac-P            *
+ * User: undefined         *
+ **************************/
+
+window.Fatcoupon={env:{target:"extension",mode:"production",script:"local"},showLogs:!1,basicTimeout:7500},window.showLogs=function(o=!0){chrome.storage.local.set({SETTINGS__SHOW_LOG:o})},window.chrome&&window.chrome.storage?chrome.storage.local.get("SETTINGS__SHOW_LOG",o=>{window.Fatcoupon.showLogs="development"===window.Fatcoupon.env.mode||o.SETTINGS__SHOW_LOG||!1,console.log("Fatcoupon: logs "+(window.Fatcoupon.showLogs?"shown":"hidden")),chrome.storage.onChanged.addListener((o,n)=>{"local"===n&&o.SETTINGS__SHOW_LOG&&(window.Fatcoupon.showLogs=o.SETTINGS__SHOW_LOG.newValue,console.log("Fatcoupon: logs "+(window.Fatcoupon.showLogs?"shown":"hidden")))})}):(window.Fatcoupon.showLogs=!0,console.log("Fatcoupon: logs "+(window.Fatcoupon.showLogs?"shown":"hidden"))),"www.fatcoupon.com"!==location.hostname&&"fatcoupon.vercel.app"!==location.hostname&&"localhost"!==location.hostname||document.addEventListener("DOMContentLoaded",()=>{let o=document.createElement("script");o.innerHTML="(function() { window.Fatcoupon = {}; })();",document.head.appendChild(o)},!1);
