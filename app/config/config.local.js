@@ -6,7 +6,7 @@ module.exports = {
     headless: false,
     extensionPath:
         process.NODE_ENV === 'production'
-            ? path.join(__dirname, '../', 'dist', 'extension')
+            ? path.join(__dirname, '../../', 'dist', 'extension')
             : '/Users/chase/Work-Base/fatcoupon-xtension/dist/extension-production-local',
     mongoPath:
         process.NODE_ENV === 'production'
