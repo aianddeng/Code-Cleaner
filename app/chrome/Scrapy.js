@@ -1,3 +1,4 @@
+const Xvfb = require('xvfb')
 const puppeteer = require('puppeteer')
 const Helpers = require('../helpers/index')
 const globalConfig = require('../config/config.local')
@@ -14,6 +15,12 @@ class Scrapy {
     }
 
     async createBrowser() {
+        const xvfb = new Xvfb({
+            silent: true,
+            xvfb_args: ['-screen', '0', '1280x720x24', '-ac'],
+        })
+        xvfb.start(console.log)
+
         const browser = await puppeteer.launch({
             headless: globalConfig.headless,
             defaultViewport: {
@@ -23,6 +30,9 @@ class Scrapy {
             args: [
                 '--disable-extensions-except=' + globalConfig.extensionPath,
                 '--load-extension=' + globalConfig.extensionPath,
+                '--no-sandbox',
+                '--start-fullscreen',
+                '--display=' + xvfb._display,
             ],
         })
 
