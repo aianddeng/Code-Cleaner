@@ -2,6 +2,8 @@ import axios from 'axios'
 import { useRef, useState, useCallback } from 'react'
 import { Input, Table, Space, Button, message } from 'antd'
 import useActionLoading from '../hooks/useActionLoading'
+import Head from 'next/head'
+import Wrapper from '../components/wrapper'
 
 const Index = ({ stores }) => {
     const actionKey = useRef('addtotasks')
@@ -56,80 +58,64 @@ const Index = ({ stores }) => {
     }, [])
 
     return (
-        <div
-            style={{
-                padding: '12px',
-                // width: '100vw',
-                // minHeight: '100vh',
-                // display: 'flex',
-                // alignItems: 'center',
-                // justifyContent: 'center',
-            }}
-        >
-            <div
-                style={
-                    {
-                        // width: '1024px',
-                    }
-                }
-            >
-                <Space direction="vertical">
-                    <Input.Search
-                        placeholder="input search text"
-                        onSearch={e => onSearch(e)}
-                        onBlur={e => onChange(e)}
-                        enterButton
+        <Wrapper>
+            <Head>
+                <title>Clear Code Task Store List - Fatcoupon</title>
+            </Head>
+            <Space direction="vertical">
+                <Input.Search
+                    placeholder="input search text"
+                    onSearch={e => onSearch(e)}
+                    onBlur={e => onChange(e)}
+                    enterButton
+                />
+                <Table
+                    dataSource={storesList}
+                    rowKey="id"
+                    title={() => <h2>Store List</h2>}
+                    pagination={{
+                        showSizeChanger: true,
+                        defaultPageSize: 50,
+                    }}
+                    scroll={{ y: 400 }}
+                    bordered
+                >
+                    <Table.Column key="id" title="ID" dataIndex="id" />
+                    <Table.Column
+                        key="name"
+                        title="Store Name"
+                        dataIndex="name"
                     />
-                    <Table
-                        dataSource={storesList}
-                        rowKey="id"
-                        title={() => <h2>Store List</h2>}
-                        pagination={{
-                            showSizeChanger: true,
-                            defaultPageSize: 50,
+                    <Table.Column
+                        key="domain"
+                        title="Website Domain"
+                        dataIndex="domain"
+                    />
+                    <Table.Column
+                        key="mapping"
+                        title="Action"
+                        dataIndex="mapping"
+                        render={(value, record) => (
+                            <Button
+                                disabled={!value}
+                                loading={checkLoading(record.id)}
+                                onClick={() =>
+                                    handleSubmitTask(record.id, record.name)
+                                }
+                            >
+                                Add to Tasks
+                            </Button>
+                        )}
+                        sorter={(a, b) => Number(a.mapping) - Number(b.mapping)}
+                        defaultSortOrder="descend"
+                        sortDirections={['descend']}
+                        showSorterTooltip={{
+                            title: 'sort mappings store',
                         }}
-                        scroll={{ y: 400 }}
-                        bordered
-                    >
-                        <Table.Column key="id" title="ID" dataIndex="id" />
-                        <Table.Column
-                            key="name"
-                            title="Store Name"
-                            dataIndex="name"
-                        />
-                        <Table.Column
-                            key="domain"
-                            title="Website Domain"
-                            dataIndex="domain"
-                        />
-                        <Table.Column
-                            key="mapping"
-                            title="Action"
-                            dataIndex="mapping"
-                            render={(value, record) => (
-                                <Button
-                                    disabled={!value}
-                                    loading={checkLoading(record.id)}
-                                    onClick={() =>
-                                        handleSubmitTask(record.id, record.name)
-                                    }
-                                >
-                                    Add to Tasks
-                                </Button>
-                            )}
-                            sorter={(a, b) =>
-                                Number(a.mapping) - Number(b.mapping)
-                            }
-                            defaultSortOrder="descend"
-                            sortDirections={['descend']}
-                            showSorterTooltip={{
-                                title: 'sort mappings store',
-                            }}
-                        />
-                    </Table>
-                </Space>
-            </div>
-        </div>
+                    />
+                </Table>
+            </Space>
+        </Wrapper>
     )
 }
 

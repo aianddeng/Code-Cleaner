@@ -2,6 +2,7 @@ const Xvfb = require('xvfb')
 const puppeteer = require('puppeteer')
 const Helpers = require('../helpers/index')
 const globalConfig = require('../config/config.local')
+
 class Scrapy {
     constructor(config, coupons, job, done) {
         this.backgroundPage = null
@@ -15,6 +16,7 @@ class Scrapy {
         this.fullCouponsLength = coupons.length
     }
 
+    // xvfb + chrome
     async createBrowser() {
         const xvfb = new Xvfb({
             reuse: true,
@@ -22,7 +24,7 @@ class Scrapy {
         })
         xvfb.start(err => err && console.log('Xvfb Error: ', err))
 
-        const browser = await puppeteer.launch({
+        this.browser = await puppeteer.launch({
             headless: globalConfig.headless,
             defaultViewport: null,
             args: [
@@ -33,28 +35,45 @@ class Scrapy {
             ],
         })
 
-        this.browser = browser
-    }
-
-    // 监听redux，当找到可用折扣码或扫描完折扣码时，触发console事件
-    async watchBackground() {
-        // 获取插件背景页
-        const backgroundPage = await this.browser
+        this.backgroundPage = await this.browser
             .targets()
             .find(target => target.type() === 'background_page')
             .page()
+    }
 
-        await Helpers.wait(0.5)
+    // extension load store
+    async extensionLoaded() {
+        await this.backgroundPage.waitForFunction(
+            async () =>
+                await new Promise(resolve => {
+                    const checkExtensionLoaded = () => {
+                        window &&
+                        window.controller &&
+                        window.controller.reduxStore &&
+                        window.controller.supportedStores
+                            ? resolve(true)
+                            : setTimeout(checkExtensionLoaded, 500)
+                    }
+                    setTimeout(checkExtensionLoaded, 500)
+                }),
+            {
+                timeout: globalConfig.timeout,
+            }
+        )
+    }
 
-        // 背景页执行以下程序
-        await backgroundPage.evaluate(() => {
-            const subscribeFunction = async () => {
+    // redux subscribe
+    async watchBackground() {
+        await this.backgroundPage.evaluate(() => {
+            const store = window.controller.reduxStore
+            store.subscribe(async () => {
                 // 获取当前标签页Id
                 const currentTabId = await new Promise(resolve => {
                     chrome.tabs.query({ active: true }, tabs => {
                         tabs && tabs.length && resolve(tabs[0].id)
                     })
                 })
+
                 // 当前标签页state
                 const currentTabData = store.getState().tabs[currentTabId]
                 if (currentTabData) {
@@ -92,20 +111,26 @@ class Scrapy {
                                             .curCouponIndex,
                                 })
                             )
+                        } else {
+                            console.log(
+                                JSON.stringify({
+                                    master: 'fatcoupon:clear-coupon',
+                                    storeId: currentTabData.storeId,
+                                    type: 'errorDone',
+                                    index:
+                                        currentTabData.applyPopup
+                                            .curCouponIndex,
+                                })
+                            )
                         }
                     }
                 }
-            }
-            // 订阅redux store
-            const store = window.controller.reduxStore
-            store.subscribe(subscribeFunction)
+            })
         })
-
-        this.backgroundPage = backgroundPage
     }
 
+    // console event
     async watchApplyCoupon() {
-        // 监听redux事件，更新Coupon状态
         this.backgroundPage.on('console', async msg => {
             const msgText = msg.text()
             if (
@@ -124,7 +149,14 @@ class Scrapy {
                     data.storeId === this.config.storeId &&
                     this.coupons.length
                 ) {
-                    if (data.type === 'applyDone') {
+                    if (data.type === 'errorDone') {
+                        console.log('errorDone')
+                        await this.browser.close()
+                        await this.job.fail(new Error('Not Finish Jobs'))
+                        await this.job.save()
+                        await this.done()
+                        return
+                    } else if (data.type === 'applyDone') {
                         const currentCoupon = this.coupons[data.index].code
                         const { invalidCoupons } = this.job.attrs.data
                         invalidCoupons.push(currentCoupon)
@@ -141,7 +173,10 @@ class Scrapy {
                         }
                         console.log(
                             `> (${
-                                this.fullCouponsLength - this.coupons.length + 1
+                                this.fullCouponsLength -
+                                this.coupons.length +
+                                data.index +
+                                1
                             }/${this.fullCouponsLength})`,
                             'Test Code:',
                             this.coupons[data.index].code
@@ -226,7 +261,6 @@ class Scrapy {
                 btn.click()
             }
         }, this.config.button)
-        await Helpers.wait(0.5)
     }
 
     async handleApplyCoupon() {
@@ -238,15 +272,20 @@ class Scrapy {
                     const checkStoreState = () => {
                         const ready = store
                             .getState()
-                            .stores.find(el => el.id === config.storeId).coupons
+                            .stores.find(el => el.id === config.storeId)
 
-                        if (ready) {
+                        if (ready && ready.coupons) {
+                            store
+                                .getState()
+                                .stores.find(
+                                    el => el.id === config.storeId
+                                ).coupons = config.coupons
+
                             resolve(true)
                         } else {
                             setTimeout(checkStoreState, 500)
                         }
                     }
-
                     setTimeout(checkStoreState, 500)
                 })
             },
@@ -254,20 +293,9 @@ class Scrapy {
                 timeout: globalConfig.timeout,
             },
             {
+                coupons: this.coupons,
                 storeId: this.config.storeId,
             }
-        )
-
-        // 替换掉店铺的折扣码
-        await this.backgroundPage.evaluate(
-            async config => {
-                const store = window.controller.reduxStore
-                store
-                    .getState()
-                    .stores.find(el => el.id === config.storeId).coupons =
-                    config.coupons
-            },
-            { coupons: this.coupons, storeId: this.config.storeId }
         )
 
         // 关闭其他页面（除了tab），打开新的页面
@@ -325,9 +353,11 @@ class Scrapy {
 
     async start() {
         try {
+            // 创建基于xvfb的浏览器，等待插件加载完成
             await this.createBrowser()
+            await this.extensionLoaded()
 
-            // 监听redux store变化，并推送到console -> 监听console，对code进行处理
+            // 监听redux store变化，通过console，对code进行处理
             await this.watchBackground()
             await this.watchApplyCoupon()
 
@@ -336,8 +366,8 @@ class Scrapy {
             await this.handleApplyCoupon()
         } catch (e) {
             console.log(`> Puppeteer Error: ${e.message}`)
-            await this.browser.close()
 
+            await this.browser.close()
             const store = new Scrapy(
                 this.config,
                 this.coupons,

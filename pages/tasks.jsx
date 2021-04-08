@@ -1,9 +1,11 @@
 import axios from 'axios'
-import moment, { invalid } from 'moment'
+import moment from 'moment'
 import useSWR, { mutate } from 'swr'
 import { useRef, useCallback } from 'react'
-import { Table, Button, message } from 'antd'
+import { Table, Button, message, Space } from 'antd'
 import useActionLoading from '../hooks/useActionLoading'
+import Head from 'next/head'
+import Wrapper from '../components/wrapper'
 
 const fetcher = async url => {
     const { data } = await axios.get('/api' + url)
@@ -44,129 +46,125 @@ const Tasks = ({ data: initialData }) => {
     }, [])
 
     return (
-        <div
-            style={{
-                padding: '12px',
-                // width: '100vw',
-                // minHeight: '100vh',
-                // display: 'flex',
-                // alignItems: 'center',
-                // justifyContent: 'center',
-            }}
-        >
-            <div
-                style={
-                    {
-                        // width: '1024px',
-                    }
-                }
+        <Wrapper>
+            <Head>
+                <title>Current Task List - Fatcoupon</title>
+            </Head>
+            <Table
+                dataSource={taskList}
+                rowKey="_id"
+                title={() => <h2>Task List</h2>}
+                pagination={{
+                    showSizeChanger: true,
+                    defaultPageSize: 10,
+                }}
+                scroll={{ y: 400 }}
+                bordered
             >
-                <Table
-                    dataSource={taskList}
-                    rowKey="_id"
-                    title={() => <h2>Task List</h2>}
-                    pagination={{
-                        showSizeChanger: true,
-                        defaultPageSize: 10,
-                    }}
-                    scroll={{ y: 400 }}
-                    bordered
-                >
-                    <Table.Column key="_id" title="ID" dataIndex="_id" />
-                    <Table.Column
-                        key="storeName"
-                        title="Store Name"
-                        dataIndex="storeName"
-                    />
-                    <Table.Column
-                        key="status"
-                        title="Task Status"
-                        dataIndex="status"
-                    />
-                    <Table.Column
-                        key="coupons"
-                        title="Coupons"
-                        dataIndex="coupons"
-                        render={(coupons, record) => {
-                            const validLength = record.validCoupons.length
-                            const invalidLength = record.invalidCoupons.length
-                            const allLength = coupons.length
+                <Table.Column key="_id" title="ID" dataIndex="_id" />
+                <Table.Column
+                    key="storeName"
+                    title="Store Name"
+                    dataIndex="storeName"
+                />
+                <Table.Column
+                    key="status"
+                    title="Task Status"
+                    dataIndex="status"
+                />
+                <Table.Column
+                    key="coupons"
+                    title="Coupons"
+                    dataIndex="coupons"
+                    render={(coupons, record) => {
+                        const validLength = record.validCoupons.length
+                        const invalidLength = record.invalidCoupons.length
+                        const allLength = coupons.length
 
-                            return validLength || invalidLength ? (
-                                <div>
-                                    <ul
+                        return validLength || invalidLength ? (
+                            <div>
+                                <ul
+                                    style={{
+                                        margin: 0,
+                                        padding: 0,
+                                    }}
+                                >
+                                    <li
                                         style={{
-                                            margin: 0,
-                                            padding: 0,
+                                            listStyle: 'none',
                                         }}
                                     >
-                                        <li
-                                            style={{
-                                                listStyle: 'none',
-                                            }}
-                                        >
-                                            All: {allLength}
-                                        </li>
-                                        <li
-                                            style={{
-                                                listStyle: 'none',
-                                            }}
-                                        >
-                                            Valid: {validLength}
-                                        </li>
-                                        <li
-                                            style={{
-                                                listStyle: 'none',
-                                            }}
-                                        >
-                                            Invalid: {invalidLength}
-                                        </li>
-                                    </ul>
-                                    <a>Manage coupons</a>
-                                </div>
-                            ) : (
-                                <div>
-                                    <ul
+                                        All: {allLength}
+                                    </li>
+                                    <li
                                         style={{
-                                            margin: 0,
-                                            padding: 0,
+                                            listStyle: 'none',
                                         }}
                                     >
-                                        <li
-                                            style={{
-                                                listStyle: 'none',
-                                            }}
-                                        >
-                                            All: {allLength}
-                                        </li>
-                                    </ul>
-                                </div>
-                            )
-                        }}
-                    />
-                    <Table.Column
-                        key="createdAt"
-                        title="Created Time"
-                        dataIndex="createdAt"
-                        render={value =>
-                            moment(value).format('YYYY-MM-DD HH:mm:ss')
-                        }
-                    />
-                    <Table.Column
-                        key="lastFinishedAt"
-                        title="Last Finished Time"
-                        dataIndex="lastFinishedAt"
-                        render={value =>
-                            value
-                                ? moment(value).format('YYYY-MM-DD HH:mm:ss')
-                                : '-'
-                        }
-                    />
-                    <Table.Column
-                        key="action"
-                        title="Action"
-                        dataIndex="_id"
-                        render={(value, record) => (
+                                        Valid: {validLength}
+                                    </li>
+                                    <li
+                                        style={{
+                                            listStyle: 'none',
+                                        }}
+                                    >
+                                        Invalid: {invalidLength}
+                                    </li>
+                                </ul>
+                                <a>Manage coupons</a>
+                            </div>
+                        ) : (
+                            <div>
+                                <ul
+                                    style={{
+                                        margin: 0,
+                                        padding: 0,
+                                    }}
+                                >
+                                    <li
+                                        style={{
+                                            listStyle: 'none',
+                                        }}
+                                    >
+                                        All: {allLength}
+                                    </li>
+                                </ul>
+                            </div>
+                        )
+                    }}
+                />
+                <Table.Column
+                    key="createdAt"
+                    title="Created Time"
+                    dataIndex="createdAt"
+                    render={value =>
+                        moment(value).format('YYYY-MM-DD HH:mm:ss')
+                    }
+                />
+                <Table.Column
+                    key="lastFinishedAt"
+                    title="Last Finished Time"
+                    dataIndex="lastFinishedAt"
+                    render={value =>
+                        value
+                            ? moment(value).format('YYYY-MM-DD HH:mm:ss')
+                            : '-'
+                    }
+                />
+                <Table.Column
+                    key="action"
+                    title="Action"
+                    dataIndex="_id"
+                    render={(value, record) => (
+                        <Space direction="vertical" align="start">
+                            <Button
+                                danger
+                                disabled={record.status === 'doing'}
+                                loading={checkLoading(value)}
+                                onClick={() => handleRemoveTask(value)}
+                            >
+                                Disable The Task
+                            </Button>
                             <Button
                                 danger
                                 disabled={record.status === 'doing'}
@@ -175,11 +173,11 @@ const Tasks = ({ data: initialData }) => {
                             >
                                 Remove The Task
                             </Button>
-                        )}
-                    />
-                </Table>
-            </div>
-        </div>
+                        </Space>
+                    )}
+                />
+            </Table>
+        </Wrapper>
     )
 }
 

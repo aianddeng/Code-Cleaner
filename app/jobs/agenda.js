@@ -14,9 +14,9 @@ agenda.on('ready', async () => {
     const jobs = await agenda.jobs({})
     const lockedJobs = jobs.filter(el => el.attrs.lockedAt)
     await Promise.all(
-        lockedJobs.map(async el => {
-            el.attrs.lockedAt = null
-            await el.save()
+        lockedJobs.map(async job => {
+            job.attrs.lockedAt = null
+            await job.save()
         })
     )
 
