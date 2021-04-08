@@ -3,7 +3,6 @@ const puppeteer = require('puppeteer')
 const Helpers = require('../helpers/index')
 const globalConfig = require('../config/config.local')
 class Scrapy {
-    // 初始化
     constructor(config, coupons, job, done) {
         this.backgroundPage = null
         this.lastMessage = null
@@ -12,27 +11,25 @@ class Scrapy {
         this.coupons = coupons
         this.job = job
         this.done = done
+
+        this.fullCouponsLength = coupons.length
     }
 
     async createBrowser() {
         const xvfb = new Xvfb({
+            reuse: true,
             silent: true,
-            xvfb_args: ['-screen', '0', '1280x720x24', '-ac'],
         })
-        xvfb.start(console.log)
+        xvfb.start(err => err && console.log('Xvfb Error: ', err))
 
         const browser = await puppeteer.launch({
             headless: globalConfig.headless,
-            defaultViewport: {
-                width: 0,
-                height: 0,
-            },
+            defaultViewport: null,
             args: [
                 '--disable-extensions-except=' + globalConfig.extensionPath,
                 '--load-extension=' + globalConfig.extensionPath,
-                '--no-sandbox',
-                '--start-fullscreen',
                 '--display=' + xvfb._display,
+                '--no-sandbox',
             ],
         })
 
@@ -143,7 +140,10 @@ class Scrapy {
                             await this.job.save()
                         }
                         console.log(
-                            'Test code: ',
+                            `> (${
+                                this.fullCouponsLength - this.coupons.length + 1
+                            }/${this.fullCouponsLength})`,
+                            'Test Code:',
                             this.coupons[data.index].code
                         )
                     } else if (data.type === 'applySuccess') {
@@ -180,7 +180,7 @@ class Scrapy {
     }
 
     // 打开产品页面，并添加产品
-    async addProduct() {
+    async handleAddProduct() {
         const page = await this.browser.newPage()
 
         // 拒绝请求多媒体资源，节省网络消耗
@@ -203,15 +203,23 @@ class Scrapy {
         // 打开产品页面
         await page.goto(this.config.product, {
             waitUntil: 'load',
-            timeout: 0,
+            timeout: globalConfig.timeout,
         })
-        await page.waitForSelector(this.config.button, {
-            visible: true,
-        })
+        await page.waitForSelector(
+            this.config.button,
+            {
+                visible: true,
+            },
+            {
+                timeout: globalConfig.timeout,
+            }
+        )
         await Helpers.wait(0.5)
 
         // 添加到购物车
-        await page.waitForSelector(this.config.button)
+        await page.waitForSelector(this.config.button, {
+            timeout: globalConfig.timeout,
+        })
         await page.evaluate(selector => {
             const btn = document.querySelector(selector)
             if (btn) {
@@ -243,7 +251,7 @@ class Scrapy {
                 })
             },
             {
-                timeout: 0,
+                timeout: globalConfig.timeout,
             },
             {
                 storeId: this.config.storeId,
@@ -292,10 +300,11 @@ class Scrapy {
         // 打开购物车
         await page.goto(this.config.cart, {
             waitUntil: 'domcontentloaded',
-            timeout: 0,
+            timeout: globalConfig.timeout,
         })
         await page.waitForSelector('#fatcoupon-root', {
             visible: true,
+            timeout: globalConfig.timeout,
         })
         await page.waitForFunction(
             () =>
@@ -303,7 +312,7 @@ class Scrapy {
                     .querySelector('#fatcoupon-root')
                     .shadowRoot.querySelector('.apply-coupon button'),
             {
-                timeout: 0,
+                timeout: globalConfig.timeout,
             }
         )
         await page.evaluate(() => {
@@ -312,70 +321,31 @@ class Scrapy {
                 .shadowRoot.querySelector('.apply-coupon button')
             button && button.click()
         })
-
-        // 开始扫描折扣码
-        // await page.waitForFunction(() => {
-        //     const handleClickButton = async () => {
-        //         const startBtn = document
-        //             .querySelector('#fatcoupon-root')
-        //             .shadowRoot.querySelector('.apply-coupon button')
-        //         if (startBtn) {
-        //             startBtn.click()
-        //         }
-
-        //         const restartBtn = document
-        //             .querySelector('#fatcoupon-root')
-        //             .shadowRoot.querySelector('.finished button')
-        //         if (restartBtn) {
-        //             console.log(
-        //                 JSON.stringify({
-        //                     master: 'fatcoupon:clear-coupon',
-        //                     type: 'reload',
-        //                 })
-        //             )
-        //         }
-
-        //         setTimeout(handleClickButton, 1000)
-        //     }
-
-        //     setTimeout(handleClickButton, 0)
-
-        //     return true
-        // })
-
-        // page.on('console', async msg => {
-        //     const msgText = msg.text()
-        //     if (msgText.includes('fatcoupon:clear-coupon')) {
-        //         let data = {}
-
-        //         try {
-        //             data = JSON.parse(msgText)
-        //         } catch {}
-
-        //         if (data.type === 'reload') {
-        //             await this.browser.close()
-        //             const store = new Scrapy(
-        //                 this.config,
-        //                 this.coupons,
-        //                 this.job,
-        //                 this.done
-        //             )
-        //             await store.start()
-        //         }
-        //     }
-        // })
     }
 
     async start() {
-        await this.createBrowser()
+        try {
+            await this.createBrowser()
 
-        // 监听redux store变化，并推送到console -> 监听console，对code进行处理
-        await this.watchBackground()
-        await this.watchApplyCoupon()
+            // 监听redux store变化，并推送到console -> 监听console，对code进行处理
+            await this.watchBackground()
+            await this.watchApplyCoupon()
 
-        // 添加产品到购物车，开始扫描
-        await this.addProduct()
-        await this.handleApplyCoupon()
+            // 添加产品到购物车，开始扫描
+            await this.handleAddProduct()
+            await this.handleApplyCoupon()
+        } catch (e) {
+            console.log(`> Puppeteer Error: ${e.message}`)
+            await this.browser.close()
+
+            const store = new Scrapy(
+                this.config,
+                this.coupons,
+                this.job,
+                this.done
+            )
+            await store.start()
+        }
     }
 }
 
