@@ -1,11 +1,12 @@
 import axios from 'axios'
 import moment from 'moment'
 import useSWR, { mutate } from 'swr'
-import { useRef, useCallback } from 'react'
+import { useRef, useState, useCallback } from 'react'
 import { Table, Button, message } from 'antd'
-import useActionLoading from '../hooks/useActionLoading'
 import Head from 'next/head'
-import Wrapper from '../components/wrapper'
+import Router from 'next/router'
+import useActionLoading from '../../hooks/useActionLoading'
+import Wrapper from '../../components/wrapper'
 
 const fetcher = async url => {
     const { data } = await axios.get('/api' + url)
@@ -16,9 +17,19 @@ const Tasks = ({ data: initialData }) => {
     const actionKey = useRef('removetask')
     const { checkLoading, pushLoading, popLoading } = useActionLoading()
 
+    const [loading, dispatchLoading] = useState(false)
+
+    const redirect = useCallback(async path => {
+        if (!loading) {
+            dispatchLoading(true)
+            await Router.push(path)
+            dispatchLoading(false)
+        }
+    })
+
     const { data: taskList } = useSWR('/tasks', fetcher, {
         initialData,
-        refreshInterval: 2000,
+        refreshInterval: 1000,
     })
 
     const handleRemoveTask = useCallback(async taskId => {
@@ -44,10 +55,31 @@ const Tasks = ({ data: initialData }) => {
         mutate('/tasks')
     }, [])
 
+    const handleDisableTask = useCallback(async taskId => {
+        pushLoading(taskId)
+        message.loading({
+            content: 'Waiting...',
+            duration: 0,
+            key: actionKey.current,
+        })
+
+        await axios.post('/api/tasks', {
+            taskId,
+        })
+
+        message.success({
+            content: `Switch the task: ${taskId}`,
+            duration: 2.5,
+            key: actionKey.current,
+        })
+        popLoading(taskId)
+        mutate('/tasks')
+    }, [])
+
     return (
         <Wrapper>
             <Head>
-                <title>Current Task List - Fatcoupon</title>
+                <title>Task List - Fatcoupon</title>
             </Head>
             <Table
                 dataSource={taskList}
@@ -57,6 +89,7 @@ const Tasks = ({ data: initialData }) => {
                     showSizeChanger: true,
                     defaultPageSize: 10,
                 }}
+                bordered
                 scroll={{ y: 400, x: 800 }}
                 sticky
             >
@@ -161,9 +194,8 @@ const Tasks = ({ data: initialData }) => {
                                     margin: '4px 0px',
                                 }}
                                 type="primary"
-                                disabled={record.status === 'doing'}
                                 loading={checkLoading(value)}
-                                onClick={() => handleRemoveTask(value)}
+                                onClick={() => redirect('/tasks/' + value)}
                             >
                                 Manage
                             </Button>
@@ -172,11 +204,10 @@ const Tasks = ({ data: initialData }) => {
                                 style={{
                                     margin: '4px 0px',
                                 }}
-                                disabled={record.status === 'doing'}
                                 loading={checkLoading(value)}
-                                onClick={() => handleRemoveTask(value)}
+                                onClick={() => handleDisableTask(value)}
                             >
-                                Disable
+                                {record.disabled ? 'Continue' : 'Disable'}
                             </Button>
                             <Button
                                 block
@@ -184,7 +215,6 @@ const Tasks = ({ data: initialData }) => {
                                 style={{
                                     margin: '4px 0px',
                                 }}
-                                disabled={record.status === 'doing'}
                                 loading={checkLoading(value)}
                                 onClick={() => handleRemoveTask(value)}
                             >

@@ -8,9 +8,11 @@ const Wrapper = ({ children, router }) => {
     const [loading, dispatchLoading] = useState(false)
 
     const redirect = useCallback(async path => {
-        dispatchLoading(true)
-        await Router.push(path)
-        dispatchLoading(false)
+        if (!loading) {
+            dispatchLoading(true)
+            await Router.push(path)
+            dispatchLoading(false)
+        }
     })
 
     return (
@@ -27,17 +29,17 @@ const Wrapper = ({ children, router }) => {
                     <Menu.Item onClick={() => redirect('/tasks')} key="/tasks">
                         Task List
                     </Menu.Item>
-                    <Menu.Item key="3">Other Page</Menu.Item>
                 </Menu>
             </Header>
             <Content style={{ padding: '0 50px' }}>
                 <Breadcrumb style={{ margin: '16px 0' }}>
-                    <Breadcrumb.Item>Home</Breadcrumb.Item>
-                    <Breadcrumb.Item>List</Breadcrumb.Item>
+                    <Breadcrumb.Item>FatCoupon</Breadcrumb.Item>
+                    <Breadcrumb.Item>Clear Invalid Code</Breadcrumb.Item>
                     <Breadcrumb.Item>App</Breadcrumb.Item>
                 </Breadcrumb>
                 <Layout>
                     <Content style={{ padding: '0 24px', minHeight: 280 }}>
+                        <Skeleton loading={loading} active />
                         <Skeleton loading={loading} active>
                             {children}
                         </Skeleton>

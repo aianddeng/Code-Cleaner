@@ -47,32 +47,40 @@ module.exports = agenda => {
     )
 
     agenda.on('start:clearCoupon', async job => {
-        job.attrs.data.status = 'doing'
-        job.attrs.data.validCoupons = Array.from(
-            new Set(job.attrs.data.validCoupons)
-        )
-        job.attrs.data.invalidCoupons = Array.from(
-            new Set(job.attrs.data.invalidCoupons)
-        )
+        const data = job.attrs.data
+        data.status = 'doing'
+        data.validCoupons = Array.from(new Set(data.validCoupons))
+        data.invalidCoupons = Array.from(new Set(data.invalidCoupons))
         await job.save()
 
-        console.log(
-            `Task <${job.attrs.data.storeName}> (${job.attrs._id}) starting`
-        )
+        console.log(`Task <${data.storeName}> (${job.attrs._id}) starting`)
     })
 
     agenda.on('complete:clearCoupon', async job => {
-        job.attrs.data.status = 'finished'
-        job.attrs.data.validCoupons = Array.from(
-            new Set(job.attrs.data.validCoupons)
-        )
-        job.attrs.data.invalidCoupons = Array.from(
-            new Set(job.attrs.data.invalidCoupons)
-        )
+        const data = job.attrs.data
+        data.validCoupons = Array.from(new Set(data.validCoupons))
+        data.invalidCoupons = Array.from(new Set(data.invalidCoupons))
+        if (
+            data.invalidCoupons.length + data.validCoupons.length ===
+            data.coupons.length
+        ) {
+            data.status = 'finished'
+        } else {
+            await job.disable()
+            data.status = 'noFinished'
+        }
         await job.save()
 
-        console.log(
-            `Task <${job.attrs.data.storeName}> (${job.attrs._id}) finished`
-        )
+        console.log(`Task <${data.storeName}> (${job.attrs._id}) finished`)
     })
+
+    agenda.on('success:clearCoupon', async job => {
+        console.log('success:clearCoupon')
+    })
+
+    agenda.on('fail:clearCoupon', async job => {
+        console.log('fail:clearCoupon')
+    })
+
+    return agenda
 }

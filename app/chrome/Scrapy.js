@@ -2,6 +2,7 @@ const Xvfb = require('xvfb')
 const puppeteer = require('puppeteer')
 const Helpers = require('../helpers/index')
 const globalConfig = require('../config/config.local')
+const ObjectID = require('mongodb').ObjectID
 
 class Scrapy {
     constructor(config, coupons, job, done) {
@@ -14,6 +15,35 @@ class Scrapy {
         this.done = done
 
         this.fullCouponsLength = coupons.length
+    }
+
+    async watchJobStatus() {
+        return new Promise(resolve => {
+            const agenda = require('../jobs/agenda')
+
+            const checkJob = async () => {
+                const [job] = await agenda.jobs({
+                    _id: ObjectID(this.job.attrs._id),
+                })
+                if (
+                    !job ||
+                    job.attrs.disabled ||
+                    !job.attrs.lockedAt ||
+                    !this.browser
+                ) {
+                    console.log(
+                        '> Error: Job Not Found or Job Is Finished/Disabled'
+                    )
+                    this.browser && (await this.browser.close())
+                    await this.done()
+                    resolve(true)
+                } else {
+                    setTimeout(checkJob, 2000)
+                }
+            }
+
+            setTimeout(checkJob, 0)
+        })
     }
 
     // xvfb + chrome
@@ -77,52 +107,42 @@ class Scrapy {
                 // 当前标签页state
                 const currentTabData = store.getState().tabs[currentTabId]
                 if (currentTabData) {
-                    // 输出当前及成功应用的索引
-                    if ([4, 5].includes(currentTabData.phase)) {
-                        if (currentTabData.applyPopup.curCouponIndex > -1) {
-                            console.log(
-                                JSON.stringify({
-                                    master: 'fatcoupon:clear-coupon',
-                                    storeId: currentTabData.storeId,
-                                    type:
-                                        currentTabData.phase === 4
-                                            ? 'applying'
-                                            : 'applySuccess',
-                                    index:
-                                        currentTabData.applyPopup
-                                            .curCouponIndex,
-                                })
-                            )
-                        }
-                    } else if (currentTabData.phase === 6) {
-                        // 折扣码全部扫描完成，结束程序
+                    if (currentTabData.phase === 4) {
+                        const codeMatch = currentTabData.applyPopup.code.match(
+                            /fatcoupon:(\w+?):(.+)/
+                        )
                         if (
-                            currentTabData.applyPopup.curCouponIndex >= 0 &&
-                            currentTabData.applyPopup.curCouponIndex + 1 ===
-                                currentTabData.couponsAmount
+                            codeMatch &&
+                            currentTabData.applyPopup.curCouponIndex > -1
                         ) {
                             console.log(
                                 JSON.stringify({
                                     master: 'fatcoupon:clear-coupon',
                                     storeId: currentTabData.storeId,
-                                    type: 'applyDone',
-                                    index:
-                                        currentTabData.applyPopup
-                                            .curCouponIndex,
-                                })
-                            )
-                        } else {
-                            console.log(
-                                JSON.stringify({
-                                    master: 'fatcoupon:clear-coupon',
-                                    storeId: currentTabData.storeId,
-                                    type: 'errorDone',
-                                    index:
-                                        currentTabData.applyPopup
-                                            .curCouponIndex,
+                                    type:
+                                        codeMatch[1] === 'valid'
+                                            ? 'applySuccess'
+                                            : 'applyFailed',
+                                    code: codeMatch[2],
                                 })
                             )
                         }
+                    } else if (currentTabData.phase === 5) {
+                        console.log(
+                            JSON.stringify({
+                                master: 'fatcoupon:clear-coupon',
+                                storeId: currentTabData.storeId,
+                                type: 'applyDone',
+                            })
+                        )
+                    } else if (currentTabData.phase === 6) {
+                        console.log(
+                            JSON.stringify({
+                                master: 'fatcoupon:clear-coupon',
+                                storeId: currentTabData.storeId,
+                                type: 'errorDone',
+                            })
+                        )
                     }
                 }
             })
@@ -138,63 +158,16 @@ class Scrapy {
                 this.lastMessage !== msgText
             ) {
                 this.lastMessage = msgText
+                const data = JSON.parse(msgText)
 
-                let data = {}
-
-                try {
-                    data = JSON.parse(msgText)
-                } catch {}
-
-                if (
-                    data.storeId === this.config.storeId &&
-                    this.coupons.length
-                ) {
+                if (data.storeId === this.config.storeId) {
                     if (data.type === 'errorDone') {
-                        console.log('errorDone')
-                        await this.browser.close()
-                        await this.job.fail(new Error('Not Finish Jobs'))
-                        await this.job.save()
+                        console.log('Error: exit 1')
+                        this.browser && (await this.browser.close())
                         await this.done()
                         return
                     } else if (data.type === 'applyDone') {
-                        const currentCoupon = this.coupons[data.index].code
-                        const { invalidCoupons } = this.job.attrs.data
-                        invalidCoupons.push(currentCoupon)
-                        await this.job.save()
-
-                        this.coupons.splice(0, data.index + 1)
-                    } else if (data.type === 'applying') {
-                        if (data.index) {
-                            const currentCoupon = this.coupons[data.index - 1]
-                                .code
-                            const { invalidCoupons } = this.job.attrs.data
-                            invalidCoupons.push(currentCoupon)
-                            await this.job.save()
-                        }
-                        console.log(
-                            `> (${
-                                this.fullCouponsLength -
-                                this.coupons.length +
-                                data.index +
-                                1
-                            }/${this.fullCouponsLength})`,
-                            'Test Code:',
-                            this.coupons[data.index].code
-                        )
-                    } else if (data.type === 'applySuccess') {
-                        const currentCoupon = this.coupons[data.index].code
-                        const { validCoupons } = this.job.attrs.data
-                        validCoupons.push(currentCoupon)
-                        await this.job.save()
-
-                        // continue
-                        this.coupons.splice(0, data.index + 1)
-                        if (this.coupons.length) await this.handleApplyCoupon()
-                    }
-
-                    // over the process
-                    if (data.type === 'applyDone' || !this.coupons.length) {
-                        await this.browser.close()
+                        this.browser && (await this.browser.close())
 
                         const {
                             coupons,
@@ -208,13 +181,25 @@ class Scrapy {
                         ) {
                             await this.done()
                         }
+                    } else if (data.type === 'applyFailed') {
+                        if (data.code) {
+                            const currentCoupon = data.code
+                            const { invalidCoupons } = this.job.attrs.data
+                            invalidCoupons.push(currentCoupon)
+                            await this.job.save()
+                        }
+                    } else if (data.type === 'applySuccess') {
+                        const currentCoupon = data.code
+                        const { validCoupons } = this.job.attrs.data
+                        validCoupons.push(currentCoupon)
+                        await this.job.save()
                     }
                 }
             }
         })
     }
 
-    // 打开产品页面，并添加产品
+    // open product page and add to cart
     async handleAddProduct() {
         const page = await this.browser.newPage()
 
@@ -364,10 +349,12 @@ class Scrapy {
             // 添加产品到购物车，开始扫描
             await this.handleAddProduct()
             await this.handleApplyCoupon()
+
+            this.watchJobStatus()
         } catch (e) {
             console.log(`> Puppeteer Error: ${e.message}`)
 
-            await this.browser.close()
+            this.browser && (await this.browser.close())
             const store = new Scrapy(
                 this.config,
                 this.coupons,

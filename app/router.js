@@ -10,22 +10,45 @@ const router = new Router({
     prefix: '/api',
 })
 
-router.get('/tasks', async ctx => {
+router.get('/coupons/:id', async (ctx, next) => {
+    const [job] = await agenda.jobs({
+        name: 'clearCoupon',
+        _id: ObjectID(ctx.params.id),
+    })
+
+    if (job) {
+        ctx.body = {
+            _id: job.attrs._id,
+            disabled: job.attrs.disabled,
+            lastFinishedAt: job.attrs.lastFinishedAt,
+            ...job.attrs.data,
+        }
+    } else {
+        await next()
+    }
+})
+
+router.get('/tasks', async (ctx, next) => {
     const jobs = await agenda.jobs(
         { name: 'clearCoupon' },
         { _id: -1, nextRunAt: 1, priority: -1 }
     )
-    const attrs = jobs.map(el => el.attrs)
-    const datas = attrs.map(el => ({
-        _id: el._id,
-        ...el.data,
-        lastFinishedAt: el.lastFinishedAt,
-    }))
+    if (jobs.length) {
+        const attrs = jobs.map(el => el.attrs)
+        const datas = attrs.map(el => ({
+            _id: el._id,
+            disabled: el.disabled,
+            lastFinishedAt: el.lastFinishedAt,
+            ...el.data,
+        }))
 
-    ctx.body = datas
+        ctx.body = datas
+    } else {
+        await next()
+    }
 })
 
-router.put('/tasks', async ctx => {
+router.put('/tasks', async (ctx, next) => {
     const body = ctx.request.body
     if (body && body.storeId && body.storeName) {
         const coupons = await Coupon.find(body.storeId)
@@ -51,7 +74,27 @@ router.put('/tasks', async ctx => {
     }
 })
 
-router.delete('/tasks', async ctx => {
+router.post('/tasks', async (ctx, next) => {
+    const body = ctx.request.body
+    if (body && body.taskId) {
+        const [job] = await agenda.jobs({ _id: ObjectID(body.taskId) })
+        if (job) {
+            if (job.attrs.disabled) {
+                await job.enable()
+                job.attrs.data.status = 'waiting'
+            } else {
+                await job.disable()
+                job.attrs.data.status = 'disabled'
+            }
+            job.save()
+            ctx.body = { status: 'success' }
+        }
+    } else {
+        await next()
+    }
+})
+
+router.delete('/tasks', async (ctx, next) => {
     const body = ctx.request.body
     if (body && body.taskId) {
         const count = await agenda.cancel({ _id: ObjectID(body.taskId) })
@@ -62,7 +105,7 @@ router.delete('/tasks', async ctx => {
     }
 })
 
-router.get('/stores', async ctx => {
+router.get('/stores', async (ctx, next) => {
     const { data } = await axios.get(
         'https://apis.fatcoupon.com/api/extension/stores'
     )
@@ -85,7 +128,7 @@ router.get('/stores', async ctx => {
     }
 })
 
-router.get('/stores/:id', async ctx => {
+router.get('/stores/:id', async (ctx, next) => {
     const { data } = await axios.get(
         'https://apis.fatcoupon.com/stores/' + ctx.params.id
     )

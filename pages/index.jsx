@@ -59,7 +59,7 @@ const Index = ({ stores }) => {
     return (
         <Wrapper>
             <Head>
-                <title>Clear Code Task Store List - Fatcoupon</title>
+                <title>Store List - Fatcoupon</title>
             </Head>
             <Input.Search
                 placeholder="Search Now"
