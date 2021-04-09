@@ -2,7 +2,7 @@ import axios from 'axios'
 import moment from 'moment'
 import useSWR, { mutate } from 'swr'
 import { useRef, useCallback } from 'react'
-import { Table, Button, message, Space } from 'antd'
+import { Table, Button, message } from 'antd'
 import useActionLoading from '../hooks/useActionLoading'
 import Head from 'next/head'
 import Wrapper from '../components/wrapper'
@@ -34,7 +34,6 @@ const Tasks = ({ data: initialData }) => {
                 taskId,
             },
         })
-        await new Promise(resolve => setTimeout(resolve, 800))
 
         message.success({
             content: `Remove the task: ${taskId}`,
@@ -58,8 +57,8 @@ const Tasks = ({ data: initialData }) => {
                     showSizeChanger: true,
                     defaultPageSize: 10,
                 }}
-                scroll={{ y: 400 }}
-                bordered
+                scroll={{ y: 400, x: 800 }}
+                sticky
             >
                 <Table.Column key="_id" title="ID" dataIndex="_id" />
                 <Table.Column
@@ -111,7 +110,6 @@ const Tasks = ({ data: initialData }) => {
                                         Invalid: {invalidLength}
                                     </li>
                                 </ul>
-                                <a>Manage coupons</a>
                             </div>
                         ) : (
                             <div>
@@ -156,25 +154,45 @@ const Tasks = ({ data: initialData }) => {
                     title="Action"
                     dataIndex="_id"
                     render={(value, record) => (
-                        <Space direction="vertical" align="start">
+                        <div>
                             <Button
-                                danger
+                                block
+                                style={{
+                                    margin: '4px 0px',
+                                }}
+                                type="primary"
                                 disabled={record.status === 'doing'}
                                 loading={checkLoading(value)}
                                 onClick={() => handleRemoveTask(value)}
                             >
-                                Disable The Task
+                                Manage
                             </Button>
                             <Button
-                                danger
+                                block
+                                style={{
+                                    margin: '4px 0px',
+                                }}
                                 disabled={record.status === 'doing'}
                                 loading={checkLoading(value)}
                                 onClick={() => handleRemoveTask(value)}
                             >
-                                Remove The Task
+                                Disable
                             </Button>
-                        </Space>
+                            <Button
+                                block
+                                danger
+                                style={{
+                                    margin: '4px 0px',
+                                }}
+                                disabled={record.status === 'doing'}
+                                loading={checkLoading(value)}
+                                onClick={() => handleRemoveTask(value)}
+                            >
+                                Remove
+                            </Button>
+                        </div>
                     )}
+                    fixed="right"
                 />
             </Table>
         </Wrapper>
