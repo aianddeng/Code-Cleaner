@@ -62,6 +62,8 @@ class Scrapy {
                 '--load-extension=' + globalConfig.extensionPath,
                 '--display=' + xvfb._display,
                 '--no-sandbox',
+                '--hide-scrollbars',
+                '--disable-blink-features=AutomationControlled',
             ],
         })
 
@@ -160,41 +162,33 @@ class Scrapy {
                 this.lastMessage = msgText
                 const data = JSON.parse(msgText)
 
+                const currentCoupon = data.code
+                const { coupons } = this.job.attrs.data
+
                 if (data.storeId === this.config.storeId) {
-                    if (data.type === 'errorDone') {
-                        console.log('Error: exit 1')
+                    if (
+                        data.type === 'errorDone' ||
+                        data.type === 'applyDone'
+                    ) {
                         this.browser && (await this.browser.close())
+
                         await this.done()
-                        return
-                    } else if (data.type === 'applyDone') {
-                        this.browser && (await this.browser.close())
-
-                        const {
-                            coupons,
-                            validCoupons,
-                            invalidCoupons,
-                        } = this.job.attrs.data
-
-                        if (
-                            coupons.length ===
-                            validCoupons.length + invalidCoupons.length
-                        ) {
-                            await this.done()
-                        }
                     } else if (data.type === 'applyFailed') {
-                        if (data.code) {
-                            const currentCoupon = data.code
-                            const { invalidCoupons } = this.job.attrs.data
-                            invalidCoupons.push(currentCoupon)
-                            await this.job.save()
-                        }
+                        coupons.find(
+                            el =>
+                                el.code.toUpperCase() ===
+                                currentCoupon.toUpperCase()
+                        ).validStatus = -1
                     } else if (data.type === 'applySuccess') {
-                        const currentCoupon = data.code
-                        const { validCoupons } = this.job.attrs.data
-                        validCoupons.push(currentCoupon)
-                        await this.job.save()
+                        coupons.find(
+                            el =>
+                                el.code.toUpperCase() ===
+                                currentCoupon.toUpperCase()
+                        ).validStatus = 1
                     }
                 }
+
+                await this.job.save()
             }
         })
     }
@@ -202,6 +196,53 @@ class Scrapy {
     // open product page and add to cart
     async handleAddProduct() {
         const page = await this.browser.newPage()
+        await page.setUserAgent(
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36 Edg/89.0.774.68'
+        )
+        await page.evaluate(() => {
+            Object.defineProperties(navigator, {
+                webdriver: {
+                    get: () => false,
+                },
+            })
+        })
+        await page.evaluateOnNewDocument(() => {
+            const newProto = navigator.__proto__
+            delete newProto.webdriver
+            navigator.__proto__ = newProto
+            window.chrome = {}
+            window.chrome.app = {
+                InstallState: 'hehe',
+                RunningState: 'haha',
+                getDetails: 'xixi',
+                getIsInstalled: 'ohno',
+            }
+            window.chrome.csi = function () {}
+            window.chrome.loadTimes = function () {}
+            window.chrome.runtime = function () {}
+            Object.defineProperty(navigator, 'userAgent', {
+                get: () =>
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36',
+            })
+            Object.defineProperty(navigator, 'plugins', {
+                get: () => [
+                    {
+                        description: 'Portable Document Format',
+                        filename: 'internal-pdf-viewer',
+                        length: 1,
+                        name: 'Chrome PDF Plugin',
+                    },
+                ],
+            })
+            Object.defineProperty(navigator, 'languages', {
+                get: () => ['en-US', 'en'],
+            })
+            const originalQuery = window.navigator.permissions.query
+            window.navigator.permissions.query = parameters =>
+                parameters.name === 'notifications'
+                    ? Promise.resolve({ state: Notification.permission })
+                    : originalQuery(parameters)
+        })
 
         // 拒绝请求多媒体资源，节省网络消耗
         await page.setRequestInterception(true)
@@ -219,6 +260,7 @@ class Scrapy {
                 req.continue()
             }
         })
+        await Helpers.wait(0.5)
 
         // 打开产品页面
         await page.goto(this.config.product, {
@@ -246,6 +288,7 @@ class Scrapy {
                 btn.click()
             }
         }, this.config.button)
+        await Helpers.wait(0.5)
     }
 
     async handleApplyCoupon() {
@@ -294,6 +337,53 @@ class Scrapy {
 
         // 拒绝请求多媒体资源，节省网络消耗
         const page = await this.browser.newPage()
+        await page.setUserAgent(
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36 Edg/89.0.774.68'
+        )
+        await page.evaluate(() => {
+            Object.defineProperties(navigator, {
+                webdriver: {
+                    get: () => false,
+                },
+            })
+        })
+        await page.evaluateOnNewDocument(() => {
+            const newProto = navigator.__proto__
+            delete newProto.webdriver
+            navigator.__proto__ = newProto
+            window.chrome.app = {
+                InstallState: 'hehe',
+                RunningState: 'haha',
+                getDetails: 'xixi',
+                getIsInstalled: 'ohno',
+            }
+            window.chrome.csi = function () {}
+            window.chrome.loadTimes = function () {}
+            window.chrome.runtime = function () {}
+            window.chrome.getUserMedia = function () {}
+            Object.defineProperty(navigator, 'userAgent', {
+                get: () =>
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36',
+            })
+            Object.defineProperty(navigator, 'plugins', {
+                get: () => [
+                    {
+                        description: 'Portable Document Format',
+                        filename: 'internal-pdf-viewer',
+                        length: 1,
+                        name: 'Chrome PDF Plugin',
+                    },
+                ],
+            })
+            Object.defineProperty(navigator, 'languages', {
+                get: () => ['en-US', 'en'],
+            })
+            const originalQuery = window.navigator.permissions.query
+            window.navigator.permissions.query = parameters =>
+                parameters.name === 'notifications'
+                    ? Promise.resolve({ state: Notification.permission })
+                    : originalQuery(parameters)
+        })
         await page.setRequestInterception(true)
         page.on('request', req => {
             if (
@@ -312,7 +402,7 @@ class Scrapy {
 
         // 打开购物车
         await page.goto(this.config.cart, {
-            waitUntil: 'domcontentloaded',
+            waitUntil: 'load',
             timeout: globalConfig.timeout,
         })
         await page.waitForSelector('#fatcoupon-root', {

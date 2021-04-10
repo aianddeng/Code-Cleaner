@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect } from 'react'
-import { Card, Avatar, Space, Button, Result } from 'antd'
+import { Card, Space, Button, Result, Skeleton } from 'antd'
 import { SmileOutlined } from '@ant-design/icons'
-import { withRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import axios from 'axios'
-import useSWR, { mutate } from 'swr'
+import useSWR from 'swr'
 import Wrapper from '../../components/wrapper'
 
 const fetcher = async url => {
@@ -11,88 +11,76 @@ const fetcher = async url => {
     return data
 }
 
-const TaskManage = ({ data: initialData, router }) => {
+const TaskManage = ({ data: initialData }) => {
+    const router = useRouter()
+
     const [tab, dispatchTab] = useState({
         key: 'All',
     })
 
-    const { data } = useSWR('/coupons/' + router.query.id, fetcher, {
+    const [coupons, dispatchCoupons] = useState([])
+
+    const { data } = useSWR('/tasks/' + router.query.id, fetcher, {
         initialData,
         refreshInterval: 1000,
     })
 
-    const [coupons, dispatchCoupons] = useState([])
+    useEffect(() => {
+        handleTabChange(tab.key)
+    }, [data])
 
     const handleTabChange = useCallback(
         key => {
             dispatchTab({ key })
 
             if (key === 'All') {
-                dispatchCoupons([
-                    ...data.coupons
-                        .slice()
-                        .filter(el => data.validCoupons.includes(el.code)),
-                    ...data.coupons
-                        .slice()
-                        .filter(el => data.invalidCoupons.includes(el.code)),
-                    ...data.coupons
-                        .slice()
-                        .filter(
-                            el =>
-                                ![
-                                    ...data.validCoupons,
-                                    ...data.invalidCoupons,
-                                ].includes(el.code)
-                        ),
-                ])
-            } else if (key === 'Valid') {
                 dispatchCoupons(
                     data.coupons
                         .slice()
-                        .filter(el => data.validCoupons.includes(el.code))
+                        .sort(
+                            (a, b) =>
+                                (b.validStatus || 0) - (a.validStatus || 0)
+                        )
+                )
+            } else if (key === 'Valid') {
+                dispatchCoupons(
+                    data.coupons.slice().filter(el => el.validStatus === 1)
                 )
             } else if (key === 'Invalid') {
                 dispatchCoupons(
-                    data.coupons
-                        .slice()
-                        .filter(el => data.invalidCoupons.includes(el.code))
+                    data.coupons.slice().filter(el => el.validStatus === -1)
                 )
-            } else if (key === 'Waiting') {
+            } else if (key === 'Repeat') {
+                const couponsSlice = data.coupons.slice().map(el => el.code)
+
+                const repeatCoupons = couponsSlice.filter(
+                    code =>
+                        couponsSlice.indexOf(code) !==
+                        couponsSlice.lastIndexOf(code)
+                )
+
                 dispatchCoupons(
                     data.coupons
                         .slice()
-                        .filter(
-                            el =>
-                                ![
-                                    ...data.validCoupons,
-                                    ...data.invalidCoupons,
-                                ].includes(el.code)
-                        )
+                        .filter(el => repeatCoupons.includes(el.code))
+                        .sort((a, b) => {
+                            if (a.code < b.code) {
+                                return -1
+                            }
+                            if (a.code > b.code) {
+                                return 1
+                            }
+                            return 0
+                        })
+                )
+            } else {
+                dispatchCoupons(
+                    data.coupons.slice().filter(el => !el.validStatus)
                 )
             }
         },
         [coupons]
     )
-
-    useEffect(() => {
-        dispatchCoupons([
-            ...data.coupons
-                .slice()
-                .filter(el => data.validCoupons.includes(el.code)),
-            ...data.coupons
-                .slice()
-                .filter(el => data.invalidCoupons.includes(el.code)),
-            ...data.coupons
-                .slice()
-                .filter(
-                    el =>
-                        ![
-                            ...data.validCoupons,
-                            ...data.invalidCoupons,
-                        ].includes(el.code)
-                ),
-        ])
-    }, [data])
 
     return (
         <Wrapper>
@@ -105,6 +93,7 @@ const TaskManage = ({ data: initialData, router }) => {
                     { key: 'Valid', tab: 'Valid' },
                     { key: 'Invalid', tab: 'Invalid' },
                     { key: 'Waiting', tab: 'Waiting' },
+                    { key: 'Repeat', tab: 'Repeat' },
                 ]}
                 activeTabKey={tab.key}
                 onTabChange={key => handleTabChange(key)}
@@ -115,17 +104,27 @@ const TaskManage = ({ data: initialData, router }) => {
                             <Card
                                 style={{
                                     width: 300,
-                                    border: data.validCoupons.includes(el.code)
-                                        ? '1px solid #00bbb866'
-                                        : data.invalidCoupons.includes(el.code)
-                                        ? '1px solid #c71a7166'
-                                        : '1px solid #cccccc66',
+                                    border:
+                                        el.validStatus === 1
+                                            ? '1px solid #1890ff'
+                                            : el.validStatus === -1
+                                            ? '1px solid #ff4d4f'
+                                            : '1px solid #cccccc88',
                                 }}
                                 hoverable
                                 size="default"
+                                key={el.id}
                                 actions={[
-                                    <Button>Disable</Button>,
-                                    <Button danger>Delete</Button>,
+                                    <Button>Manage</Button>,
+                                    <Button disabled={el.validStatus}>
+                                        Disable
+                                    </Button>,
+                                    <Button
+                                        danger
+                                        disabled={el.validStatus === 1}
+                                    >
+                                        Delete
+                                    </Button>,
                                 ]}
                             >
                                 <Card.Meta
@@ -137,7 +136,9 @@ const TaskManage = ({ data: initialData, router }) => {
                                                 wordBreak: 'hyphenate',
                                             }}
                                         >
-                                            {el.description}
+                                            {el.description
+                                                ? el.description.trim()
+                                                : 'FatCoupon Code'}
                                         </p>
                                     }
                                 />
@@ -146,7 +147,6 @@ const TaskManage = ({ data: initialData, router }) => {
                     </Space>
                 ) : (
                     <Result
-                        style={{ margin: 'auto', width: '100%' }}
                         icon={<SmileOutlined />}
                         title="Great, we have done all the coupons!"
                         extra={<Button type="primary">Back</Button>}
@@ -159,7 +159,7 @@ const TaskManage = ({ data: initialData, router }) => {
 
 export const getServerSideProps = async context => {
     const taskId = context.query.id
-    const { data } = await axios.get('/api/coupons/' + taskId)
+    const { data } = await axios.get('/api/tasks/' + taskId)
 
     return {
         props: {
@@ -168,4 +168,4 @@ export const getServerSideProps = async context => {
     }
 }
 
-export default withRouter(TaskManage)
+export default TaskManage

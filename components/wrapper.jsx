@@ -1,53 +1,68 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Layout, Menu, Breadcrumb, Skeleton } from 'antd'
-import Router, { withRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 
 const { Header, Content } = Layout
 
-const Wrapper = ({ children, router }) => {
+const Wrapper = ({ children }) => {
+    const router = useRouter()
+
     const [loading, dispatchLoading] = useState(false)
 
-    const redirect = useCallback(async path => {
-        if (!loading) {
+    const handleRedirect = useCallback(async path => {
+        if (!loading && path !== router.route) {
             dispatchLoading(true)
             await Router.push(path)
-            dispatchLoading(false)
         }
     })
 
+    useEffect(() => {
+        console.log(loading)
+    }, [loading])
+
     return (
         <Layout style={{ minHeight: '100vh' }}>
-            <Header className="header">
+            <Header
+                className="header"
+                style={{ position: 'fixed', zIndex: 1, width: '100%' }}
+            >
                 <Menu
                     theme="dark"
                     mode="horizontal"
                     defaultSelectedKeys={[router.route]}
                 >
-                    <Menu.Item onClick={() => redirect('/')} key="/">
+                    <Menu.Item onClick={() => handleRedirect('/')} key="/">
                         Store List
                     </Menu.Item>
-                    <Menu.Item onClick={() => redirect('/tasks')} key="/tasks">
+                    <Menu.Item
+                        onClick={() => handleRedirect('/tasks')}
+                        key="/tasks"
+                    >
                         Task List
                     </Menu.Item>
                 </Menu>
             </Header>
-            <Content style={{ padding: '0 50px' }}>
+            <Content style={{ padding: '0 50px', marginTop: 64 }}>
                 <Breadcrumb style={{ margin: '16px 0' }}>
                     <Breadcrumb.Item>FatCoupon</Breadcrumb.Item>
                     <Breadcrumb.Item>Clear Invalid Code</Breadcrumb.Item>
                     <Breadcrumb.Item>App</Breadcrumb.Item>
                 </Breadcrumb>
-                <Layout>
-                    <Content style={{ padding: '0 24px', minHeight: 280 }}>
-                        <Skeleton loading={loading} active />
-                        <Skeleton loading={loading} active>
-                            {children}
-                        </Skeleton>
-                    </Content>
-                </Layout>
+                <div
+                    style={{
+                        backgroundColor: '#ffffff',
+                        padding: 24,
+                        minHeight: 380,
+                    }}
+                >
+                    <Skeleton loading={loading} active />
+                    <Skeleton loading={loading} active>
+                        {children}
+                    </Skeleton>
+                </div>
             </Content>
         </Layout>
     )
 }
 
-export default withRouter(Wrapper)
+export default Wrapper

@@ -1,10 +1,10 @@
 import axios from 'axios'
 import moment from 'moment'
 import useSWR, { mutate } from 'swr'
-import { useRef, useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { Table, Button, message } from 'antd'
 import Head from 'next/head'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 import useActionLoading from '../../hooks/useActionLoading'
 import Wrapper from '../../components/wrapper'
 
@@ -14,22 +14,22 @@ const fetcher = async url => {
 }
 
 const Tasks = ({ data: initialData }) => {
-    const actionKey = useRef('removetask')
-    const { checkLoading, pushLoading, popLoading } = useActionLoading()
+    const router = useRouter()
 
-    const [loading, dispatchLoading] = useState(false)
-
-    const redirect = useCallback(async path => {
-        if (!loading) {
-            dispatchLoading(true)
-            await Router.push(path)
-            dispatchLoading(false)
-        }
-    })
+    const {
+        actionKey,
+        checkLoading,
+        pushLoading,
+        popLoading,
+    } = useActionLoading('removetask')
 
     const { data: taskList } = useSWR('/tasks', fetcher, {
         initialData,
         refreshInterval: 1000,
+    })
+
+    const handleRedirect = useCallback(async path => {
+        await Router.push(path)
     })
 
     const handleRemoveTask = useCallback(async taskId => {
@@ -90,7 +90,7 @@ const Tasks = ({ data: initialData }) => {
                     defaultPageSize: 10,
                 }}
                 bordered
-                scroll={{ y: 400, x: 800 }}
+                scroll={{ y: 380, x: 800 }}
                 sticky
             >
                 <Table.Column key="_id" title="ID" dataIndex="_id" />
@@ -108,10 +108,14 @@ const Tasks = ({ data: initialData }) => {
                     key="coupons"
                     title="Coupons"
                     dataIndex="coupons"
-                    render={(coupons, record) => {
-                        const validLength = record.validCoupons.length
-                        const invalidLength = record.invalidCoupons.length
+                    render={coupons => {
                         const allLength = coupons.length
+                        const validLength = coupons.filter(
+                            el => el.validStatus === 1
+                        ).length
+                        const invalidLength = coupons.filter(
+                            el => el.validStatus === -1
+                        ).length
 
                         return validLength || invalidLength ? (
                             <div>
@@ -195,7 +199,9 @@ const Tasks = ({ data: initialData }) => {
                                 }}
                                 type="primary"
                                 loading={checkLoading(value)}
-                                onClick={() => redirect('/tasks/' + value)}
+                                onClick={() =>
+                                    handleRedirect('/tasks/' + value)
+                                }
                             >
                                 Manage
                             </Button>

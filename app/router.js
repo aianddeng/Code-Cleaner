@@ -10,24 +10,6 @@ const router = new Router({
     prefix: '/api',
 })
 
-router.get('/coupons/:id', async (ctx, next) => {
-    const [job] = await agenda.jobs({
-        name: 'clearCoupon',
-        _id: ObjectID(ctx.params.id),
-    })
-
-    if (job) {
-        ctx.body = {
-            _id: job.attrs._id,
-            disabled: job.attrs.disabled,
-            lastFinishedAt: job.attrs.lastFinishedAt,
-            ...job.attrs.data,
-        }
-    } else {
-        await next()
-    }
-})
-
 router.get('/tasks', async (ctx, next) => {
     const jobs = await agenda.jobs(
         { name: 'clearCoupon' },
@@ -51,15 +33,10 @@ router.get('/tasks', async (ctx, next) => {
 router.put('/tasks', async (ctx, next) => {
     const body = ctx.request.body
     if (body && body.storeId && body.storeName) {
-        const coupons = await Coupon.find(body.storeId)
-
         const job = await agenda.now('clearCoupon', {
             storeId: body.storeId,
             storeName: body.storeName,
-            coupons,
-            validCoupons: [],
-            invalidCoupons: [],
-            type: 'user',
+            coupons: await Coupon.find(body.storeId),
             status: 'waiting',
             createdAt: Date.now(),
         })
@@ -100,6 +77,24 @@ router.delete('/tasks', async (ctx, next) => {
         const count = await agenda.cancel({ _id: ObjectID(body.taskId) })
 
         ctx.body = { status: 'success', count }
+    } else {
+        await next()
+    }
+})
+
+router.get('/tasks/:id', async (ctx, next) => {
+    const [job] = await agenda.jobs({
+        name: 'clearCoupon',
+        _id: ObjectID(ctx.params.id),
+    })
+
+    if (job) {
+        ctx.body = {
+            _id: job.attrs._id,
+            disabled: job.attrs.disabled,
+            lastFinishedAt: job.attrs.lastFinishedAt,
+            ...job.attrs.data,
+        }
     } else {
         await next()
     }

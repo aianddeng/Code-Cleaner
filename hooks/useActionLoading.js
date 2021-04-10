@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
-const useActionLoading = () => {
+const useActionLoading = key => {
+    const actionKey = useRef(key)
+
     const [actionLoading, dispatchActionLoading] = useState([])
 
     const checkLoading = value => {
@@ -15,7 +17,7 @@ const useActionLoading = () => {
         dispatchActionLoading(actionLoading.slice().filter(el => el !== value))
     }
 
-    return { checkLoading, pushLoading, popLoading }
+    return { actionKey, checkLoading, pushLoading, popLoading }
 }
 
 export default useActionLoading

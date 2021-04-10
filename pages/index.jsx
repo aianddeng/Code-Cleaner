@@ -1,14 +1,18 @@
 import axios from 'axios'
-import { useRef, useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { Input, Table, Button, message } from 'antd'
 import useActionLoading from '../hooks/useActionLoading'
 import Head from 'next/head'
 import Wrapper from '../components/wrapper'
 
 const Index = ({ stores }) => {
-    const actionKey = useRef('addtotasks')
     const [storesList, dispatchStoresList] = useState(stores)
-    const { checkLoading, pushLoading, popLoading } = useActionLoading()
+    const {
+        actionKey,
+        checkLoading,
+        pushLoading,
+        popLoading,
+    } = useActionLoading('addtotasks')
 
     const onSearch = useCallback(
         value => {
@@ -78,7 +82,7 @@ const Index = ({ stores }) => {
                     showSizeChanger: true,
                     defaultPageSize: 50,
                 }}
-                scroll={{ y: 400, x: 600 }}
+                scroll={{ y: 380, x: 600 }}
                 sticky
             >
                 <Table.Column key="id" title="ID" dataIndex="id" />
