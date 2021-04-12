@@ -15,19 +15,16 @@ router.get('/tasks', async (ctx, next) => {
         { name: 'clearCoupon' },
         { _id: -1, nextRunAt: 1, priority: -1 }
     )
-    if (jobs.length) {
-        const attrs = jobs.map(el => el.attrs)
-        const datas = attrs.map(el => ({
-            _id: el._id,
-            disabled: el.disabled,
-            lastFinishedAt: el.lastFinishedAt,
-            ...el.data,
-        }))
 
-        ctx.body = datas
-    } else {
-        await next()
-    }
+    const attrs = jobs.map(el => el.attrs)
+    const datas = attrs.map(el => ({
+        _id: el._id,
+        disabled: el.disabled,
+        lastFinishedAt: el.lastFinishedAt,
+        ...el.data,
+    }))
+
+    ctx.body = datas
 })
 
 router.put('/tasks', async (ctx, next) => {
