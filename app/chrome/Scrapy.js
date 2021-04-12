@@ -140,12 +140,12 @@ class Scrapy {
         })
 
         if (url) {
-            Promise.race([
+            await Promise.race([
                 page.goto(url, {
                     waitUntil: 'load',
                     timeout: globalConfig.timeout,
                 }),
-                Helpers.wait(globalConfig.timeout / 1000 - 1000),
+                Helpers.wait((globalConfig.timeout - 1000) / 1000),
             ])
             if (selector) {
                 await page.waitForSelector(selector + ':not(:disabled)', {
@@ -212,6 +212,7 @@ class Scrapy {
                         setTimeout(checkExtensionLoaded, 500)
                     })
                     if (useLocalScript) window.Fatcoupon.env.script = 'local'
+                    return true
                 },
                 {
                     timeout: globalConfig.timeout,
