@@ -1,7 +1,7 @@
 const path = require('path')
 
 module.exports = {
-    concurrency: 3,
+    concurrency: 1,
     maxFailCount: 3,
     headless: false,
     timeout: 1 * 60 * 1000,

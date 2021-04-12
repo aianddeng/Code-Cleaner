@@ -148,10 +148,12 @@ class Scrapy {
                 Helpers.wait((globalConfig.timeout - 1000) / 1000),
             ])
             if (selector) {
-                await page.waitForSelector(selector + ':not(:disabled)', {
+                await page.waitForSelector(selector, {
                     visible: true,
                     timeout: globalConfig.timeout,
                 })
+
+                await page.$eval(selector, el => el.removeAttribute('disabled'))
             }
         }
         await Helpers.wait(1)

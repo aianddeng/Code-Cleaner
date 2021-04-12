@@ -46,6 +46,7 @@ module.exports = agenda => {
                 await job.disable()
                 data.status = 'disabled'
             }
+            job.attrs.lastFinishedAt = null
         }
         await job.save()
 
