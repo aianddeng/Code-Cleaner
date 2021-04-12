@@ -1,7 +1,8 @@
 const path = require('path')
 
 module.exports = {
-    concurrency: 1,
+    concurrency: 3,
+    maxFailCount: 3,
     headless: false,
     timeout: 1 * 60 * 1000,
     extensionPath: path.join(__dirname, '../../', 'dist'),

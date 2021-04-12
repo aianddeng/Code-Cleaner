@@ -210,6 +210,7 @@ const Tasks = ({ data: initialData }) => {
                                 style={{
                                     margin: '4px 0px',
                                 }}
+                                disabled={record.status === 'finished'}
                                 loading={checkLoading(value)}
                                 onClick={() => handleDisableTask(value)}
                             >

@@ -4,7 +4,12 @@ const globalConfig = require('../config/config.local')
 module.exports = agenda => {
     agenda.define(
         'clearCoupon',
-        { priority: 'normal', concurrency: globalConfig.concurrency },
+        {
+            priority: 'normal',
+            lockLimit: globalConfig.concurrency,
+            concurrency: globalConfig.concurrency,
+            lockLifetime: 30 * 60 * 1000,
+        },
         (job, done) => {
             const { storeId, coupons } = job.attrs.data
 
@@ -32,8 +37,15 @@ module.exports = agenda => {
         if (coupons.every(el => el.validStatus)) {
             data.status = 'finished'
         } else {
-            await job.disable()
-            data.status = 'noFinished'
+            if (
+                job.attrs.failCount &&
+                job.attrs.failCount < globalConfig.maxFailCount
+            ) {
+                job.run()
+            } else {
+                await job.disable()
+                data.status = 'disabled'
+            }
         }
         await job.save()
 
@@ -41,11 +53,11 @@ module.exports = agenda => {
     })
 
     agenda.on('success:clearCoupon', async job => {
-        console.log('success:clearCoupon')
+        // console.log('success:clearCoupon')
     })
 
     agenda.on('fail:clearCoupon', async job => {
-        console.log('fail:clearCoupon')
+        // console.log('fail:clearCoupon')
     })
 
     return agenda

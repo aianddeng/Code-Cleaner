@@ -58,12 +58,13 @@ router.post('/tasks', async (ctx, next) => {
         if (job) {
             if (job.attrs.disabled) {
                 await job.enable()
+                job.attrs.failCount = 0
                 job.attrs.data.status = 'waiting'
             } else {
                 await job.disable()
                 job.attrs.data.status = 'disabled'
             }
-            job.save()
+            await job.save()
             ctx.body = { status: 'success' }
         }
     } else {

@@ -7,7 +7,6 @@ const agenda = new Agenda()
         useUnifiedTopology: true,
     })
     .name('fatcoupon:clear-coupon')
-    .defaultLockLimit(1)
 
 agenda.on('ready', async () => {
     console.log('> agenda connected')

@@ -89,11 +89,31 @@ const TaskManage = ({ data: initialData }) => {
                 title={'Store: ' + data.storeName}
                 extra={<a href="#">More</a>}
                 tabList={[
-                    { key: 'All', tab: 'All' },
-                    { key: 'Valid', tab: 'Valid' },
-                    { key: 'Invalid', tab: 'Invalid' },
-                    { key: 'Waiting', tab: 'Waiting' },
-                    { key: 'Repeat', tab: 'Repeat' },
+                    { key: 'All', tab: `All(${data.coupons.length})` },
+                    {
+                        key: 'Valid',
+                        tab: `Valid${
+                            tab.key === 'Valid' ? `(${coupons.length})` : ''
+                        }`,
+                    },
+                    {
+                        key: 'Invalid',
+                        tab: `Invalid${
+                            tab.key === 'Invalid' ? `(${coupons.length})` : ''
+                        }`,
+                    },
+                    {
+                        key: 'Waiting',
+                        tab: `Waiting${
+                            tab.key === 'Waiting' ? `(${coupons.length})` : ''
+                        }`,
+                    },
+                    {
+                        key: 'Repeat',
+                        tab: `Repeat${
+                            tab.key === 'Repeat' ? `(${coupons.length})` : ''
+                        }`,
+                    },
                 ]}
                 activeTabKey={tab.key}
                 onTabChange={key => handleTabChange(key)}
