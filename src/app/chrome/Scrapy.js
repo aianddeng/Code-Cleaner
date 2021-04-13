@@ -139,6 +139,10 @@ class Scrapy {
             }
         })
 
+        if (this.config.cookie) {
+            await this.handleSetCookie(page)
+        }
+
         if (url) {
             await Promise.race([
                 page.goto(url, {

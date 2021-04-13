@@ -1,11 +1,11 @@
 import axios from 'axios'
 import moment from 'moment'
 import useSWR, { mutate } from 'swr'
-import { useState, useCallback } from 'react'
-import { Table, Button, message } from 'antd'
+import { useCallback } from 'react'
+import { Table, Button, message, Popconfirm } from 'antd'
 import Head from 'next/head'
-import Router, { useRouter } from 'next/router'
 import useActionLoading from '../../hooks/useActionLoading'
+import usePageLoading from '../../hooks/usePageLoading'
 import Wrapper from '../../components/wrapper'
 
 const fetcher = async url => {
@@ -14,8 +14,6 @@ const fetcher = async url => {
 }
 
 const Tasks = ({ data: initialData }) => {
-    const router = useRouter()
-
     const {
         actionKey,
         checkLoading,
@@ -28,11 +26,9 @@ const Tasks = ({ data: initialData }) => {
         refreshInterval: 1000,
     })
 
-    const handleRedirect = useCallback(async path => {
-        await Router.push(path)
-    })
+    const { loading, handleRedirect } = usePageLoading()
 
-    const handleRemoveTask = useCallback(async taskId => {
+    const handleDeleteTask = useCallback(async taskId => {
         pushLoading(taskId)
         message.loading({
             content: 'Waiting...',
@@ -51,8 +47,8 @@ const Tasks = ({ data: initialData }) => {
             duration: 2.5,
             key: actionKey.current,
         })
+        await mutate('/tasks')
         popLoading(taskId)
-        mutate('/tasks')
     }, [])
 
     const handleDisableTask = useCallback(async taskId => {
@@ -72,12 +68,12 @@ const Tasks = ({ data: initialData }) => {
             duration: 2.5,
             key: actionKey.current,
         })
+        await mutate('/tasks')
         popLoading(taskId)
-        mutate('/tasks')
     }, [])
 
     return (
-        <Wrapper>
+        <Wrapper defaultLoading={loading}>
             <Head>
                 <title>Task List - Fatcoupon</title>
             </Head>
@@ -216,17 +212,23 @@ const Tasks = ({ data: initialData }) => {
                             >
                                 {record.disabled ? 'Continue' : 'Disable'}
                             </Button>
-                            <Button
-                                block
-                                danger
-                                style={{
-                                    margin: '4px 0px',
-                                }}
-                                loading={checkLoading(value)}
-                                onClick={() => handleRemoveTask(value)}
+                            <Popconfirm
+                                title="Are you sure to delete this task?"
+                                onConfirm={() => handleDeleteTask(value)}
+                                okText="Yes"
+                                cancelText="No"
                             >
-                                Remove
-                            </Button>
+                                <Button
+                                    block
+                                    danger
+                                    style={{
+                                        margin: '4px 0px',
+                                    }}
+                                    loading={checkLoading(value)}
+                                >
+                                    Delete
+                                </Button>
+                            </Popconfirm>
                         </div>
                     )}
                     fixed="right"
