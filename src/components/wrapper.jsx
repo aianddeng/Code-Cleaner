@@ -10,7 +10,7 @@ const Wrapper = ({ defaultLoading, children }) => {
 
     return (
         <Layout className="min-h-screen">
-            <Header className="fixed z-1 w-full p-0 md:pl-12 md:pr-12">
+            <Header className="fixed z-10 w-full p-0 md:pl-12 md:pr-12">
                 <Menu
                     theme="dark"
                     mode="horizontal"
