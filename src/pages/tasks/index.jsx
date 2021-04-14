@@ -115,48 +115,22 @@ const Tasks = ({ data: initialData }) => {
 
                         return validLength || invalidLength ? (
                             <div>
-                                <ul
-                                    style={{
-                                        margin: 0,
-                                        padding: 0,
-                                    }}
-                                >
-                                    <li
-                                        style={{
-                                            listStyle: 'none',
-                                        }}
-                                    >
+                                <ul className="m-0 p-0">
+                                    <li className="list-none">
                                         All: {allLength}
                                     </li>
-                                    <li
-                                        style={{
-                                            listStyle: 'none',
-                                        }}
-                                    >
+                                    <li className="list-none">
                                         Valid: {validLength}
                                     </li>
-                                    <li
-                                        style={{
-                                            listStyle: 'none',
-                                        }}
-                                    >
+                                    <li className="list-none">
                                         Invalid: {invalidLength}
                                     </li>
                                 </ul>
                             </div>
                         ) : (
                             <div>
-                                <ul
-                                    style={{
-                                        margin: 0,
-                                        padding: 0,
-                                    }}
-                                >
-                                    <li
-                                        style={{
-                                            listStyle: 'none',
-                                        }}
-                                    >
+                                <ul className="m-0 p-0">
+                                    <li className="list-none">
                                         All: {allLength}
                                     </li>
                                 </ul>
@@ -190,9 +164,7 @@ const Tasks = ({ data: initialData }) => {
                         <div>
                             <Button
                                 block
-                                style={{
-                                    margin: '4px 0px',
-                                }}
+                                className="mx-0 my-1"
                                 type="primary"
                                 loading={checkLoading(value)}
                                 onClick={() =>
@@ -203,9 +175,7 @@ const Tasks = ({ data: initialData }) => {
                             </Button>
                             <Button
                                 block
-                                style={{
-                                    margin: '4px 0px',
-                                }}
+                                className="mx-0 my-1"
                                 disabled={record.status === 'finished'}
                                 loading={checkLoading(value)}
                                 onClick={() => handleDisableTask(value)}
@@ -221,9 +191,7 @@ const Tasks = ({ data: initialData }) => {
                                 <Button
                                     block
                                     danger
-                                    style={{
-                                        margin: '4px 0px',
-                                    }}
+                                    className="mx-0 my-1"
                                     loading={checkLoading(value)}
                                 >
                                     Delete

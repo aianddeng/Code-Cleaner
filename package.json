@@ -28,5 +28,18 @@
         "swr": "^0.5.5",
         "tailwindcss": "^2.1.1",
         "xvfb": "^0.4.0"
+    },
+    "nodemonConfig": {
+        "watch": [
+            "src/app/"
+        ],
+        "ext": "js",
+        "ignore": [
+            ".git/",
+            ".next/",
+            "node_modules/",
+            "src/app/chrome/dist/",
+            "src/app/chrome/mappings/"
+        ]
     }
 }

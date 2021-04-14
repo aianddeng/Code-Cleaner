@@ -66,13 +66,11 @@ const Index = ({ stores }) => {
                 <title>Store List - Fatcoupon</title>
             </Head>
             <Input.Search
+                className="mb-3"
                 placeholder="Search Now"
                 onSearch={e => onSearch(e)}
                 onBlur={e => onChange(e)}
                 enterButton
-                style={{
-                    marginBottom: 12,
-                }}
             />
             <Table
                 dataSource={storesList}

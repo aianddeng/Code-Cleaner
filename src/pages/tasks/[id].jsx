@@ -149,7 +149,6 @@ const TaskManage = ({ data: initialData }) => {
                 <title>Task Info - FatCoupon</title>
             </Head>
             <Card
-                style={{ width: '100%' }}
                 title={'Store: ' + data.storeName}
                 tabList={[
                     { key: 'All', tab: `All(${data.coupons.length})` },
@@ -182,7 +181,7 @@ const TaskManage = ({ data: initialData }) => {
                 onTabChange={key => handleTabChange(key)}
             >
                 <Progress
-                    format={precent => Math.round(precent) + '%'}
+                    showInfo={false}
                     percent={
                         (data.coupons.slice().filter(el => el.validStatus)
                             .length /
@@ -198,21 +197,20 @@ const TaskManage = ({ data: initialData }) => {
                             100,
                         strokeColor: '#1890ff',
                     }}
-                    strokeColor="#ff4d4f"
                     className="mb-5 px-1"
                 />
                 {coupons.length ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {coupons.slice().map(el => (
                             <Card
-                                className="m-1"
+                                className="m-1 border border-solid"
                                 style={{
-                                    border:
+                                    borderColor:
                                         el.validStatus === 1
-                                            ? '1px solid #1890ff'
+                                            ? '#1890ff'
                                             : el.validStatus === -1
-                                            ? '1px solid #ff4d4f'
-                                            : '1px solid #cccccc88',
+                                            ? '#ff4d4f'
+                                            : '#cccccc88',
                                 }}
                                 hoverable
                                 size="default"
@@ -243,12 +241,7 @@ const TaskManage = ({ data: initialData }) => {
                                 <Card.Meta
                                     title={el.code}
                                     description={
-                                        <p
-                                            style={{
-                                                whiteSpace: 'nowrap',
-                                                wordBreak: 'hyphenate',
-                                            }}
-                                        >
+                                        <p className="whitespace-nowrap">
                                             {el.description
                                                 ? el.description.trim()
                                                 : 'FatCoupon Code'}
