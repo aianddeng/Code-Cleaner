@@ -14,15 +14,6 @@ class Scrapy {
         this.coupons = coupons
         this.job = job
         this.done = done
-
-        this.init()
-    }
-
-    init() {
-        if (globalConfig.couponType) {
-            const typeMatch = new RegExp(globalConfig.couponType, 'i')
-            this.coupons = this.coupons.filter(el => typeMatch.test(el.type))
-        }
     }
 
     async watchJobStatus() {

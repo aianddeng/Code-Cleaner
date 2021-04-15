@@ -40,7 +40,7 @@ const TaskManage = ({ data: initialData }) => {
 
     const [coupons, dispatchCoupons] = useState([])
 
-    const { data } = useSWR('/tasks/' + router.query.id, {
+    const { data } = useSWR('/api/tasks/' + router.query.id, {
         initialData,
         refreshInterval: 1000,
     })

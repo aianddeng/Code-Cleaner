@@ -46,7 +46,7 @@ module.exports = class {
             storeId: body.storeId,
             storeName: body.storeName,
             coupons: filterData,
-            promotype: settings.promoType,
+            promotype: settings ? settings.promoType : '',
             status: 'waiting',
             createdAt: Date.now(),
         })

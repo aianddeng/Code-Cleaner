@@ -16,7 +16,7 @@ const Tasks = ({ data: initialData }) => {
         popLoading,
     } = useActionLoading('removetask')
 
-    const { data: taskList } = useSWR('/tasks', {
+    const { data: taskList } = useSWR('/api/tasks', {
         initialData,
         refreshInterval: 1000,
     })
