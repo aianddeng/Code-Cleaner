@@ -6,12 +6,7 @@ import { Table, Button, message, Popconfirm } from 'antd'
 import Head from 'next/head'
 import useActionLoading from '../../hooks/useActionLoading'
 import usePageLoading from '../../hooks/usePageLoading'
-import Wrapper from '../../components/wrapper'
-
-const fetcher = async url => {
-    const { data } = await axios.get('/api' + url)
-    return data
-}
+import Wrapper from '../../components/Wrapper'
 
 const Tasks = ({ data: initialData }) => {
     const {
@@ -21,7 +16,7 @@ const Tasks = ({ data: initialData }) => {
         popLoading,
     } = useActionLoading('removetask')
 
-    const { data: taskList } = useSWR('/tasks', fetcher, {
+    const { data: taskList } = useSWR('/tasks', {
         initialData,
         refreshInterval: 1000,
     })
@@ -160,11 +155,10 @@ const Tasks = ({ data: initialData }) => {
                     key="action"
                     title="Action"
                     dataIndex="_id"
+                    fixed="right"
                     render={(value, record) => (
-                        <div>
+                        <div className="flex flex-col space-y-1">
                             <Button
-                                block
-                                className="mx-0 my-1"
                                 type="primary"
                                 loading={checkLoading(value)}
                                 onClick={() =>
@@ -174,8 +168,6 @@ const Tasks = ({ data: initialData }) => {
                                 Manage
                             </Button>
                             <Button
-                                block
-                                className="mx-0 my-1"
                                 disabled={record.status === 'finished'}
                                 loading={checkLoading(value)}
                                 onClick={() => handleDisableTask(value)}
@@ -188,18 +180,12 @@ const Tasks = ({ data: initialData }) => {
                                 okText="Yes"
                                 cancelText="No"
                             >
-                                <Button
-                                    block
-                                    danger
-                                    className="mx-0 my-1"
-                                    loading={checkLoading(value)}
-                                >
+                                <Button danger loading={checkLoading(value)}>
                                     Delete
                                 </Button>
                             </Popconfirm>
                         </div>
                     )}
-                    fixed="right"
                 />
             </Table>
         </Wrapper>

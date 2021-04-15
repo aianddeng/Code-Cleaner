@@ -1,4 +1,5 @@
 const ObjectID = require('mongodb').ObjectID
+const Settings = require('../models/Settings')
 const agenda = require('../jobs/agenda')
 const axios = require('axios')
 
@@ -21,6 +22,8 @@ module.exports = class {
     }
 
     static async PUT(ctx) {
+        const [settings] = await Settings.find({}).sort({ _id: -1 }).limit(1)
+
         const body = ctx.request.body
 
         const { data } = await axios.get(
@@ -32,14 +35,18 @@ module.exports = class {
             }
         )
 
-        const filterData = data.data.data.filter(
-            el => el.code.toUpperCase() !== 'fatcoupon'.toUpperCase()
-        )
+        const filterData = data.data.data
+            .filter(el => el.code.toUpperCase() !== 'fatcoupon'.toUpperCase())
+            .filter(el => {
+                if (!settings || settings.promoType === 'all') return true
+                return el.type === settings.promoType
+            })
 
         const job = await agenda.now('clearCoupon', {
             storeId: body.storeId,
             storeName: body.storeName,
             coupons: filterData,
+            promotype: settings.promoType,
             status: 'waiting',
             createdAt: Date.now(),
         })

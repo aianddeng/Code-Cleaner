@@ -1,5 +1,5 @@
 import { Result, Button } from 'antd'
-import Wrapper from '../components/wrapper'
+import Wrapper from '../components/Wrapper'
 import usePageLoading from '../hooks/usePageLoading'
 
 const NotFoundPage = () => {

@@ -13,13 +13,8 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 import axios from 'axios'
 import useSWR, { mutate } from 'swr'
-import Wrapper from '../../components/wrapper'
+import Wrapper from '../../components/Wrapper'
 import useActionLoading from '../../hooks/useActionLoading'
-
-const fetcher = async url => {
-    const { data } = await axios.get('/api' + url)
-    return data
-}
 
 const openNotificationWithIcon = (type, message, description) => {
     notification[type]({
@@ -45,7 +40,7 @@ const TaskManage = ({ data: initialData }) => {
 
     const [coupons, dispatchCoupons] = useState([])
 
-    const { data } = useSWR('/tasks/' + router.query.id, fetcher, {
+    const { data } = useSWR('/tasks/' + router.query.id, {
         initialData,
         refreshInterval: 1000,
     })
@@ -188,6 +183,8 @@ const TaskManage = ({ data: initialData }) => {
                             data.coupons.length) *
                         100
                     }
+                    status="exception"
+                    strokeColor="rgba(239, 68, 68)"
                     success={{
                         percent:
                             (data.coupons
@@ -195,7 +192,7 @@ const TaskManage = ({ data: initialData }) => {
                                 .filter(el => el.validStatus === 1).length /
                                 data.coupons.length) *
                             100,
-                        strokeColor: '#1890ff',
+                        strokeColor: 'rgba(59, 130, 246)',
                     }}
                     className="mb-5 px-1"
                 />
@@ -203,17 +200,12 @@ const TaskManage = ({ data: initialData }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {coupons.slice().map(el => (
                             <Card
-                                className="m-1 border border-solid"
-                                style={{
-                                    borderColor:
-                                        el.validStatus === 1
-                                            ? '#1890ff'
-                                            : el.validStatus === -1
-                                            ? '#ff4d4f'
-                                            : '#cccccc88',
-                                }}
+                                className={[
+                                    'm-1',
+                                    el.validStatus === 1 && 'border-blue-500',
+                                    el.validStatus === -1 && 'border-red-500',
+                                ]}
                                 hoverable
-                                size="default"
                                 key={el.id}
                                 actions={[
                                     <Button>Manage</Button>,
@@ -221,6 +213,10 @@ const TaskManage = ({ data: initialData }) => {
                                         title="Are you sure to deactive this code?"
                                         onConfirm={() =>
                                             handleDeactiveCode(el.id)
+                                        }
+                                        disabled={
+                                            el.validStatus !== -1 ||
+                                            el.deactiveStatus
                                         }
                                         okText="Yes"
                                         cancelText="No"

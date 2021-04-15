@@ -1,10 +1,11 @@
-require('./app/jobs/agenda')
-
 const next = require('next')
 const app = next({ dev: process.env.NODE_ENV !== 'production' })
 const handle = app.getRequestHandler()
 
 app.prepare().then(() => {
+    require('./app/db/mongodb')
+    require('./app/jobs/agenda')
+
     const Koa = require('koa')
     const bodyParser = require('koa-bodyparser')
     const cors = require('koa2-cors')

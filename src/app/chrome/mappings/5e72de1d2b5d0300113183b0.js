@@ -4,4 +4,5 @@ module.exports = {
         'https://www.adidas.com/us/stan-smith-shoes/GV7376.html?forceSelSize=GV7376_530',
     button: '[data-auto-id=add-to-bag]',
     cart: 'https://www.adidas.com/us/cart',
+    useLocalScript: true,
 }

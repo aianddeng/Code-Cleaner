@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react'
 import { Input, Table, Button, message } from 'antd'
 import useActionLoading from '../hooks/useActionLoading'
 import Head from 'next/head'
-import Wrapper from '../components/wrapper'
+import Wrapper from '../components/Wrapper'
 
 const Index = ({ stores }) => {
     const [storesList, dispatchStoresList] = useState(stores)
@@ -73,6 +73,7 @@ const Index = ({ stores }) => {
                 enterButton
             />
             <Table
+                bordered
                 dataSource={storesList}
                 rowKey="id"
                 title={() => <h2>Store List</h2>}

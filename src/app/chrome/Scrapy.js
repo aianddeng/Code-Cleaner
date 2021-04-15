@@ -15,7 +15,14 @@ class Scrapy {
         this.job = job
         this.done = done
 
-        this.fullCouponsLength = coupons.length
+        this.init()
+    }
+
+    init() {
+        if (globalConfig.couponType) {
+            const typeMatch = new RegExp(globalConfig.couponType, 'i')
+            this.coupons = this.coupons.filter(el => typeMatch.test(el.type))
+        }
     }
 
     async watchJobStatus() {
@@ -428,6 +435,12 @@ class Scrapy {
     }
 
     async start() {
+        if (!this.coupons.length) {
+            await this.done()
+            console.log(`> Not Found Coupons: ${this.job.attrs._id}`)
+            return true
+        }
+
         try {
             await this.createBrowser()
             this.watchJobStatus()

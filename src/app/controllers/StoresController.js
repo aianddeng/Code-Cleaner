@@ -2,11 +2,21 @@ const fs = require('fs').promises
 const path = require('path')
 const axios = require('axios')
 
+let data = null
 module.exports = class {
     static async GET(ctx) {
-        const { data } = await axios.get(
-            'https://apis.fatcoupon.com/api/extension/stores'
-        )
+        if (!data) {
+            const getStoreData = async () => {
+                const res = await axios.get(
+                    'https://apis.fatcoupon.com/api/extension/stores'
+                )
+                data = res.data
+
+                setTimeout(getStoreData, 10 * 60 * 1000)
+            }
+
+            await getStoreData()
+        }
 
         const mappings = (
             await fs.readdir(path.join(__dirname, '../chrome', 'mappings'))
