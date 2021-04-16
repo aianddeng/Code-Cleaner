@@ -54,7 +54,7 @@ const Index = ({ stores }) => {
 
         message.success({
             content: `Create a new task: ${data._id}`,
-            duration: 2.5,
+            duration: 6,
             key: actionKey.current,
         })
         popLoading(storeId)

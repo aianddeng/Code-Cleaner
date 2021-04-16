@@ -8,8 +8,8 @@ import {
 } from '@ant-design/icons'
 import usePageLoading from '../hooks/usePageLoading'
 import dynamic from 'next/dynamic'
-import SideBar from './SideBar'
-// const SideBar = dynamic(() => import('./SideBar'))
+
+const SideBar = dynamic(() => import('./SideBar'))
 const { Header, Content } = Layout
 
 const Wrapper = ({ defaultLoading, children }) => {
@@ -47,7 +47,7 @@ const Wrapper = ({ defaultLoading, children }) => {
 
     return (
         <Layout className="min-h-screen">
-            <Header className="fixed z-10 w-full p-0 md:pl-12 md:pr-12">
+            <Header className="fixed z-10 w-full p-0 md:px-12">
                 <Menu
                     className="flex"
                     theme="dark"
@@ -80,8 +80,8 @@ const Wrapper = ({ defaultLoading, children }) => {
                     />
                 </Menu>
             </Header>
-            <Content className="mt-16 pl-2 pr-2 md:pl-12 md:pr-12">
-                <Breadcrumb className="mt-3 mb-3">
+            <Content className="mt-16 px-2 md:px-12">
+                <Breadcrumb className="my-3">
                     <Breadcrumb.Item>FatCoupon</Breadcrumb.Item>
                     <Breadcrumb.Item>Clear Invalid Code</Breadcrumb.Item>
                     <Breadcrumb.Item>App</Breadcrumb.Item>
@@ -100,8 +100,8 @@ const Wrapper = ({ defaultLoading, children }) => {
                         handleSwitchVisible={switchVisible}
                     />
                 )}
+                <BackTop />
             </aside>
-            <BackTop />
         </Layout>
     )
 }

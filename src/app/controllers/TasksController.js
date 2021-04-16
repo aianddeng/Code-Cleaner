@@ -5,20 +5,38 @@ const axios = require('axios')
 
 module.exports = class {
     static async GET(ctx) {
+        const query = ctx.request.query || {}
+
+        const jobsTotal = (await agenda.jobs({})).length
+
         const jobs = await agenda.jobs(
             { name: 'clearCoupon' },
-            { _id: -1, nextRunAt: 1, priority: -1 }
+            { _id: -1, nextRunAt: 1, priority: -1 },
+            query.size ? +query.size : undefined,
+            query.index && query.size
+                ? (+query.index - 1) * +query.size
+                : undefined
         )
 
-        const attrs = jobs.map(el => el.attrs)
+        const attrs = jobs.slice().map(el => el.attrs)
         const datas = attrs.map(el => ({
             _id: el._id,
             disabled: el.disabled,
             lastFinishedAt: el.lastFinishedAt,
+            allLength: el.data.coupons.length,
+            validLength: el.data.coupons.filter(el => el.validStatus === 1)
+                .length,
+            invalidLength: el.data.coupons.filter(el => el.validStatus === -1)
+                .length,
             ...el.data,
         }))
 
-        ctx.body = datas
+        datas.map(el => delete el.coupons)
+
+        ctx.body = {
+            total: jobsTotal,
+            datas,
+        }
     }
 
     static async PUT(ctx) {
@@ -88,11 +106,21 @@ module.exports = class {
             _id: ObjectID(ctx.params.id),
         })
 
-        ctx.body = {
-            _id: job.attrs._id,
-            disabled: job.attrs.disabled,
-            lastFinishedAt: job.attrs.lastFinishedAt,
-            ...job.attrs.data,
+        const attrs = job.attrs
+
+        const data = {
+            _id: attrs._id,
+            disabled: attrs.disabled,
+            lastFinishedAt: attrs.lastFinishedAt,
+            allLength: attrs.data.coupons.length,
+            validLength: attrs.data.coupons.filter(el => el.validStatus === 1)
+                .length,
+            invalidLength: attrs.data.coupons.filter(
+                el => el.validStatus === -1
+            ).length,
+            ...attrs.data,
         }
+
+        ctx.body = data
     }
 }

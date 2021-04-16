@@ -6,14 +6,14 @@ import axios from 'axios'
 const SideBar = ({ visible, handleSwitchVisible: switchVisible }) => {
     const [form] = Form.useForm()
 
-    const { data, error } = useSWR('/api/settings')
+    const { data } = useSWR('/api/settings')
 
     const handleSubmitSettings = useCallback(async () => {
         const values = form.getFieldsValue()
         const { data } = await axios.post('/api/settings', values)
 
         form.setFieldsValue(data)
-        mutate('/api/settings')
+        await mutate('/api/settings', data, false)
         await switchVisible()
 
         return true
@@ -43,9 +43,7 @@ const SideBar = ({ visible, handleSwitchVisible: switchVisible }) => {
                 </div>
             }
         >
-            {!data && !error ? (
-                <Spin className="block m-auto" />
-            ) : (
+            {data ? (
                 <Form form={form} layout="vertical" initialValues={data}>
                     <Form.Item
                         name="promoType"
@@ -61,6 +59,8 @@ const SideBar = ({ visible, handleSwitchVisible: switchVisible }) => {
                         </Select>
                     </Form.Item>
                 </Form>
+            ) : (
+                <Spin className="block m-auto" />
             )}
         </Drawer>
     )

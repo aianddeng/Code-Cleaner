@@ -12,7 +12,9 @@ module.exports = class {
                 )
                 data = res.data
 
-                setTimeout(getStoreData, 10 * 60 * 1000)
+                setTimeout(() => {
+                    data = null
+                }, 10 * 60 * 1000)
             }
 
             await getStoreData()

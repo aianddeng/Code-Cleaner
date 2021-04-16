@@ -350,6 +350,18 @@ class Scrapy {
             this.config.cart = await page.$eval(this.config.cart, el =>
                 el.getAttribute('href')
             )
+
+            if (!this.config.cart.startsWith('http')) {
+                const url = new URL(this.config.product)
+
+                if (this.config.cart.startsWith('//')) {
+                    this.config.cart = url.protocol + this.config.cart
+                } else if (this.config.cart.startsWith('/')) {
+                    this.config.cart = url.origin + this.config.cart
+                } else {
+                    this.config.cart = url.origin + '/' + this.config.cart
+                }
+            }
         }
 
         await Helpers.wait(1)
@@ -446,12 +458,19 @@ class Scrapy {
             await this.handleAddProduct()
             await this.handleApplyCoupon()
         } catch (e) {
-            this.browser && (await this.browser.close())
-            this.job.fail('Error Puppeteer')
-            await this.job.save()
-            await this.done()
-
             console.log(`> Puppeteer Error: ${e.message}`)
+            this.browser && (await this.browser.close())
+
+            const agenda = require('../jobs/agenda')
+            const [job] = await agenda.jobs({
+                _id: ObjectID(this.job.attrs._id),
+            })
+            if (!job || job.attrs.disabled) {
+            } else {
+                this.job.fail('Error Puppeteer')
+                await this.job.save()
+            }
+            await this.done()
         }
     }
 }

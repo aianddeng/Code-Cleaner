@@ -42,7 +42,7 @@ const TaskManage = ({ data: initialData }) => {
 
     const { data } = useSWR('/api/tasks/' + router.query.id, {
         initialData,
-        refreshInterval: 1000,
+        refreshInterval: 5000,
     })
 
     useEffect(() => {
@@ -114,7 +114,7 @@ const TaskManage = ({ data: initialData }) => {
         [coupons]
     )
 
-    const handleDeactiveCode = useCallback(async couponId => {
+    const handleDeactiveCode = useCallback(async (couponId = 'all') => {
         pushLoading(couponId)
         message.loading({
             content: 'Waiting...',
@@ -123,18 +123,23 @@ const TaskManage = ({ data: initialData }) => {
         })
 
         await axios.delete('/api/coupons', {
-            data: {
-                taskId: router.query.id,
-                coupons: [couponId],
-            },
+            data:
+                couponId === 'all'
+                    ? {
+                          taskId: router.query.id,
+                      }
+                    : {
+                          taskId: router.query.id,
+                          coupons: [couponId],
+                      },
         })
 
         message.success({
             content: `Remove the code: ${couponId}`,
-            duration: 2.5,
+            duration: 6,
             key: actionKey.current,
         })
-        await mutate('/tasks/' + router.query.id)
+        await mutate('/api/tasks/' + router.query.id)
         popLoading(couponId)
     }, [])
 
@@ -146,24 +151,22 @@ const TaskManage = ({ data: initialData }) => {
             <Card
                 title={'Store: ' + data.storeName}
                 tabList={[
-                    { key: 'All', tab: `All(${data.coupons.length})` },
+                    { key: 'All', tab: `All(${data.allLength})` },
                     {
                         key: 'Valid',
-                        tab: `Valid${
-                            tab.key === 'Valid' ? `(${coupons.length})` : ''
-                        }`,
+                        tab: `Valid(${data.validLength})`,
                     },
                     {
                         key: 'Invalid',
-                        tab: `Invalid${
-                            tab.key === 'Invalid' ? `(${coupons.length})` : ''
-                        }`,
+                        tab: `Invalid(${data.invalidLength})`,
                     },
                     {
                         key: 'Waiting',
-                        tab: `Waiting${
-                            tab.key === 'Waiting' ? `(${coupons.length})` : ''
-                        }`,
+                        tab: `Waiting(${
+                            data.allLength -
+                            data.validLength -
+                            data.invalidLength
+                        })`,
                     },
                     {
                         key: 'Repeat',
@@ -178,30 +181,34 @@ const TaskManage = ({ data: initialData }) => {
                 <Progress
                     showInfo={false}
                     percent={
-                        (data.coupons.slice().filter(el => el.validStatus)
-                            .length /
-                            data.coupons.length) *
+                        ((data.validLength + data.invalidLength) /
+                            data.allLength) *
                         100
                     }
                     status="exception"
                     strokeColor="rgba(239, 68, 68)"
                     success={{
-                        percent:
-                            (data.coupons
-                                .slice()
-                                .filter(el => el.validStatus === 1).length /
-                                data.coupons.length) *
-                            100,
+                        percent: (data.validLength / data.allLength) * 100,
                         strokeColor: 'rgba(59, 130, 246)',
                     }}
                     className="mb-5 px-1"
                 />
                 {coupons.length ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                        {data.status === 'finished' && false && (
+                            <Card
+                                onClick={() => handleDeactiveCode()}
+                                key="removeAll"
+                                className="cursor-pointer flex justify-center items-center border-2 border-red-500 m-1 text-lg text-red-500"
+                            >
+                                Remove All Invlid Code
+                            </Card>
+                        )}
                         {coupons.slice().map(el => (
                             <Card
                                 className={[
                                     'm-1',
+                                    !el.validStatus && 'border-gray-200',
                                     el.validStatus === 1 && 'border-blue-500',
                                     el.validStatus === -1 && 'border-red-500',
                                 ]}
