@@ -217,7 +217,7 @@ const TaskManage = ({ data: initialData }) => {
                 >
                   {allDeactivateCode.length ? (
                     <Checkbox.Group
-                      className="grid grid-cols-4"
+                      className="grid grid-cols-2 md:grid-cols-4"
                       options={allDeactivateCode.slice().map((el) => ({
                         label: el.code,
                         value: el.id,
