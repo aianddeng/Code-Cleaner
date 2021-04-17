@@ -5,7 +5,7 @@ const CodesController = require('./controllers/CodesController')
 const SettingsController = require('./controllers/SettingsController')
 
 const router = new Router({
-    prefix: '/api',
+  prefix: '/api',
 })
 
 router.get('/tasks', TasksController.GET)
