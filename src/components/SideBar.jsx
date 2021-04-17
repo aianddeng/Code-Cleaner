@@ -1,4 +1,4 @@
-import { Drawer, Button, Form, Select, Spin } from 'antd'
+import { Drawer, Button, Form, Select, Input, Spin } from 'antd'
 import useSWR, { mutate } from 'swr'
 import { useCallback } from 'react'
 import axios from 'axios'
@@ -49,6 +49,13 @@ const SideBar = ({ visible, handleSwitchVisible: switchVisible }) => {
               <Select.Option value="public">PUBLIC</Select.Option>
               <Select.Option value="exclusive">EXCLUSIVE</Select.Option>
             </Select>
+          </Form.Item>
+          <Form.Item
+            name="concurrency"
+            label="Server Concurrency"
+            required={true}
+          >
+            <Input type="number" min="1" max="3" />
           </Form.Item>
         </Form>
       ) : (

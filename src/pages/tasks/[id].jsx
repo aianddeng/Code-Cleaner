@@ -7,12 +7,15 @@ import {
   Popconfirm,
   message,
   Progress,
+  Modal,
+  Checkbox,
 } from 'antd'
 import { SmileOutlined } from '@ant-design/icons'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
+import Link from 'next/link'
 import axios from 'axios'
-import useSWR, { mutate } from 'swr'
+import useSWR from 'swr'
 import Wrapper from '../../components/Wrapper'
 import useActionLoading from '../../hooks/useActionLoading'
 
@@ -29,6 +32,8 @@ const TaskManage = ({ data: initialData }) => {
     'removeCode'
   )
 
+  const [isModal, dispatchIsModal] = useState(false)
+
   const router = useRouter()
 
   const [tab, dispatchTab] = useState({
@@ -37,29 +42,34 @@ const TaskManage = ({ data: initialData }) => {
 
   const [coupons, dispatchCoupons] = useState([])
 
-  const { data } = useSWR('/api/tasks/' + router.query.id, {
+  const [refreshInterval, dispatchRefreshInterval] = useState(5000)
+  const { data, mutate } = useSWR('/api/tasks/' + router.query.id, {
     initialData,
-    refreshInterval: 5000,
+    refreshInterval,
   })
 
   useEffect(() => {
     handleTabChange(tab.key)
+
+    if (
+      initialData.coupons.slice().filter((el) => !el.validStatus).length &&
+      data.status === 'finished'
+    ) {
+      openNotificationWithIcon(
+        'success',
+        'Store: ' + data.storeName,
+        'This task is finished now. Please check out that coupon is valid right.'
+      )
+    }
+
+    if (data.status === 'finished' && refreshInterval) {
+      dispatchRefreshInterval(0)
+    }
   }, [data])
 
   const handleTabChange = useCallback(
     (key) => {
       dispatchTab({ key })
-
-      if (
-        initialData.coupons.slice().filter((el) => !el.validStatus).length &&
-        !data.coupons.slice().filter((el) => !el.validStatus).length
-      ) {
-        openNotificationWithIcon(
-          'success',
-          'Store: ' + data.storeName,
-          'This task is finished now. Please check out that coupon is valid right.'
-        )
-      }
 
       if (key === 'All') {
         dispatchCoupons(
@@ -101,11 +111,11 @@ const TaskManage = ({ data: initialData }) => {
         dispatchCoupons(data.coupons.slice().filter((el) => !el.validStatus))
       }
     },
-    [coupons]
+    [data]
   )
 
-  const handleDeactiveCode = useCallback(async (couponId = 'all') => {
-    pushLoading(couponId)
+  const handleDeactiveCode = useCallback(async (couponIds) => {
+    pushLoading(couponIds.join(','))
     message.loading({
       content: 'Waiting...',
       duration: 0,
@@ -113,25 +123,33 @@ const TaskManage = ({ data: initialData }) => {
     })
 
     await axios.delete('/api/coupons', {
-      data:
-        couponId === 'all'
-          ? {
-              taskId: router.query.id,
-            }
-          : {
-              taskId: router.query.id,
-              coupons: [couponId],
-            },
+      data: {
+        taskId: router.query.id,
+        coupons: couponIds,
+      },
     })
 
     message.success({
-      content: `Remove the code: ${couponId}`,
+      content: `Deactive codes num: ${couponIds.length}`,
       duration: 6,
       key: actionKey.current,
     })
-    await mutate('/api/tasks/' + router.query.id)
-    popLoading(couponId)
+    await mutate()
+    popLoading(couponIds.join(','))
   }, [])
+
+  const [allDeactivateCode, dispatchAllDeactivateCode] = useState([])
+  const filterDeactivateCode = useCallback(() => {
+    const coupons = data.coupons
+    const couponsSlice = coupons.slice().map((el) => el.code)
+
+    const repeatCoupons = coupons.filter(
+      (el, index) => couponsSlice.indexOf(el.code) !== index
+    )
+    const invalidCoupons = coupons.filter((el) => el.validStatus === -1)
+
+    dispatchAllDeactivateCode([...repeatCoupons, ...invalidCoupons])
+  }, [data])
 
   return (
     <Wrapper>
@@ -179,14 +197,68 @@ const TaskManage = ({ data: initialData }) => {
         />
         {coupons.length ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-            {data.status === 'finished' && false && (
-              <Card
-                onClick={() => handleDeactiveCode()}
-                key="removeAll"
-                className="cursor-pointer flex justify-center items-center border-2 border-red-500 m-1 text-lg text-red-500"
-              >
-                Remove All Invlid Code
-              </Card>
+            {data.status === 'finished' && (
+              <>
+                <Modal
+                  centered
+                  title="Choice need deactivate promo code"
+                  width={1000}
+                  visible={isModal}
+                  onOk={() => {
+                    const coupons = allDeactivateCode
+                      .filter((el) => !el.unChoice)
+                      .map((el) => el.id)
+                    coupons.length && handleDeactiveCode(coupons)
+                    dispatchIsModal(false)
+                  }}
+                  onCancel={() => {
+                    dispatchIsModal(false)
+                  }}
+                >
+                  {allDeactivateCode.length ? (
+                    <Checkbox.Group
+                      className="grid grid-cols-4"
+                      options={allDeactivateCode.slice().map((el) => ({
+                        label: el.code,
+                        value: el.id,
+                      }))}
+                      defaultValue={allDeactivateCode
+                        .slice()
+                        .map((el) => el.id)}
+                      onChange={(value) =>
+                        dispatchAllDeactivateCode(
+                          allDeactivateCode.slice().map((el) =>
+                            value.includes(el.id)
+                              ? {
+                                  ...el,
+                                  unChoice: false,
+                                }
+                              : {
+                                  ...el,
+                                  unChoice: true,
+                                }
+                          )
+                        )
+                      }
+                    />
+                  ) : (
+                    <Result
+                      icon={<SmileOutlined />}
+                      title="Great, not found invalid promo code!"
+                    />
+                  )}
+                </Modal>
+                <Card
+                  onClick={() => {
+                    filterDeactivateCode()
+                    dispatchIsModal(true)
+                  }}
+                  key="removeAll"
+                  className="cursor-pointer flex justify-center items-center border-2 border-red-500 m-1 text-lg text-red-500"
+                >
+                  Remove All Invlid Code
+                </Card>
+              </>
             )}
             {coupons.slice().map((el) => (
               <Card
@@ -202,7 +274,7 @@ const TaskManage = ({ data: initialData }) => {
                   <Button>Manage</Button>,
                   <Popconfirm
                     title="Are you sure to deactive this code?"
-                    onConfirm={() => handleDeactiveCode(el.id)}
+                    onConfirm={() => handleDeactiveCode([el.id])}
                     disabled={el.validStatus !== -1 || el.deactiveStatus}
                     okText="Yes"
                     cancelText="No"
@@ -234,7 +306,11 @@ const TaskManage = ({ data: initialData }) => {
           <Result
             icon={<SmileOutlined />}
             title="Great, we have done all the coupons!"
-            extra={<Button type="primary">Back</Button>}
+            extra={
+              <Link href="/tasks">
+                <Button type="primary">Back</Button>
+              </Link>
+            }
           />
         )}
       </Card>

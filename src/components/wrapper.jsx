@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import Router, { useRouter } from 'next/router'
-import { Layout, Menu, Breadcrumb, Skeleton, BackTop, Spin } from 'antd'
+import { Layout, Menu, Breadcrumb, Skeleton, BackTop } from 'antd'
 import {
   SettingOutlined,
   UnorderedListOutlined,

@@ -7,6 +7,11 @@ const settingsSchema = new mongoose.Schema(
       default: 'all',
       enum: ['all', 'public', 'exclusive'],
     },
+    concurrency: {
+      type: Number,
+      default: 1,
+      enum: [1, 2, 3],
+    },
   },
   {
     versionKey: false,
