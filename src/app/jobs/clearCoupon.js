@@ -1,5 +1,7 @@
 const run = require('../chrome/index')
 const globalConfig = require('../config/config.local')
+const Coupons = require('../models/Coupons')
+const Settings = require('../models/Settings')
 
 module.exports = (agenda) => {
   agenda.define(
@@ -10,10 +12,18 @@ module.exports = (agenda) => {
       concurrency: globalConfig.concurrency,
       lockLifetime: 30 * 60 * 1000,
     },
-    (job, done) => {
+    async (job, done) => {
       const { storeId, coupons } = job.attrs.data
 
-      const notFinishedCoupons = coupons.filter((el) => !el.validStatus)
+      const [settings] = await Settings.find({}).sort({ _id: -1 }).limit(1)
+      const notFinishedCoupons = (
+        await Promise.all(coupons.map((el) => Coupons.findById(el)))
+      )
+        .filter((el) => {
+          if (!settings || settings.promoType === 'all') return true
+          return el.type === settings.promoType
+        })
+        .filter((el) => !el.validStatus)
 
       notFinishedCoupons.length
         ? run(storeId, notFinishedCoupons, job, done)
@@ -32,7 +42,9 @@ module.exports = (agenda) => {
 
   agenda.on('complete:clearCoupon', async (job) => {
     const data = job.attrs.data
-    const { coupons } = data
+    const coupons = await Promise.all(
+      data.coupons.map((el) => Coupons.findById(el))
+    )
 
     if (coupons.every((el) => el.validStatus)) {
       data.status = 'finished'
