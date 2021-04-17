@@ -1,4 +1,3 @@
-const Xvfb = require('xvfb')
 const puppeteer = require('puppeteer')
 const Helpers = require('../helpers/index')
 const globalConfig = require('../config/config.local')
@@ -47,11 +46,15 @@ class Scrapy {
 
   // xvfb + chrome
   async createBrowser() {
-    const xvfb = new Xvfb({
-      reuse: true,
-      silent: true,
-    })
-    xvfb.start((err) => err && console.log('Xvfb Error: ', err))
+    let xvfb = null
+    if (process.env.NODE_ENV === 'production') {
+      const Xvfb = require('xvfb')
+      xvfb = new Xvfb({
+        reuse: true,
+        silent: true,
+      })
+      xvfb.start((err) => err && console.log('Xvfb Error: ', err))
+    }
 
     this.browser = await puppeteer.launch({
       headless: globalConfig.headless,
@@ -59,7 +62,9 @@ class Scrapy {
       args: [
         '--disable-extensions-except=' + globalConfig.extensionPath,
         '--load-extension=' + globalConfig.extensionPath,
-        '--display=' + xvfb._display,
+        process.env.NODE_ENV === 'production'
+          ? '--display=' + xvfb._display
+          : '',
         '--no-sandbox',
         '--hide-scrollbars',
         '--disable-blink-features=AutomationControlled',
