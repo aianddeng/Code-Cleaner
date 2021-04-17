@@ -2,6 +2,7 @@ const puppeteer = require('puppeteer')
 const Helpers = require('../helpers/index')
 const globalConfig = require('../config/config.local')
 const ObjectID = require('mongodb').ObjectID
+const Coupons = require('../models/Coupons')
 
 class Scrapy {
   constructor(config, coupons, job, done) {
@@ -294,7 +295,7 @@ class Scrapy {
         const data = JSON.parse(msgText)
 
         const currentCoupon = data.code
-        const { coupons } = this.job.attrs.data
+        const coupons = this.coupons.slice()
 
         if (data.storeId === this.config.storeId) {
           if (data.type === 'applyDone') {
@@ -307,17 +308,31 @@ class Scrapy {
             await this.done()
           } else {
             if (data.type === 'applyFailed') {
-              coupons
-                .filter(
-                  (el) => el.code.toUpperCase() === currentCoupon.toUpperCase()
-                )
-                .map((el) => (el.validStatus = -1))
+              await Promise.all(
+                coupons
+                  .filter(
+                    (el) =>
+                      el.code.toUpperCase() === currentCoupon.toUpperCase()
+                  )
+                  .map((el) =>
+                    Coupons.findByIdAndUpdate(el._id, {
+                      validStatus: -1,
+                    })
+                  )
+              )
             } else if (data.type === 'applySuccess') {
-              coupons
-                .filter(
-                  (el) => el.code.toUpperCase() === currentCoupon.toUpperCase()
-                )
-                .map((el) => (el.validStatus = 1))
+              await Promise.all(
+                coupons
+                  .filter(
+                    (el) =>
+                      el.code.toUpperCase() === currentCoupon.toUpperCase()
+                  )
+                  .map((el) =>
+                    Coupons.findByIdAndUpdate(el._id, {
+                      validStatus: 1,
+                    })
+                  )
+              )
             }
 
             await this.job.save()

@@ -2,6 +2,7 @@ const ObjectID = require('mongodb').ObjectID
 const Settings = require('../models/Settings')
 const agenda = require('../jobs/agenda')
 const axios = require('axios')
+const Coupons = require('../models/Coupons')
 
 module.exports = class {
   static async GET(ctx) {
@@ -17,16 +18,22 @@ module.exports = class {
     )
 
     const attrs = jobs.slice().map((el) => el.attrs)
-    const datas = attrs.map((el) => ({
-      _id: el._id,
-      disabled: el.disabled,
-      lastFinishedAt: el.lastFinishedAt,
-      allLength: el.data.coupons.length,
-      validLength: el.data.coupons.filter((el) => el.validStatus === 1).length,
-      invalidLength: el.data.coupons.filter((el) => el.validStatus === -1)
-        .length,
-      ...el.data,
-    }))
+    const datas = await Promise.all(
+      attrs.map(async (el) => {
+        const coupons = await Coupons.find({
+          $or: el.data.coupons.map((el) => ({ _id: el })),
+        })
+        return {
+          _id: el._id,
+          disabled: el.disabled,
+          lastFinishedAt: el.lastFinishedAt,
+          allLength: coupons.length,
+          validLength: coupons.filter((el) => el.validStatus === 1).length,
+          invalidLength: coupons.filter((el) => el.validStatus === -1).length,
+          ...el.data,
+        }
+      })
+    )
 
     datas.map((el) => delete el.coupons)
 
@@ -50,12 +57,20 @@ module.exports = class {
       }
     )
 
-    const filterData = data.data.data
-      .filter((el) => el.code.toUpperCase() !== 'fatcoupon'.toUpperCase())
-      .filter((el) => {
-        if (!settings || settings.promoType === 'all') return true
-        return el.type === settings.promoType
-      })
+    const coupons_result = await Coupons.insertMany(
+      data.data.data
+        .filter((el) => el.code !== 'FatCoupon')
+        .map((el) => ({
+          fatcoupon_id: el.id,
+          fatcoupon_storeId: el.storeId,
+          code: el.code,
+          type: el.type,
+          priority: el.priority,
+          description: el.description,
+        }))
+    )
+
+    const filterData = coupons_result.map((el) => el._id)
 
     const job = await agenda.now('clearCoupon', {
       storeId: body.storeId,
@@ -106,15 +121,28 @@ module.exports = class {
     const attrs = job.attrs
 
     const data = {
+      ...attrs.data,
       _id: attrs._id,
       disabled: attrs.disabled,
       lastFinishedAt: attrs.lastFinishedAt,
-      allLength: attrs.data.coupons.length,
-      validLength: attrs.data.coupons.filter((el) => el.validStatus === 1)
-        .length,
-      invalidLength: attrs.data.coupons.filter((el) => el.validStatus === -1)
-        .length,
-      ...attrs.data,
+      coupons: await Coupons.find({
+        $or: attrs.data.coupons.map((el) => ({ _id: el })),
+      }),
+      allLength: (
+        await Coupons.find({
+          $or: attrs.data.coupons.map((el) => ({ _id: el })),
+        })
+      ).length,
+      validLength: (
+        await Coupons.find({
+          $or: attrs.data.coupons.map((el) => ({ _id: el })),
+        })
+      ).filter((el) => el.validStatus === 1).length,
+      invalidLength: (
+        await Coupons.find({
+          $or: attrs.data.coupons.map((el) => ({ _id: el })),
+        })
+      ).filter((el) => el.validStatus === -1).length,
     }
 
     ctx.body = data
