@@ -1,4 +1,11 @@
 import { useState, useCallback, useEffect } from 'react'
+import { useRouter } from 'next/router'
+import Head from 'next/head'
+import Link from 'next/link'
+import useSWR from 'swr'
+import axios from 'axios'
+import useActionLoading from '../../hooks/useActionLoading'
+
 import {
   Card,
   Button,
@@ -11,13 +18,6 @@ import {
   Checkbox,
 } from 'antd'
 import { SmileOutlined } from '@ant-design/icons'
-import { useRouter } from 'next/router'
-import Head from 'next/head'
-import Link from 'next/link'
-import axios from 'axios'
-import useSWR from 'swr'
-import Wrapper from '../../components/Wrapper'
-import useActionLoading from '../../hooks/useActionLoading'
 
 const openNotificationWithIcon = (type, message, description) => {
   notification[type]({
@@ -28,25 +28,26 @@ const openNotificationWithIcon = (type, message, description) => {
 }
 
 const TaskManage = ({ data: initialData }) => {
+  const router = useRouter()
+  const currentId = router.query.id
+
   const { actionKey, checkLoading, pushLoading, popLoading } = useActionLoading(
     'removeCode'
   )
 
-  const [isModal, dispatchIsModal] = useState(false)
+  const [refreshInterval, dispatchRefreshInterval] = useState(5000)
+  const { data, mutate } = useSWR('/api/tasks/' + currentId, {
+    initialData,
+    refreshInterval,
+  })
 
-  const router = useRouter()
+  const [isModal, dispatchIsModal] = useState(false)
 
   const [tab, dispatchTab] = useState({
     key: 'All',
   })
 
   const [coupons, dispatchCoupons] = useState([])
-
-  const [refreshInterval, dispatchRefreshInterval] = useState(5000)
-  const { data, mutate } = useSWR('/api/tasks/' + router.query.id, {
-    initialData,
-    refreshInterval,
-  })
 
   useEffect(() => {
     handleTabChange(tab.key)
@@ -124,17 +125,17 @@ const TaskManage = ({ data: initialData }) => {
 
     await axios.delete('/api/coupons', {
       data: {
-        taskId: router.query.id,
+        taskId: currentId,
         coupons: couponIds,
       },
     })
 
+    await mutate()
     message.success({
       content: `Deactive codes num: ${couponIds.length}`,
       duration: 6,
       key: actionKey.current,
     })
-    await mutate()
     popLoading(couponIds.join(','))
   }, [])
 
@@ -152,7 +153,7 @@ const TaskManage = ({ data: initialData }) => {
   }, [data])
 
   return (
-    <Wrapper>
+    <>
       <Head>
         <title>Task Info - FatCoupon</title>
       </Head>
@@ -314,7 +315,7 @@ const TaskManage = ({ data: initialData }) => {
           />
         )}
       </Card>
-    </Wrapper>
+    </>
   )
 }
 

@@ -1,13 +1,13 @@
+import { useCallback } from 'react'
+import Head from 'next/head'
+import Link from 'next/link'
+import useSWR from 'swr'
 import axios from 'axios'
 import moment from 'moment'
-import useSWR, { mutate } from 'swr'
-import { useCallback, useState } from 'react'
-import { Table, Button, message, Popconfirm, Progress } from 'antd'
-import Head from 'next/head'
-import useActionLoading from '../../hooks/useActionLoading'
-import usePageLoading from '../../hooks/usePageLoading'
 import usePageSize from '../../hooks/usePageSize'
-import Wrapper from '../../components/Wrapper'
+import useActionLoading from '../../hooks/useActionLoading'
+
+import { Table, Button, message, Popconfirm, Progress } from 'antd'
 
 const Tasks = ({ data: initialData }) => {
   const { actionKey, checkLoading, pushLoading, popLoading } = useActionLoading(
@@ -18,14 +18,13 @@ const Tasks = ({ data: initialData }) => {
 
   const {
     data: { total, datas: taskList },
+    mutate,
   } = useSWR(`/api/tasks?size=${size}&index=${index}`, {
     initialData,
     refreshInterval: 1000,
   })
 
-  const { loading, handleRedirect } = usePageLoading()
-
-  const handleDeleteTask = useCallback(async (taskId) => {
+  const handleEditTask = useCallback(async (taskId, type) => {
     pushLoading(taskId)
     message.loading({
       content: 'Waiting...',
@@ -33,50 +32,38 @@ const Tasks = ({ data: initialData }) => {
       key: actionKey.current,
     })
 
-    await axios.delete('/api/tasks', {
-      data: {
+    if (type === 'remove') {
+      await axios.delete('/api/tasks', {
+        data: {
+          taskId,
+        },
+      })
+    } else if (type === 'disable') {
+      await axios.post('/api/tasks', {
         taskId,
-      },
-    })
+      })
+    }
 
-    message.success({
-      content: `Remove the task: ${taskId}`,
-      duration: 6,
-      key: actionKey.current,
-    })
-    await mutate(`/api/tasks?size=${size}&page=${index}`)
-    popLoading(taskId)
-  }, [])
-
-  const handleDisableTask = useCallback(async (taskId) => {
-    pushLoading(taskId)
-    message.loading({
-      content: 'Waiting...',
-      duration: 0,
-      key: actionKey.current,
-    })
-
-    await axios.post('/api/tasks', {
-      taskId,
-    })
-
+    await mutate()
     message.success({
       content: `Switch the task: ${taskId}`,
       duration: 6,
       key: actionKey.current,
     })
-    await mutate(`/api/tasks?size=${size}&page=${index}`)
     popLoading(taskId)
   }, [])
 
   return (
-    <Wrapper defaultLoading={loading}>
+    <>
       <Head>
         <title>Task List - Fatcoupon</title>
       </Head>
       <Table
-        dataSource={taskList}
+        sticky
+        bordered
         rowKey="_id"
+        dataSource={taskList}
+        scroll={{ y: 380, x: 800 }}
         title={() => <h2>Task List</h2>}
         pagination={{
           total,
@@ -86,9 +73,6 @@ const Tasks = ({ data: initialData }) => {
             dispatchPageSize({ index, size })
           },
         }}
-        bordered
-        scroll={{ y: 380, x: 800 }}
-        sticky
       >
         <Table.Column key="_id" title="ID" dataIndex="_id" />
         <Table.Column
@@ -150,26 +134,22 @@ const Tasks = ({ data: initialData }) => {
           dataIndex="_id"
           fixed="right"
           render={(value, record) => (
-            <div className="flex flex-col space-y-1">
-              <Button
-                type="primary"
-                loading={checkLoading(value)}
-                onClick={() => handleRedirect('/tasks/' + value)}
-              >
-                Manage
+            <div className="flex flex-col space-y-2">
+              <Button type="primary" loading={checkLoading(value)}>
+                <Link href={'/tasks/' + value}>Manage</Link>
               </Button>
               <Button
-                disabled={record.status === 'finished'}
                 loading={checkLoading(value)}
-                onClick={() => handleDisableTask(value)}
+                disabled={record.status === 'finished'}
+                onClick={() => handleEditTask(value, 'disable')}
               >
                 {record.disabled ? 'Continue' : 'Disable'}
               </Button>
               <Popconfirm
-                title="Are you sure to delete this task?"
-                onConfirm={() => handleDeleteTask(value)}
                 okText="Yes"
                 cancelText="No"
+                title="Are you sure to delete this task?"
+                onConfirm={() => handleEditTask(value, 'remove')}
               >
                 <Button danger loading={checkLoading(value)}>
                   Delete
@@ -179,7 +159,7 @@ const Tasks = ({ data: initialData }) => {
           )}
         />
       </Table>
-    </Wrapper>
+    </>
   )
 }
 

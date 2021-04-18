@@ -1,22 +1,22 @@
-import { Drawer, Button, Form, Select, Input, Spin } from 'antd'
-import useSWR, { mutate } from 'swr'
 import { useCallback } from 'react'
+import useSWR from 'swr'
 import axios from 'axios'
 
-const SideBar = ({ visible, handleSwitchVisible: switchVisible }) => {
-  const [form] = Form.useForm()
+import { Drawer, Button, Form, Select, Input, Skeleton } from 'antd'
 
-  const { data } = useSWR('/api/settings')
+const { useForm } = Form
+
+const SideBar = ({ visible, handleSwitchVisible }) => {
+  const [form] = useForm()
+  const { data, mutate } = useSWR('/api/settings')
 
   const handleSubmitSettings = useCallback(async () => {
     const values = form.getFieldsValue()
     const { data } = await axios.post('/api/settings', values)
 
     form.setFieldsValue(data)
-    await mutate('/api/settings', data, false)
-    await switchVisible()
-
-    return true
+    await mutate(data, false)
+    await handleSwitchVisible()
   })
 
   const handleResetedSettings = useCallback(() => {
@@ -27,21 +27,17 @@ const SideBar = ({ visible, handleSwitchVisible: switchVisible }) => {
     <Drawer
       visible={visible}
       title="Global Settings"
-      onClose={() => switchVisible()}
+      onClose={() => handleSwitchVisible()}
       footer={
         <div className="flex justify-end space-x-4">
           <Button onClick={() => handleResetedSettings()}>Reset</Button>
-          <Button
-            type="primary"
-            htmlType="submit"
-            onClick={() => handleSubmitSettings()}
-          >
+          <Button type="primary" onClick={() => handleSubmitSettings()}>
             Submit
           </Button>
         </div>
       }
     >
-      {data ? (
+      <Skeleton loading={!data} active>
         <Form form={form} layout="vertical" initialValues={data}>
           <Form.Item name="promoType" label="Promo Code Type" required={true}>
             <Select placeholder="Please select a promocode type">
@@ -58,9 +54,7 @@ const SideBar = ({ visible, handleSwitchVisible: switchVisible }) => {
             <Input type="number" min="1" max="3" />
           </Form.Item>
         </Form>
-      ) : (
-        <Spin className="block m-auto" />
-      )}
+      </Skeleton>
     </Drawer>
   )
 }

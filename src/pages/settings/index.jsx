@@ -1,11 +1,5 @@
-import Wrapper from '../../components/Wrapper'
-
 const Settings = () => {
-  return (
-    <Wrapper>
-      <h1>Not Found</h1>
-    </Wrapper>
-  )
+  return <h1>Not Found</h1>
 }
 
 export const getServerSideProps = async () => {

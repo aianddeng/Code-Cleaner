@@ -1,49 +1,20 @@
-import { useState, useCallback, useEffect } from 'react'
-import Router, { useRouter } from 'next/router'
+import Link from 'next/link'
+import useRouterLoading from '../hooks/useRouterLoading'
+import useSideBarLoader from '../hooks/useSideBarLoader'
+
 import { Layout, Menu, Breadcrumb, Skeleton, BackTop } from 'antd'
 import {
   SettingOutlined,
   UnorderedListOutlined,
   AppstoreAddOutlined,
 } from '@ant-design/icons'
-import usePageLoading from '../hooks/usePageLoading'
-import dynamic from 'next/dynamic'
+import SideBar from '../components/SideBar'
 
-const SideBar = dynamic(() => import('./SideBar'))
 const { Header, Content } = Layout
 
-const Wrapper = ({ defaultLoading, children }) => {
-  const router = useRouter()
-
-  const { loading, handleRedirect } = usePageLoading()
-
-  const [visible, dispatchVisible] = useState(null)
-
-  const switchVisible = useCallback(() => {
-    const query = router.query
-    if (visible) {
-      delete query.settings
-      Router.push({
-        pathname: router.pathname,
-        query: {
-          ...router.query,
-        },
-      })
-    } else {
-      Router.push({
-        pathname: router.pathname,
-        query: {
-          ...router.query,
-          settings: true,
-        },
-      })
-    }
-    dispatchVisible(!visible)
-  })
-
-  useEffect(() => {
-    if (router.query.settings === 'true') dispatchVisible(true)
-  }, [])
+const Wrapper = ({ children }) => {
+  const { router, loading } = useRouterLoading()
+  const { visible, handleSwitchVisible } = useSideBarLoader()
 
   return (
     <Layout className="min-h-screen">
@@ -55,25 +26,23 @@ const Wrapper = ({ defaultLoading, children }) => {
           selectedKeys={[router.route]}
         >
           <Menu.Item
-            icon={<AppstoreAddOutlined className="align-text-bottom" />}
-            onClick={() => handleRedirect('/')}
+            icon={<AppstoreAddOutlined className="md:align-text-bottom" />}
             key="/"
           >
-            Store List
+            <Link href="/">Store List</Link>
           </Menu.Item>
           <Menu.Item
-            icon={<UnorderedListOutlined className="align-text-bottom" />}
-            onClick={() => handleRedirect('/tasks')}
+            icon={<UnorderedListOutlined className="md:align-text-bottom" />}
             key="/tasks"
           >
-            Task List
+            <Link href="/tasks">Task List</Link>
           </Menu.Item>
           <Menu.Item
-            className="ml-auto"
-            onClick={() => switchVisible()}
+            icon={<SettingOutlined className="md:align-text-bottom" />}
             key="/settings"
-            icon={<SettingOutlined className="align-text-bottom" />}
-          />
+            className="ml-auto"
+            onClick={() => handleSwitchVisible()}
+          ></Menu.Item>
         </Menu>
       </Header>
       <Content className="mt-16 px-2 md:px-12">
@@ -83,16 +52,14 @@ const Wrapper = ({ defaultLoading, children }) => {
           <Breadcrumb.Item>App</Breadcrumb.Item>
         </Breadcrumb>
         <div className="bg-white p-2 md:p-6">
-          <Skeleton loading={defaultLoading || loading} active />
-          <Skeleton loading={defaultLoading || loading} active>
+          <Skeleton loading={loading} active />
+          <Skeleton loading={loading} active>
             {children}
           </Skeleton>
         </div>
       </Content>
       <aside>
-        {visible !== null && (
-          <SideBar visible={visible} handleSwitchVisible={switchVisible} />
-        )}
+        <SideBar visible={visible} handleSwitchVisible={handleSwitchVisible} />
         <BackTop />
       </aside>
     </Layout>
