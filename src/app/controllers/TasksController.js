@@ -1,5 +1,4 @@
 const Settings = require('../models/Settings')
-const Coupons = require('../models/Coupons')
 const queue = require('../jobs/queue')
 const axios = require('axios')
 
@@ -16,29 +15,24 @@ module.exports = class {
       (query.index - 1) * query.size,
       query.index * query.size
     )
+    const jobCounts = await queue.getJobCounts()
 
-    const total = Object.values(await queue.getJobCounts()).reduce(
-      (a, b) => a + b
-    )
+    const datas = jobs
+      .map((job) => ({
+        ...job.data,
+        id: job.id,
+        createdOn: job.timestamp,
+        finishedOn: job.finishedOn,
+        processedOn: job.processedOn,
+        allLength: job.data.coupons.length,
+        validLength: job.data.coupons.filter((el) => el.validStatus === 1)
+          .length,
+        invalidLength: job.data.coupons.filter((el) => el.validStatus === -1)
+          .length,
+      }))
+      .sort((a, b) => b.id - a.id)
 
-    const datas = (
-      await Promise.all(
-        jobs.filter(Boolean).map(async (el) => {
-          const coupons = await Coupons.find({
-            $or: el.data.coupons.map((el) => ({ _id: el })),
-          })
-          return {
-            id: el.id,
-            disabled: false,
-            lastFinishedAt: el.finishedOn,
-            allLength: coupons.length,
-            validLength: coupons.filter((el) => el.validStatus === 1).length,
-            invalidLength: coupons.filter((el) => el.validStatus === -1).length,
-            ...el.data,
-          }
-        })
-      )
-    ).sort((a, b) => b.id - a.id)
+    const total = Object.values(jobCounts).reduce((a, b) => a + b)
 
     ctx.body = {
       total,
@@ -60,33 +54,33 @@ module.exports = class {
       }
     )
 
-    const coupons_result = await Coupons.insertMany(
-      data.data.data
+    const job = await queue.add('clean-code', {
+      storeId: body.storeId,
+      storeName: body.storeName,
+      coupons: data.data.data
         .filter((el) => el.code !== 'FatCoupon')
         .map((el) => ({
-          fatcoupon_id: el.id,
-          fatcoupon_storeId: el.storeId,
+          id: el.id,
+          storeId: el.storeId,
           code: el.code,
           type: el.type,
           priority: el.priority,
           description: el.description,
-        }))
-    )
-
-    const filterData = coupons_result.map((el) => el._id)
-
-    const job = await queue.add('clean-code', {
-      storeId: body.storeId,
-      storeName: body.storeName,
-      coupons: filterData,
+        })),
       promotype: settings ? settings.promoType : '',
       status: 'waiting',
-      createdAt: Date.now(),
     })
 
     const datas = {
-      id: job.id,
       ...job.data,
+      id: job.id,
+      createdOn: job.timestamp,
+      finishedOn: job.finishedOn,
+      processedOn: job.processedOn,
+      allLength: job.data.coupons.length,
+      validLength: job.data.coupons.filter((el) => el.validStatus === 1).length,
+      invalidLength: job.data.coupons.filter((el) => el.validStatus === -1)
+        .length,
     }
     ctx.body = datas
   }
@@ -96,9 +90,9 @@ module.exports = class {
 
     switch (action) {
       case 'resume':
-        await queue.resume()
+        await queue.resume(true)
       case 'pause':
-        await queue.pause()
+        await queue.pause(true)
     }
 
     ctx.body = {
@@ -119,7 +113,10 @@ module.exports = class {
     const { id } = ctx.params
 
     const job = await queue.getJob(id)
-    job.retry()
+    const state = await job.getState()
+    if (state === 'failed') {
+      await job.retry()
+    }
 
     ctx.body = { status: 'success' }
   }
@@ -129,21 +126,16 @@ module.exports = class {
 
     const job = await queue.getJob(id)
 
-    const coupons = await Coupons.find({
-      $or: job.data.coupons.map((el) => ({ _id: el })),
-    })
-
     ctx.body = {
       ...job.data,
       id: job.id,
-      disabled: false,
-      lastFinishedAt: job.finishedOn,
-      allLength: coupons.length,
-      validLength: coupons.filter((el) => el.validStatus === 1).length,
-      invalidLength: coupons.filter((el) => el.validStatus === -1).length,
-      coupons: await Coupons.find({
-        $or: job.data.coupons.map((el) => ({ _id: el })),
-      }),
+      createdOn: job.timestamp,
+      finishedOn: job.finishedOn,
+      processedOn: job.processedOn,
+      allLength: job.data.coupons.length,
+      validLength: job.data.coupons.filter((el) => el.validStatus === 1).length,
+      invalidLength: job.data.coupons.filter((el) => el.validStatus === -1)
+        .length,
     }
   }
 }

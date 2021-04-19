@@ -1,6 +1,5 @@
 const client = require('../db/redis').client
 const Queue = require('bull')
-const Coupons = require('../models/Coupons')
 const Settings = require('../models/Settings')
 const run = require('../chrome/index')
 
@@ -11,9 +10,7 @@ queue.process('clean-code', async (job, done) => {
 
   const [settings] = await Settings.find({}).sort({ _id: -1 }).limit(1)
 
-  const notFinishedCoupons = (
-    await Promise.all(coupons.map((el) => Coupons.findById(el)))
-  )
+  const notFinishedCoupons = coupons
     .filter((el) => {
       if (!settings || settings.promoType === 'all') return true
       return el.type === settings.promoType
@@ -23,6 +20,19 @@ queue.process('clean-code', async (job, done) => {
   notFinishedCoupons.length
     ? run(storeId, notFinishedCoupons, job, done)
     : done()
+})
+
+queue.on('waiting', async (jobId) => {
+  const job = await queue.getJob(jobId)
+
+  const { data, id } = job
+
+  await job.update({
+    ...data,
+    status: 'waiting',
+  })
+
+  console.log(`Task <${data.storeName}> (id: ${id}) waiting`)
 })
 
 queue.on('active', async (job) => {
@@ -39,27 +49,21 @@ queue.on('active', async (job) => {
 queue.on('completed', async (job) => {
   const { data, id } = job
 
-  const coupons = await Promise.all(
-    data.coupons.map((el) => Coupons.findById(el))
-  )
-
-  if (coupons.every((el) => el.validStatus)) {
-    await job.update({
-      ...data,
-      status: 'finished',
-    })
-  } else {
-    await job.update({
-      ...data,
-      status: 'disabled',
-    })
-  }
+  await job.update({
+    ...data,
+    status: 'finished',
+  })
 
   console.log(`Task <${data.storeName}> (id: ${id}) completed`)
 })
 
 queue.on('failed', async (job) => {
   const { data, id } = job
+
+  await job.update({
+    ...data,
+    status: 'failed',
+  })
 
   console.log(`Task <${data.storeName}> (id: ${id}) failed`)
 })

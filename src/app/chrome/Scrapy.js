@@ -1,7 +1,6 @@
 const puppeteer = require('puppeteer')
 const globalConfig = require('../config/config.local')
 const Helpers = require('../helpers/index')
-const Coupons = require('../models/Coupons')
 
 class Scrapy {
   constructor(config, coupons, job, done) {
@@ -22,8 +21,10 @@ class Scrapy {
     queue.on('paused', () => {
       this.browser && this.browser.close()
     })
-    queue.on('removed', () => {
-      this.browser && this.browser.close()
+    queue.on('removed', (job) => {
+      if (job.id === this.job.id) {
+        this.browser && this.browser.close()
+      }
     })
 
     // Reason: 1. 手动关闭浏览器(先不考虑) 2. 浏览器超时错误 3. Error Done
@@ -283,43 +284,25 @@ class Scrapy {
         const data = JSON.parse(msgText)
 
         const currentCoupon = data.code
-        const coupons = this.coupons.slice()
 
         if (data.storeId === this.config.storeId) {
           if (data.type === 'applyDone') {
             this.browser.disconnect()
             this.done()
           } else if (data.type === 'errorDone') {
-            this.job.moveToFailed({ message: 'Error Done' }, true)
             this.browser.disconnect()
-            this.done()
+            this.done(new Error('Error Done'))
           } else {
             if (data.type === 'applyFailed') {
-              await Promise.all(
-                coupons
-                  .filter(
-                    (el) =>
-                      el.code.toUpperCase() === currentCoupon.toUpperCase()
-                  )
-                  .map((el) =>
-                    Coupons.findByIdAndUpdate(el._id, {
-                      validStatus: -1,
-                    })
-                  )
-              )
+              this.job.data.coupons.find(
+                (el) => el.code.toUpperCase() === currentCoupon.toUpperCase()
+              ).validStatus = -1
+              await this.job.update(this.job.data)
             } else if (data.type === 'applySuccess') {
-              await Promise.all(
-                coupons
-                  .filter(
-                    (el) =>
-                      el.code.toUpperCase() === currentCoupon.toUpperCase()
-                  )
-                  .map((el) =>
-                    Coupons.findByIdAndUpdate(el._id, {
-                      validStatus: 1,
-                    })
-                  )
-              )
+              this.job.data.coupons.find(
+                (el) => el.code.toUpperCase() === currentCoupon.toUpperCase()
+              ).validStatus = 1
+              await this.job.update(this.job.data)
             }
           }
         }
@@ -442,9 +425,8 @@ class Scrapy {
       await this.handleAddProduct()
       await this.handleApplyCoupon()
     } catch (e) {
-      this.job.moveToFailed({ message: 'Error Puppeteer' }, true)
       this.browser.disconnect()
-      this.done()
+      this.done(new Error('Error Puppeteer'))
     }
   }
 }

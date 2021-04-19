@@ -161,11 +161,15 @@ const Tasks = ({ data: initialData }) => {
         />
         <Table.Column
           key="createdAt"
-          title="Created / Finished"
-          dataIndex="lastFinishedAt"
+          title="Created / Processed / Finished"
+          dataIndex="finishedOn"
           render={(value, record) => (
             <>
-              <p>{moment(record.createdAt).format('YYYY-MM-DD HH:mm:ss')}</p>
+              <p>
+                {moment(record.createdOn || record.processedOn).format(
+                  'YYYY-MM-DD HH:mm:ss'
+                )}
+              </p>
               <p>{value ? moment(value).format('YYYY-MM-DD HH:mm:ss') : '-'}</p>
             </>
           )}
@@ -182,7 +186,7 @@ const Tasks = ({ data: initialData }) => {
               </Button>
               <Button
                 loading={checkLoading(value)}
-                disabled={record.status !== 'disabled'}
+                disabled={record.status !== 'failed'}
                 onClick={() => handleRetryTask(value)}
               >
                 Retry
