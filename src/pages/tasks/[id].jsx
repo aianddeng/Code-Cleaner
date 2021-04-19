@@ -204,7 +204,7 @@ const TaskManage = ({ data: initialData }) => {
                   onOk={() => {
                     const coupons = allDeactivateCode
                       .filter((el) => !el.unChoice)
-                      .map((el) => el._id)
+                      .map((el) => el.id)
                     coupons.length && handleDeactiveCode(coupons)
                     setIsModal(false)
                   }}
@@ -217,15 +217,15 @@ const TaskManage = ({ data: initialData }) => {
                       className="grid grid-cols-2 md:grid-cols-4"
                       options={allDeactivateCode.slice().map((el) => ({
                         label: el.code,
-                        value: el._id,
+                        value: el.id,
                       }))}
                       defaultValue={allDeactivateCode
                         .slice()
-                        .map((el) => el._id)}
+                        .map((el) => el.id)}
                       onChange={(value) =>
                         setAllDeactivateCode(
                           allDeactivateCode.slice().map((el) =>
-                            value.includes(el._id)
+                            value.includes(el.id)
                               ? {
                                   ...el,
                                   unChoice: false,
@@ -266,19 +266,19 @@ const TaskManage = ({ data: initialData }) => {
                   el.validStatus === -1 && 'border-red-500',
                 ]}
                 hoverable
-                key={el._id}
+                key={el.id}
                 actions={[
                   <Button>Manage</Button>,
                   <Popconfirm
                     title="Are you sure to deactive this code?"
-                    onConfirm={() => handleDeactiveCode([el._id])}
+                    onConfirm={() => handleDeactiveCode([el.id])}
                     disabled={el.validStatus !== -1 || el.deactiveStatus}
                     okText="Yes"
                     cancelText="No"
                   >
                     <Button
                       danger
-                      loading={checkLoading(el._id)}
+                      loading={checkLoading(el.id)}
                       disabled={el.validStatus !== -1 || el.deactiveStatus}
                     >
                       Deactive

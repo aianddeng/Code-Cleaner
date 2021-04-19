@@ -1,7 +1,6 @@
 const puppeteer = require('puppeteer')
-const Helpers = require('../helpers/index')
 const globalConfig = require('../config/config.local')
-const ObjectID = require('mongodb').ObjectID
+const Helpers = require('../helpers/index')
 const Coupons = require('../models/Coupons')
 
 class Scrapy {
@@ -17,31 +16,20 @@ class Scrapy {
   }
 
   async watchJobStatus() {
-    return new Promise((resolve) => {
-      const agenda = require('../jobs/agenda')
+    const queue = require('../jobs/queue')
 
-      const checkJob = async () => {
-        const [job] = await agenda.jobs({
-          _id: ObjectID(this.job.attrs._id),
-        })
-        if (!job || job.attrs.disabled) {
-          try {
-            this.browser && (await this.browser.close())
-            await this.done()
-          } catch (e) {
-            console.log(e.message)
-          } finally {
-            console.log(
-              `> Job (${this.job.attrs._id}) Not Found or Is Disabled`
-            )
-            resolve(true)
-          }
-        } else {
-          setTimeout(checkJob, 5000)
-        }
-      }
+    // 监听外部状态
+    queue.on('paused', () => {
+      this.browser && this.browser.close()
+    })
+    queue.on('removed', () => {
+      this.browser && this.browser.close()
+    })
 
-      setTimeout(checkJob, 0)
+    // Reason: 1. 手动关闭浏览器(先不考虑) 2. 浏览器超时错误 3. Error Done
+    // Result: 1. 移动任务到失败列表 2. 关闭浏览器
+    this.browser.on('disconnected', async () => {
+      this.browser && this.browser.close()
     })
   }
 
@@ -299,13 +287,12 @@ class Scrapy {
 
         if (data.storeId === this.config.storeId) {
           if (data.type === 'applyDone') {
-            this.browser && (await this.browser.close())
-            await this.done()
+            this.browser.disconnect()
+            this.done()
           } else if (data.type === 'errorDone') {
-            this.browser && (await this.browser.close())
-            this.job.fail('Error Done')
-            await this.job.save()
-            await this.done()
+            this.job.moveToFailed({ message: 'Error Done' }, true)
+            this.browser.disconnect()
+            this.done()
           } else {
             if (data.type === 'applyFailed') {
               await Promise.all(
@@ -334,8 +321,6 @@ class Scrapy {
                   )
               )
             }
-
-            await this.job.save()
           }
         }
       }
@@ -443,39 +428,23 @@ class Scrapy {
   }
 
   async start() {
-    if (!this.coupons.length) {
-      await this.done()
-      console.log(`> Not Found Coupons: ${this.job.attrs._id}`)
-      return true
-    }
+    if (!this.coupons.length) this.done()
 
     try {
       await this.createBrowser()
-      this.watchJobStatus()
+      await this.watchJobStatus()
       await this.extensionLoaded()
 
       await this.watchBackground()
       await this.watchApplyCoupon()
 
-      if (this.config.login) {
-        await this.handleLogin()
-      }
+      this.config.login && (await this.handleLogin())
       await this.handleAddProduct()
       await this.handleApplyCoupon()
     } catch (e) {
-      console.log(`> Puppeteer Error: ${e.message}`)
-      this.browser && (await this.browser.close())
-
-      const agenda = require('../jobs/agenda')
-      const [job] = await agenda.jobs({
-        _id: ObjectID(this.job.attrs._id),
-      })
-      if (!job || job.attrs.disabled) {
-      } else {
-        this.job.fail('Error Puppeteer')
-        await this.job.save()
-      }
-      await this.done()
+      this.job.moveToFailed({ message: 'Error Puppeteer' }, true)
+      this.browser.disconnect()
+      this.done()
     }
   }
 }

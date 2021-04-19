@@ -1,44 +1,47 @@
-const ObjectID = require('mongodb').ObjectID
 const Settings = require('../models/Settings')
-const agenda = require('../jobs/agenda')
-const axios = require('axios')
 const Coupons = require('../models/Coupons')
+const queue = require('../jobs/queue')
+const axios = require('axios')
 
 module.exports = class {
   static async GET(ctx) {
-    const query = ctx.request.query || {}
+    const query = {
+      ...ctx.request.query,
+      size: 10,
+      index: 1,
+    }
 
-    const jobsTotal = (await agenda.jobs({})).length
-
-    const jobs = await agenda.jobs(
-      { name: 'clearCoupon' },
-      { _id: -1, nextRunAt: 1, priority: -1 },
-      query.size ? +query.size : undefined,
-      query.index && query.size ? (+query.index - 1) * +query.size : undefined
+    const jobs = await queue.getJobs(
+      ['active', 'completed', 'delayed', 'failed', 'paused', 'waiting'],
+      (query.index - 1) * query.size,
+      query.index * query.size
     )
 
-    const attrs = jobs.slice().map((el) => el.attrs)
-    const datas = await Promise.all(
-      attrs.map(async (el) => {
-        const coupons = await Coupons.find({
-          $or: el.data.coupons.map((el) => ({ _id: el })),
+    const total = Object.values(await queue.getJobCounts()).reduce(
+      (a, b) => a + b
+    )
+
+    const datas = (
+      await Promise.all(
+        jobs.filter(Boolean).map(async (el) => {
+          const coupons = await Coupons.find({
+            $or: el.data.coupons.map((el) => ({ _id: el })),
+          })
+          return {
+            id: el.id,
+            disabled: false,
+            lastFinishedAt: el.finishedOn,
+            allLength: coupons.length,
+            validLength: coupons.filter((el) => el.validStatus === 1).length,
+            invalidLength: coupons.filter((el) => el.validStatus === -1).length,
+            ...el.data,
+          }
         })
-        return {
-          _id: el._id,
-          disabled: el.disabled,
-          lastFinishedAt: el.lastFinishedAt,
-          allLength: coupons.length,
-          validLength: coupons.filter((el) => el.validStatus === 1).length,
-          invalidLength: coupons.filter((el) => el.validStatus === -1).length,
-          ...el.data,
-        }
-      })
-    )
-
-    datas.map((el) => delete el.coupons)
+      )
+    ).sort((a, b) => b.id - a.id)
 
     ctx.body = {
-      total: jobsTotal,
+      total,
       datas,
     }
   }
@@ -72,7 +75,7 @@ module.exports = class {
 
     const filterData = coupons_result.map((el) => el._id)
 
-    const job = await agenda.now('clearCoupon', {
+    const job = await queue.add('clean-code', {
       storeId: body.storeId,
       storeName: body.storeName,
       coupons: filterData,
@@ -82,69 +85,65 @@ module.exports = class {
     })
 
     const datas = {
-      _id: job.attrs._id,
-      ...job.attrs.data,
+      id: job.id,
+      ...job.data,
     }
     ctx.body = datas
   }
 
   static async POST(ctx) {
-    const body = ctx.request.body
-    const [job] = await agenda.jobs({ _id: ObjectID(body.taskId) })
-    if (job) {
-      if (job.attrs.disabled) {
-        await job.enable()
-        job.attrs.failCount = 0
-        job.attrs.data.status = 'waiting'
-      } else {
-        await job.disable()
-        job.attrs.data.status = 'disabled'
-      }
-      await job.save()
-      ctx.body = { status: 'success' }
+    const { action } = ctx.request.body
+
+    switch (action) {
+      case 'resume':
+        await queue.resume()
+      case 'pause':
+        await queue.pause()
+    }
+
+    ctx.body = {
+      status: 'success',
     }
   }
 
-  static async DELETE(ctx) {
-    const body = ctx.request.body
-    const count = await agenda.cancel({ _id: ObjectID(body.taskId) })
+  static async DELETE_ID(ctx) {
+    const { id } = ctx.params
 
-    ctx.body = { status: 'success', count }
+    const job = await queue.getJob(id)
+    await job.remove()
+
+    ctx.body = { status: 'success' }
+  }
+
+  static async POST_ID(ctx) {
+    const { id } = ctx.params
+
+    const job = await queue.getJob(id)
+    job.retry()
+
+    ctx.body = { status: 'success' }
   }
 
   static async GET_ID(ctx) {
-    const [job] = await agenda.jobs({
-      name: 'clearCoupon',
-      _id: ObjectID(ctx.params.id),
+    const { id } = ctx.params
+
+    const job = await queue.getJob(id)
+
+    const coupons = await Coupons.find({
+      $or: job.data.coupons.map((el) => ({ _id: el })),
     })
 
-    const attrs = job.attrs
-
-    const data = {
-      ...attrs.data,
-      _id: attrs._id,
-      disabled: attrs.disabled,
-      lastFinishedAt: attrs.lastFinishedAt,
+    ctx.body = {
+      ...job.data,
+      id: job.id,
+      disabled: false,
+      lastFinishedAt: job.finishedOn,
+      allLength: coupons.length,
+      validLength: coupons.filter((el) => el.validStatus === 1).length,
+      invalidLength: coupons.filter((el) => el.validStatus === -1).length,
       coupons: await Coupons.find({
-        $or: attrs.data.coupons.map((el) => ({ _id: el })),
+        $or: job.data.coupons.map((el) => ({ _id: el })),
       }),
-      allLength: (
-        await Coupons.find({
-          $or: attrs.data.coupons.map((el) => ({ _id: el })),
-        })
-      ).length,
-      validLength: (
-        await Coupons.find({
-          $or: attrs.data.coupons.map((el) => ({ _id: el })),
-        })
-      ).filter((el) => el.validStatus === 1).length,
-      invalidLength: (
-        await Coupons.find({
-          $or: attrs.data.coupons.map((el) => ({ _id: el })),
-        })
-      ).filter((el) => el.validStatus === -1).length,
     }
-
-    ctx.body = data
   }
 }

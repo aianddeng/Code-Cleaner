@@ -4,7 +4,8 @@ const handle = app.getRequestHandler()
 
 app.prepare().then(() => {
   require('./app/db/mongodb')
-  require('./app/jobs/agenda')
+  require('./app/db/redis')
+  require('./app/jobs/queue')
 
   const Koa = require('koa')
   const bodyParser = require('koa-bodyparser')

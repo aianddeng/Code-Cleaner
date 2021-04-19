@@ -41,7 +41,7 @@ const Index = ({ stores: initialData }) => {
     })
 
     message.success({
-      content: `Create a new task: ${data._id}`,
+      content: `Create a new task: ${data.id}`,
       duration: 6,
       key: actionKey.current,
     })

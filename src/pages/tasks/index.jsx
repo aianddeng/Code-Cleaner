@@ -24,34 +24,64 @@ const Tasks = ({ data: initialData }) => {
     refreshInterval: 1000,
   })
 
-  const handleEditTask = useCallback(async (taskId, type) => {
-    pushLoading(taskId)
+  const handleRemoveTask = useCallback(async (id) => {
+    pushLoading(id)
     message.loading({
       content: 'Waiting...',
       duration: 0,
       key: actionKey.current,
     })
 
-    if (type === 'remove') {
-      await axios.delete('/api/tasks', {
-        data: {
-          taskId,
-        },
-      })
-    } else if (type === 'disable') {
-      await axios.post('/api/tasks', {
-        taskId,
-      })
-    }
+    await axios.delete('/api/tasks/' + id)
 
     await mutate()
     message.success({
-      content: `Switch the task: ${taskId}`,
+      content: `Switch the task: ${id}`,
       duration: 6,
       key: actionKey.current,
     })
-    popLoading(taskId)
+    popLoading(id)
   }, [])
+
+  const handleControllerTask = useCallback(async (action) => {
+    pushLoading('controller')
+    message.loading({
+      content: 'Waiting...',
+      duration: 0,
+      key: actionKey.current,
+    })
+
+    await axios.post('/api/tasks', {
+      action,
+    })
+
+    await mutate()
+    message.success({
+      content: `Pause/Resume the task process.`,
+      duration: 6,
+      key: actionKey.current,
+    })
+    popLoading('controller')
+  })
+
+  const handleRetryTask = useCallback(async (id) => {
+    pushLoading(id)
+    message.loading({
+      content: 'Waiting...',
+      duration: 0,
+      key: actionKey.current,
+    })
+
+    await axios.post('/api/tasks/' + id)
+
+    await mutate()
+    message.success({
+      content: `Switch the task: ${id}`,
+      duration: 6,
+      key: actionKey.current,
+    })
+    popLoading(id)
+  })
 
   return (
     <>
@@ -61,10 +91,22 @@ const Tasks = ({ data: initialData }) => {
       <Table
         sticky
         bordered
-        rowKey="_id"
+        rowKey="id"
         dataSource={taskList}
         scroll={{ y: 380, x: 800 }}
-        title={() => <h2>Task List</h2>}
+        title={() => (
+          <div className="flex">
+            <h2>Task List</h2>
+            <div className="ml-auto space-x-2">
+              <Button onClick={() => handleControllerTask('pause')}>
+                Pause
+              </Button>
+              <Button onClick={() => handleControllerTask('resume')}>
+                Resume
+              </Button>
+            </div>
+          </div>
+        )}
         pagination={{
           total,
           showSizeChanger: true,
@@ -74,7 +116,7 @@ const Tasks = ({ data: initialData }) => {
           },
         }}
       >
-        <Table.Column key="_id" title="ID" dataIndex="_id" />
+        <Table.Column key="id" title="ID" dataIndex="id" />
         <Table.Column
           key="storeName"
           title="Store Name"
@@ -131,7 +173,7 @@ const Tasks = ({ data: initialData }) => {
         <Table.Column
           key="action"
           title="Action"
-          dataIndex="_id"
+          dataIndex="id"
           fixed="right"
           render={(value, record) => (
             <div className="flex flex-col space-y-2">
@@ -140,16 +182,16 @@ const Tasks = ({ data: initialData }) => {
               </Button>
               <Button
                 loading={checkLoading(value)}
-                disabled={record.status === 'finished'}
-                onClick={() => handleEditTask(value, 'disable')}
+                disabled={record.status !== 'disabled'}
+                onClick={() => handleRetryTask(value)}
               >
-                {record.disabled ? 'Continue' : 'Disable'}
+                Retry
               </Button>
               <Popconfirm
                 okText="Yes"
                 cancelText="No"
                 title="Are you sure to delete this task?"
-                onConfirm={() => handleEditTask(value, 'remove')}
+                onConfirm={() => handleRemoveTask(value)}
               >
                 <Button danger loading={checkLoading(value)}>
                   Delete
