@@ -3,18 +3,18 @@ import { useRef, useState } from 'react'
 const useActionLoading = (key) => {
   const actionKey = useRef(key)
 
-  const [actionLoading, dispatchActionLoading] = useState([])
+  const [actionLoading, setActionLoading] = useState([])
 
   const checkLoading = (value) => {
     return actionLoading.includes(value)
   }
 
   const pushLoading = (value) => {
-    dispatchActionLoading([...actionLoading, value])
+    setActionLoading([...actionLoading, value])
   }
 
   const popLoading = (value) => {
-    dispatchActionLoading(actionLoading.slice().filter((el) => el !== value))
+    setActionLoading(actionLoading.slice().filter((el) => el !== value))
   }
 
   return { actionKey, checkLoading, pushLoading, popLoading }

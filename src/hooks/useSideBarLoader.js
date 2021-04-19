@@ -3,10 +3,10 @@ import Router, { useRouter } from 'next/router'
 
 const useSideBarLoader = () => {
   const router = useRouter()
-  const [visible, dispatchVisible] = useState(null)
+  const [visible, setVisible] = useState(null)
 
   const handleSwitchVisible = useCallback(() => {
-    dispatchVisible(!visible)
+    setVisible(!visible)
     const query = router.query
     if (visible) {
       delete query.settings
@@ -38,7 +38,7 @@ const useSideBarLoader = () => {
   })
 
   useEffect(() => {
-    if (router.query.settings === 'true') dispatchVisible(true)
+    if (router.query.settings === 'true') setVisible(true)
   }, [])
 
   return { visible, handleSwitchVisible }

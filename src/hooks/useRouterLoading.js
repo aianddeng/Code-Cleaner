@@ -3,16 +3,17 @@ import { useState, useEffect } from 'react'
 
 const useRouterLoading = () => {
   const router = useRouter()
-  const [loading, dispatchLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const enLoading = (url, shallow) => {
-      if (!loading && shallow) {
-        dispatchLoading(true)
+    const enLoading = (url, { shallow }) => {
+      if (!loading && !shallow && url !== router.asPath) {
+        setLoading(true)
       }
     }
+
     const deLoading = () => {
-      dispatchLoading(false)
+      setLoading(false)
     }
 
     router.events.on('routeChangeStart', enLoading)
@@ -22,7 +23,7 @@ const useRouterLoading = () => {
       router.events.off('routeChangeStart', enLoading)
       router.events.off('routeChangeComplete', deLoading)
     }
-  }, [])
+  })
 
   return { router, loading }
 }

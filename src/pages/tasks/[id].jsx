@@ -35,19 +35,19 @@ const TaskManage = ({ data: initialData }) => {
     'removeCode'
   )
 
-  const [refreshInterval, dispatchRefreshInterval] = useState(5000)
+  const [refreshInterval, setRefreshInterval] = useState(5000)
   const { data, mutate } = useSWR('/api/tasks/' + currentId, {
     initialData,
     refreshInterval,
   })
 
-  const [isModal, dispatchIsModal] = useState(false)
+  const [isModal, setIsModal] = useState(false)
 
-  const [tab, dispatchTab] = useState({
+  const [tab, setTab] = useState({
     key: 'All',
   })
 
-  const [coupons, dispatchCoupons] = useState([])
+  const [coupons, setCoupons] = useState([])
 
   useEffect(() => {
     handleTabChange(tab.key)
@@ -64,28 +64,24 @@ const TaskManage = ({ data: initialData }) => {
     }
 
     if (data.status === 'finished' && refreshInterval) {
-      dispatchRefreshInterval(0)
+      setRefreshInterval(0)
     }
   }, [data])
 
   const handleTabChange = useCallback(
     (key) => {
-      dispatchTab({ key })
+      setTab({ key })
 
       if (key === 'All') {
-        dispatchCoupons(
+        setCoupons(
           data.coupons
             .slice()
             .sort((a, b) => (b.validStatus || 0) - (a.validStatus || 0))
         )
       } else if (key === 'Valid') {
-        dispatchCoupons(
-          data.coupons.slice().filter((el) => el.validStatus === 1)
-        )
+        setCoupons(data.coupons.slice().filter((el) => el.validStatus === 1))
       } else if (key === 'Invalid') {
-        dispatchCoupons(
-          data.coupons.slice().filter((el) => el.validStatus === -1)
-        )
+        setCoupons(data.coupons.slice().filter((el) => el.validStatus === -1))
       } else if (key === 'Repeat') {
         const couponsSlice = data.coupons.slice().map((el) => el.code)
 
@@ -94,7 +90,7 @@ const TaskManage = ({ data: initialData }) => {
             couponsSlice.indexOf(code) !== couponsSlice.lastIndexOf(code)
         )
 
-        dispatchCoupons(
+        setCoupons(
           data.coupons
             .slice()
             .filter((el) => repeatCoupons.includes(el.code))
@@ -109,7 +105,7 @@ const TaskManage = ({ data: initialData }) => {
             })
         )
       } else if (key === 'Waiting') {
-        dispatchCoupons(data.coupons.slice().filter((el) => !el.validStatus))
+        setCoupons(data.coupons.slice().filter((el) => !el.validStatus))
       }
     },
     [data]
@@ -139,7 +135,7 @@ const TaskManage = ({ data: initialData }) => {
     popLoading(couponIds.join(','))
   }, [])
 
-  const [allDeactivateCode, dispatchAllDeactivateCode] = useState([])
+  const [allDeactivateCode, setAllDeactivateCode] = useState([])
   const filterDeactivateCode = useCallback(() => {
     const coupons = data.coupons
     const couponsSlice = coupons.slice().map((el) => el.code)
@@ -149,7 +145,7 @@ const TaskManage = ({ data: initialData }) => {
     )
     const invalidCoupons = coupons.filter((el) => el.validStatus === -1)
 
-    dispatchAllDeactivateCode([...repeatCoupons, ...invalidCoupons])
+    setAllDeactivateCode([...repeatCoupons, ...invalidCoupons])
   }, [data])
 
   return (
@@ -210,10 +206,10 @@ const TaskManage = ({ data: initialData }) => {
                       .filter((el) => !el.unChoice)
                       .map((el) => el.id)
                     coupons.length && handleDeactiveCode(coupons)
-                    dispatchIsModal(false)
+                    setIsModal(false)
                   }}
                   onCancel={() => {
-                    dispatchIsModal(false)
+                    setIsModal(false)
                   }}
                 >
                   {allDeactivateCode.length ? (
@@ -227,7 +223,7 @@ const TaskManage = ({ data: initialData }) => {
                         .slice()
                         .map((el) => el.id)}
                       onChange={(value) =>
-                        dispatchAllDeactivateCode(
+                        setAllDeactivateCode(
                           allDeactivateCode.slice().map((el) =>
                             value.includes(el.id)
                               ? {
@@ -252,7 +248,7 @@ const TaskManage = ({ data: initialData }) => {
                 <Card
                   onClick={() => {
                     filterDeactivateCode()
-                    dispatchIsModal(true)
+                    setIsModal(true)
                   }}
                   key="removeAll"
                   className="cursor-pointer flex justify-center items-center border-2 border-red-500 m-1 text-lg text-red-500"

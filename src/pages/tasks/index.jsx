@@ -14,7 +14,7 @@ const Tasks = ({ data: initialData }) => {
     'removetask'
   )
 
-  const { index, size, dispatchPageSize } = usePageSize()
+  const { index, size, setPageSize } = usePageSize()
 
   const {
     data: { total, datas: taskList },
@@ -70,7 +70,7 @@ const Tasks = ({ data: initialData }) => {
           showSizeChanger: true,
           defaultPageSize: size,
           onChange: (index, size) => {
-            dispatchPageSize({ index, size })
+            setPageSize({ index, size })
           },
         }}
       >

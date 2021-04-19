@@ -10,7 +10,7 @@ const Index = ({ stores: initialData }) => {
     'addtotasks'
   )
 
-  const [storesList, dispatchStoresList] = useState(initialData)
+  const [storesList, setStoresList] = useState(initialData)
 
   const handleFilterStore = useCallback(
     (value) => {
@@ -19,9 +19,9 @@ const Index = ({ stores: initialData }) => {
         const matchStore = initialData.filter((el) =>
           (el.name + el.domain + el.id).replace(/\s/g, '').match(matchValue)
         )
-        dispatchStoresList(matchStore)
+        setStoresList(matchStore)
       } else {
-        dispatchStoresList(initialData)
+        setStoresList(initialData)
       }
     },
     [storesList]
