@@ -4,8 +4,8 @@ import Link from 'next/link'
 import useSWR from 'swr'
 import axios from 'axios'
 import moment from 'moment'
-import usePageSize from '../../hooks/usePageSize'
-import useActionLoading from '../../hooks/useActionLoading'
+import usePageSize from '@hook/usePageSize'
+import useActionLoading from '@hook/useActionLoading'
 
 import { Table, Button, message, Popconfirm, Progress } from 'antd'
 

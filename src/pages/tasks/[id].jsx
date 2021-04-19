@@ -4,7 +4,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import useSWR from 'swr'
 import axios from 'axios'
-import useActionLoading from '../../hooks/useActionLoading'
+import useActionLoading from '@hook/useActionLoading'
 
 import {
   Card,

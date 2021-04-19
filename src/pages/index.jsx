@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import Head from 'next/head'
 import axios from 'axios'
-import useActionLoading from '../hooks/useActionLoading'
+import useActionLoading from '@hook/useActionLoading'
 
 import { Input, Table, Button, message } from 'antd'
 

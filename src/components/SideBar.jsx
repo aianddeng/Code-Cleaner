@@ -11,11 +11,11 @@ const SideBar = ({ visible, handleSwitchVisible }) => {
   const { data, mutate } = useSWR('/api/settings')
 
   const handleSubmitSettings = useCallback(async () => {
-    const values = form.getFieldsValue()
-    const { data } = await axios.post('/api/settings', values)
+    const { data } = await axios.post('/api/settings', form.getFieldsValue())
 
     form.setFieldsValue(data)
     await mutate(data, false)
+
     await handleSwitchVisible()
   })
 
