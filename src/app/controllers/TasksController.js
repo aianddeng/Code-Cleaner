@@ -54,22 +54,28 @@ module.exports = class {
       }
     )
 
-    const job = await queue.add('clean-code', {
-      storeId: body.storeId,
-      storeName: body.storeName,
-      coupons: data.data.data
-        .filter((el) => el.code !== 'FatCoupon')
-        .map((el) => ({
-          id: el.id,
-          storeId: el.storeId,
-          code: el.code,
-          type: el.type,
-          priority: el.priority,
-          description: el.description,
-        })),
-      promotype: settings ? settings.promoType : '',
-      status: 'waiting',
-    })
+    const job = await queue.add(
+      'clean-code',
+      {
+        storeId: body.storeId,
+        storeName: body.storeName,
+        coupons: data.data.data
+          .filter((el) => el.code !== 'FatCoupon')
+          .map((el) => ({
+            id: el.id,
+            storeId: el.storeId,
+            code: el.code,
+            type: el.type,
+            priority: el.priority,
+            description: el.description,
+          })),
+        promotype: settings ? settings.promoType : 'all',
+        status: 'waiting',
+      },
+      {
+        attempts: settings ? settings.attempts : 3,
+      }
+    )
 
     const datas = {
       ...job.data,
@@ -92,7 +98,7 @@ module.exports = class {
       case 'resume':
         await queue.resume(true)
       case 'pause':
-        await queue.pause(true)
+        await queue.pause(true, true)
     }
 
     ctx.body = {

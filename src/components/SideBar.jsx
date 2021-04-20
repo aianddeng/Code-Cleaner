@@ -51,7 +51,10 @@ const SideBar = ({ visible, handleSwitchVisible }) => {
             label="Server Concurrency"
             required={true}
           >
-            <Input type="number" min="1" max="3" />
+            <Input type="number" min="1" max="5" />
+          </Form.Item>
+          <Form.Item name="attempts" label="Task Attempts" required={true}>
+            <Input type="number" min="1" max="100" />
           </Form.Item>
         </Form>
       </Skeleton>

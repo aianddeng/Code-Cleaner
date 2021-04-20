@@ -10,7 +10,13 @@ const settingsSchema = new mongoose.Schema(
     concurrency: {
       type: Number,
       default: 1,
-      enum: [1, 2, 3],
+      enum: [1, 2, 3, 4, 5],
+    },
+    attempts: {
+      type: Number,
+      default: 3,
+      min: 1,
+      max: 100,
     },
   },
   {

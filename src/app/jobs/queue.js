@@ -1,25 +1,23 @@
-const client = require('../db/redis').client
 const Queue = require('bull')
-const Settings = require('../models/Settings')
+const redis = require('../db/redis')
 const run = require('../chrome/index')
+const Settings = require('../models/Settings')
 
-const queue = new Queue('fatcoupon', client)
+const queue = new Queue('fatcoupon', redis.client)
 
 queue.process('clean-code', async (job, done) => {
   const { storeId, coupons } = job.data
 
   const [settings] = await Settings.find({}).sort({ _id: -1 }).limit(1)
 
-  const notFinishedCoupons = coupons
+  const unTestCoupon = coupons
     .filter((el) => {
       if (!settings || settings.promoType === 'all') return true
       return el.type === settings.promoType
     })
     .filter((el) => !el.validStatus)
 
-  notFinishedCoupons.length
-    ? run(storeId, notFinishedCoupons, job, done)
-    : done()
+  unTestCoupon.length ? run(storeId, unTestCoupon, job, done) : done()
 })
 
 queue.on('waiting', async (jobId) => {
@@ -27,10 +25,12 @@ queue.on('waiting', async (jobId) => {
 
   const { data, id } = job
 
-  await job.update({
-    ...data,
-    status: 'waiting',
-  })
+  if (data.status !== 'doing') {
+    await job.update({
+      ...data,
+      status: 'waiting',
+    })
+  }
 
   console.log(`Task <${data.storeName}> (id: ${id}) waiting`)
 })

@@ -192,12 +192,18 @@ const Tasks = ({ data: initialData }) => {
                 Retry
               </Button>
               <Popconfirm
+                disabled={record.status === 'doing'}
                 okText="Yes"
                 cancelText="No"
                 title="Are you sure to delete this task?"
                 onConfirm={() => handleRemoveTask(value)}
               >
-                <Button danger loading={checkLoading(value)}>
+                <Button
+                  danger
+                  block
+                  disabled={record.status === 'doing'}
+                  loading={checkLoading(value)}
+                >
                   Delete
                 </Button>
               </Popconfirm>

@@ -34,7 +34,6 @@ class Scrapy {
     })
   }
 
-  // xvfb + chrome
   async createBrowser() {
     let xvfb = null
     if (process.env.NODE_ENV === 'production') {
@@ -151,7 +150,7 @@ class Scrapy {
         await page.$eval(selector, (el) => el.removeAttribute('disabled'))
       }
     }
-    await Helpers.wait(1)
+    await Helpers.wait(2)
 
     return page
   }
@@ -189,10 +188,9 @@ class Scrapy {
     )
     await page.click(this.config.login.selector.button)
 
-    await Helpers.wait(1)
+    await Helpers.wait(2)
   }
 
-  // extension load store
   async extensionLoaded() {
     await Promise.race([
       this.backgroundPage.waitForFunction(
@@ -220,7 +218,6 @@ class Scrapy {
     ])
   }
 
-  // redux subscribe
   async watchBackground() {
     await this.backgroundPage.evaluate(() => {
       const store = window.controller.reduxStore
@@ -272,7 +269,6 @@ class Scrapy {
     })
   }
 
-  // console event
   async watchApplyCoupon() {
     this.backgroundPage.on('console', async (msg) => {
       const msgText = msg.text()
@@ -311,17 +307,31 @@ class Scrapy {
   }
 
   async handleAddProduct() {
+    if (typeof this.config.button === 'string') {
+      this.config.button = [this.config.button]
+    }
+
     const page = await this.createNewpage(
       this.config.product,
-      this.config.button
+      this.config.button[0]
     )
 
-    await page.evaluate((selector) => {
-      const btn = document.querySelector(selector)
-      if (btn) {
-        btn.click()
-      }
-    }, this.config.button)
+    await Helpers.wait(1)
+    for (const selector of this.config.button) {
+      await page.waitForSelector(selector, {
+        timeout: globalConfig.timeout,
+      })
+      await Helpers.wait(1)
+      await page.click(selector)
+      await Helpers.wait(1)
+      await page.evaluate((selector) => {
+        const button = document.querySelector(selector)
+        if (button) {
+          button.click()
+        }
+      }, selector)
+      await Helpers.wait(1)
+    }
 
     if (!this.config.cart.startsWith('http')) {
       this.config.cart = await page.$eval(this.config.cart, (el) =>
@@ -341,7 +351,7 @@ class Scrapy {
       }
     }
 
-    await Helpers.wait(1)
+    await Helpers.wait(2)
   }
 
   async handleApplyCoupon() {
@@ -425,6 +435,7 @@ class Scrapy {
       await this.handleAddProduct()
       await this.handleApplyCoupon()
     } catch (e) {
+      console.log(e.message)
       this.browser.disconnect()
       this.done(new Error('Error Puppeteer'))
     }
