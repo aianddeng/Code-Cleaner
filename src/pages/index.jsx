@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import Head from 'next/head'
+import { mutate } from 'swr'
 import axios from 'axios'
 import useActionLoading from '@hook/useActionLoading'
 
@@ -45,6 +46,8 @@ const Index = ({ stores: initialData }) => {
       duration: 6,
       key: actionKey.current,
     })
+
+    mutate('/api/tasks?size=10&index=1')
     popLoading(storeId)
   }, [])
 

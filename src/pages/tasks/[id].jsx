@@ -54,7 +54,7 @@ const TaskManage = ({ data: initialData }) => {
 
     if (
       initialData.coupons.slice().filter((el) => !el.validStatus).length &&
-      data.status === 'finished'
+      data.state === 'completed'
     ) {
       openNotificationWithIcon(
         'success',
@@ -63,7 +63,7 @@ const TaskManage = ({ data: initialData }) => {
       )
     }
 
-    if (data.status === 'finished' && refreshInterval) {
+    if (data.state === 'completed' && refreshInterval) {
       setRefreshInterval(0)
     }
   }, [data])
@@ -194,7 +194,7 @@ const TaskManage = ({ data: initialData }) => {
         />
         {coupons.length ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-            {data.status === 'finished' && (
+            {data.state === 'completed' && (
               <>
                 <Modal
                   centered

@@ -1,38 +1,50 @@
 const Settings = require('../models/Settings')
 const queue = require('../jobs/queue')
 const axios = require('axios')
+const { data } = require('autoprefixer')
 
 module.exports = class {
   static async GET(ctx) {
     const query = {
-      ...ctx.request.query,
       size: 10,
       index: 1,
+      ...ctx.request.query,
     }
 
-    const jobs = await queue.getJobs(
-      ['active', 'completed', 'delayed', 'failed', 'paused', 'waiting'],
-      (query.index - 1) * query.size,
-      query.index * query.size
-    )
+    const types = [
+      'active',
+      'completed',
+      'delayed',
+      'failed',
+      'paused',
+      'waiting',
+    ]
+    const start = (query.index - 1) * query.size
+    const end = query.index * query.size
+
+    const jobs = (await queue.getJobs(types)).slice(start, end)
     const jobCounts = await queue.getJobCounts()
 
-    const datas = jobs
-      .map((job) => ({
-        ...job.data,
-        id: job.id,
-        createdOn: job.timestamp,
-        finishedOn: job.finishedOn,
-        processedOn: job.processedOn,
-        allLength: job.data.coupons.length,
-        validLength: job.data.coupons.filter((el) => el.validStatus === 1)
-          .length,
-        invalidLength: job.data.coupons.filter((el) => el.validStatus === -1)
-          .length,
-      }))
-      .sort((a, b) => b.id - a.id)
-
     const total = Object.values(jobCounts).reduce((a, b) => a + b)
+    const datas = (
+      await Promise.all(
+        jobs.map(async (job) => ({
+          ...job.data,
+          id: job.id,
+          state: await job.getState(),
+          createdOn: job.timestamp,
+          finishedOn: job.finishedOn,
+          processedOn: job.processedOn,
+          allLength: job.data.coupons.length,
+          validLength: job.data.coupons.filter((el) => el.validStatus === 1)
+            .length,
+          invalidLength: job.data.coupons.filter((el) => el.validStatus === -1)
+            .length,
+        }))
+      )
+    ).sort((a, b) => b.id - a.id)
+
+    datas.forEach((el) => delete el.coupons)
 
     ctx.body = {
       total,
@@ -70,7 +82,6 @@ module.exports = class {
             description: el.description,
           })),
         promotype: settings ? settings.promoType : 'all',
-        status: 'waiting',
       },
       {
         attempts: settings ? settings.attempts : 3,
@@ -80,6 +91,7 @@ module.exports = class {
     const datas = {
       ...job.data,
       id: job.id,
+      state: await job.getState(),
       createdOn: job.timestamp,
       finishedOn: job.finishedOn,
       processedOn: job.processedOn,
@@ -97,8 +109,10 @@ module.exports = class {
     switch (action) {
       case 'resume':
         await queue.resume(true)
+        break
       case 'pause':
         await queue.pause(true, true)
+        break
     }
 
     ctx.body = {
@@ -135,6 +149,7 @@ module.exports = class {
     ctx.body = {
       ...job.data,
       id: job.id,
+      state: await job.getState(),
       createdOn: job.timestamp,
       finishedOn: job.finishedOn,
       processedOn: job.processedOn,

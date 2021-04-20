@@ -1,3 +1,4 @@
+const { relativeTimeThreshold } = require('moment')
 const puppeteer = require('puppeteer')
 const globalConfig = require('../config/config.local')
 const Helpers = require('../helpers/index')
@@ -14,23 +15,22 @@ class Scrapy {
     this.done = done
   }
 
-  async watchJobStatus() {
+  async watchJobState() {
     const queue = require('../jobs/queue')
 
-    // 监听外部状态
-    queue.on('paused', () => {
-      this.browser && this.browser.close()
-    })
-    queue.on('removed', (job) => {
-      if (job.id === this.job.id) {
-        this.browser && this.browser.close()
-      }
+    queue.once('paused', () => {
+      this.browser.disconnect()
+      this.done(new Error('Error Disable'))
     })
 
-    // Reason: 1. 手动关闭浏览器(先不考虑) 2. 浏览器超时错误 3. Error Done
-    // Result: 1. 移动任务到失败列表 2. 关闭浏览器
+    // 浏览器调用disconnect时触发，统一关闭puppeteer
     this.browser.on('disconnected', async () => {
       this.browser && this.browser.close()
+
+      // 这个判断主要针对开始扫描时手贱关闭浏览器的行为
+      if ((await this.job.getState()) === 'active') {
+        this.done(new Error('Error Close'))
+      }
     })
   }
 
@@ -316,21 +316,27 @@ class Scrapy {
       this.config.button[0]
     )
 
-    await Helpers.wait(1)
     for (const selector of this.config.button) {
-      await page.waitForSelector(selector, {
-        timeout: globalConfig.timeout,
-      })
-      await Helpers.wait(1)
-      await page.click(selector)
-      await Helpers.wait(1)
-      await page.evaluate((selector) => {
-        const button = document.querySelector(selector)
-        if (button) {
-          button.click()
-        }
-      }, selector)
-      await Helpers.wait(1)
+      try {
+        await page.evaluate((selector) => {
+          const button = document.querySelector(selector)
+          if (button) {
+            button.click()
+          }
+        }, selector)
+
+        await Helpers.wait(1)
+
+        await page.waitForSelector(selector, {
+          timeout: globalConfig.timeout,
+        })
+        await page.click(selector)
+      } catch (e) {
+        console.log(e.message)
+        console.log(selector)
+      }
+
+      await Helpers.wait(2)
     }
 
     if (!this.config.cart.startsWith('http')) {
@@ -425,7 +431,7 @@ class Scrapy {
 
     try {
       await this.createBrowser()
-      await this.watchJobStatus()
+      await this.watchJobState()
       await this.extensionLoaded()
 
       await this.watchBackground()

@@ -22,15 +22,7 @@ queue.process('clean-code', async (job, done) => {
 
 queue.on('waiting', async (jobId) => {
   const job = await queue.getJob(jobId)
-
   const { data, id } = job
-
-  if (data.status !== 'doing') {
-    await job.update({
-      ...data,
-      status: 'waiting',
-    })
-  }
 
   console.log(`Task <${data.storeName}> (id: ${id}) waiting`)
 })
@@ -38,21 +30,11 @@ queue.on('waiting', async (jobId) => {
 queue.on('active', async (job) => {
   const { data, id } = job
 
-  await job.update({
-    ...data,
-    status: 'doing',
-  })
-
   console.log(`Task <${data.storeName}> (id: ${id}) starting`)
 })
 
 queue.on('completed', async (job) => {
   const { data, id } = job
-
-  await job.update({
-    ...data,
-    status: 'finished',
-  })
 
   console.log(`Task <${data.storeName}> (id: ${id}) completed`)
 })
@@ -60,16 +42,13 @@ queue.on('completed', async (job) => {
 queue.on('failed', async (job) => {
   const { data, id } = job
 
-  await job.update({
-    ...data,
-    status: 'failed',
-  })
-
   console.log(`Task <${data.storeName}> (id: ${id}) failed`)
 })
 
-queue.on('removed', async () => {
-  console.log(`Some task removed`)
+queue.on('removed', async (job) => {
+  const { data, id } = job
+
+  console.log(`Task <${data.storeName}> (id: ${id}) removed`)
 })
 
 module.exports = queue

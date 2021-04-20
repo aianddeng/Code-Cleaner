@@ -122,7 +122,7 @@ const Tasks = ({ data: initialData }) => {
           title="Store Name"
           dataIndex="storeName"
         />
-        <Table.Column key="status" title="Task Status" dataIndex="status" />
+        <Table.Column key="state" title="Task State" dataIndex="state" />
         <Table.Column
           key="coupons"
           title="Coupons"
@@ -186,13 +186,13 @@ const Tasks = ({ data: initialData }) => {
               </Button>
               <Button
                 loading={checkLoading(value)}
-                disabled={record.status !== 'failed'}
+                disabled={record.state !== 'failed'}
                 onClick={() => handleRetryTask(value)}
               >
                 Retry
               </Button>
               <Popconfirm
-                disabled={record.status === 'doing'}
+                disabled={record.state === 'active'}
                 okText="Yes"
                 cancelText="No"
                 title="Are you sure to delete this task?"
@@ -201,7 +201,7 @@ const Tasks = ({ data: initialData }) => {
                 <Button
                   danger
                   block
-                  disabled={record.status === 'doing'}
+                  disabled={record.state === 'active'}
                   loading={checkLoading(value)}
                 >
                   Delete
@@ -216,7 +216,7 @@ const Tasks = ({ data: initialData }) => {
 }
 
 export const getServerSideProps = async () => {
-  const { data } = await axios.get('/api/tasks')
+  const { data } = await axios.get('/api/tasks?size=10&index=1')
 
   return {
     props: {
