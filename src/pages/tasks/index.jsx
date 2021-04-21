@@ -8,6 +8,7 @@ import usePageSize from '@hook/usePageSize'
 import useActionLoading from '@hook/useActionLoading'
 
 import { Table, Button, message, Popconfirm, Progress } from 'antd'
+import { PlayCircleOutlined, PauseCircleOutlined } from '@ant-design/icons'
 
 const Tasks = ({ data: initialData }) => {
   const { actionKey, checkLoading, pushLoading, popLoading } = useActionLoading(
@@ -17,7 +18,7 @@ const Tasks = ({ data: initialData }) => {
   const { index, size, setPageSize } = usePageSize()
 
   const {
-    data: { total, datas: taskList },
+    data: { total, datas: taskList, paused },
     mutate,
   } = useSWR(`/api/tasks?size=${size}&index=${index}`, {
     initialData,
@@ -43,7 +44,7 @@ const Tasks = ({ data: initialData }) => {
     popLoading(id)
   }, [])
 
-  const handleControllerTask = useCallback(async (action) => {
+  const handleControllerTask = useCallback(async () => {
     pushLoading('controller')
     message.loading({
       content: 'Waiting...',
@@ -52,12 +53,12 @@ const Tasks = ({ data: initialData }) => {
     })
 
     await axios.post('/api/tasks', {
-      action,
+      action: paused ? 'resume' : 'pause',
     })
 
     await mutate()
     message.success({
-      content: `Pause/Resume the task process.`,
+      content: `Pause / Resume the task process.`,
       duration: 6,
       key: actionKey.current,
     })
@@ -98,11 +99,19 @@ const Tasks = ({ data: initialData }) => {
           <div className="flex">
             <h2>Task List</h2>
             <div className="ml-auto space-x-2">
-              <Button onClick={() => handleControllerTask('pause')}>
-                Pause
-              </Button>
-              <Button onClick={() => handleControllerTask('resume')}>
-                Resume
+              <Button
+                type="primary"
+                loading={checkLoading('controller')}
+                icon={
+                  paused ? (
+                    <PlayCircleOutlined className="md:align-text-bottom" />
+                  ) : (
+                    <PauseCircleOutlined className="md:align-text-bottom" />
+                  )
+                }
+                onClick={() => handleControllerTask()}
+              >
+                {paused ? 'Resume' : 'Pause'}
               </Button>
             </div>
           </div>
@@ -116,13 +125,25 @@ const Tasks = ({ data: initialData }) => {
           },
         }}
       >
-        <Table.Column key="id" title="ID" dataIndex="id" />
         <Table.Column
-          key="storeName"
-          title="Store Name"
-          dataIndex="storeName"
+          key="id"
+          title="ID / Title"
+          dataIndex="id"
+          render={(value, record) => (
+            <p>
+              {value} - {record.storeName}
+            </p>
+          )}
         />
         <Table.Column key="state" title="Task State" dataIndex="state" />
+        <Table.Column
+          key="failedReason"
+          title="Failed Reason"
+          dataIndex="failedReason"
+          render={(value, record) =>
+            value ? `${value}(${record.attemptsMade})` : '-'
+          }
+        />
         <Table.Column
           key="coupons"
           title="Coupons"
@@ -161,12 +182,12 @@ const Tasks = ({ data: initialData }) => {
         />
         <Table.Column
           key="createdAt"
-          title="Created / Processed / Finished"
+          title="Processed / Finished"
           dataIndex="finishedOn"
           render={(value, record) => (
             <>
               <p>
-                {moment(record.createdOn || record.processedOn).format(
+                {moment(record.processedOn || record.createdOn).format(
                   'YYYY-MM-DD HH:mm:ss'
                 )}
               </p>
@@ -175,13 +196,13 @@ const Tasks = ({ data: initialData }) => {
           )}
         />
         <Table.Column
-          key="action"
-          title="Action"
+          key="actions"
+          title="Actions"
           dataIndex="id"
           fixed="right"
           render={(value, record) => (
             <div className="flex flex-col space-y-2">
-              <Button type="primary" loading={checkLoading(value)}>
+              <Button type="primary">
                 <Link href={'/tasks/' + value}>Manage</Link>
               </Button>
               <Button

@@ -81,7 +81,7 @@ const Index = ({ stores: initialData }) => {
         <Table.Column
           fixed="right"
           key="mapping"
-          title="Action"
+          title="Actions"
           dataIndex="mapping"
           defaultSortOrder="descend"
           sortDirections={['descend']}

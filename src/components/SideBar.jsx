@@ -46,13 +46,13 @@ const SideBar = ({ visible, handleSwitchVisible }) => {
               <Select.Option value="exclusive">EXCLUSIVE</Select.Option>
             </Select>
           </Form.Item>
-          <Form.Item
+          {/* <Form.Item
             name="concurrency"
             label="Server Concurrency"
             required={true}
           >
             <Input type="number" min="1" max="5" />
-          </Form.Item>
+          </Form.Item> */}
           <Form.Item name="attempts" label="Task Attempts" required={true}>
             <Input type="number" min="1" max="100" />
           </Form.Item>

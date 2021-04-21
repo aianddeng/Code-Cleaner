@@ -19,18 +19,10 @@ class Scrapy {
     const queue = require('../jobs/queue')
 
     queue.once('paused', () => {
-      this.browser.disconnect()
-      this.done(new Error('Error Disable'))
-    })
-
-    // 浏览器调用disconnect时触发，统一关闭puppeteer
-    this.browser.on('disconnected', async () => {
-      this.browser && this.browser.close()
-
-      // 这个判断主要针对开始扫描时手贱关闭浏览器的行为
-      if ((await this.job.getState()) === 'active') {
-        this.done(new Error('Error Close'))
-      }
+      setTimeout(() => {
+        this.browser && this.browser.disconnect()
+      }, 5 * 1000)
+      this.done(new Error('Queue Paused'))
     })
   }
 
@@ -58,6 +50,16 @@ class Scrapy {
         '--hide-scrollbars',
         '--disable-blink-features=AutomationControlled',
       ],
+    })
+
+    // 浏览器调用disconnect时触发，统一关闭puppeteer
+    this.browser.on('disconnected', async () => {
+      this.browser && this.browser.close()
+
+      // 这个判断主要针对开始扫描时手贱关闭浏览器的行为
+      if ((await this.job.getState()) === 'active') {
+        this.done(new Error('Browser Closed'))
+      }
     })
 
     this.backgroundPage = await this.browser
@@ -173,22 +175,24 @@ class Scrapy {
   }
 
   async handleLogin() {
-    const page = await this.createNewpage(
-      this.config.cart,
-      this.config.login.selector.username
-    )
+    if (this.config.login) {
+      const page = await this.createNewpage(
+        this.config.cart,
+        this.config.login.selector.username
+      )
 
-    await page.type(
-      this.config.login.selector.username,
-      this.config.login.username
-    )
-    await page.type(
-      this.config.login.selector.password,
-      this.config.login.password
-    )
-    await page.click(this.config.login.selector.button)
+      await page.type(
+        this.config.login.selector.username,
+        this.config.login.username
+      )
+      await page.type(
+        this.config.login.selector.password,
+        this.config.login.password
+      )
+      await page.click(this.config.login.selector.button)
 
-    await Helpers.wait(2)
+      await Helpers.wait(2)
+    }
   }
 
   async extensionLoaded() {
@@ -287,7 +291,7 @@ class Scrapy {
             this.done()
           } else if (data.type === 'errorDone') {
             this.browser.disconnect()
-            this.done(new Error('Error Done'))
+            this.done(new Error('Extension Done'))
           } else {
             if (data.type === 'applyFailed') {
               this.job.data.coupons.find(
@@ -427,23 +431,25 @@ class Scrapy {
   }
 
   async start() {
-    if (!this.coupons.length) this.done()
+    if (!this.coupons.length) {
+      this.done()
+      return
+    }
+    await this.watchJobState()
 
     try {
       await this.createBrowser()
-      await this.watchJobState()
       await this.extensionLoaded()
 
       await this.watchBackground()
       await this.watchApplyCoupon()
 
-      this.config.login && (await this.handleLogin())
+      await this.handleLogin()
       await this.handleAddProduct()
       await this.handleApplyCoupon()
     } catch (e) {
-      console.log(e.message)
       this.browser.disconnect()
-      this.done(new Error('Error Puppeteer'))
+      this.done(new Error(e.message))
     }
   }
 }

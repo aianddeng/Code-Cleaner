@@ -1,7 +1,8 @@
 const Settings = require('../models/Settings')
 const queue = require('../jobs/queue')
 const axios = require('axios')
-const { data } = require('autoprefixer')
+
+let paused = false
 
 module.exports = class {
   static async GET(ctx) {
@@ -35,6 +36,8 @@ module.exports = class {
           createdOn: job.timestamp,
           finishedOn: job.finishedOn,
           processedOn: job.processedOn,
+          failedReason: job.failedReason,
+          attemptsMade: job.attemptsMade,
           allLength: job.data.coupons.length,
           validLength: job.data.coupons.filter((el) => el.validStatus === 1)
             .length,
@@ -49,6 +52,7 @@ module.exports = class {
     ctx.body = {
       total,
       datas,
+      paused,
     }
   }
 
@@ -108,9 +112,11 @@ module.exports = class {
 
     switch (action) {
       case 'resume':
+        paused = false
         await queue.resume(true)
         break
       case 'pause':
+        paused = true
         await queue.pause(true, true)
         break
     }
