@@ -77,6 +77,10 @@ module.exports = class {
         storeName: body.storeName,
         coupons: data.data.data
           .filter((el) => el.code !== 'FatCoupon')
+          .filter((el) => {
+            if (!settings || settings.promoType === 'all') return true
+            return el.type === settings.promoType
+          })
           .map((el) => ({
             id: el.id,
             storeId: el.storeId,

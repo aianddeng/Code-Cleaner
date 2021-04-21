@@ -13,6 +13,10 @@ class Scrapy {
     this.coupons = coupons
     this.job = job
     this.done = done
+
+    if (typeof this.config.button === 'string') {
+      this.config.button = [this.config.button]
+    }
   }
 
   async watchJobState() {
@@ -145,7 +149,6 @@ class Scrapy {
       ])
       if (selector) {
         await page.waitForSelector(selector, {
-          visible: true,
           timeout: globalConfig.timeout,
         })
 
@@ -189,6 +192,9 @@ class Scrapy {
         this.config.login.selector.password,
         this.config.login.password
       )
+      await page.waitForSelector(this.config.login.selector.button, {
+        timeout: globalConfig.timeout,
+      })
       await page.click(this.config.login.selector.button)
 
       await Helpers.wait(2)
@@ -311,34 +317,22 @@ class Scrapy {
   }
 
   async handleAddProduct() {
-    if (typeof this.config.button === 'string') {
-      this.config.button = [this.config.button]
-    }
-
-    const page = await this.createNewpage(
-      this.config.product,
-      this.config.button[0]
-    )
+    const page = await this.createNewpage(this.config.product)
 
     for (const selector of this.config.button) {
+      await page.waitForSelector(selector, {
+        timeout: globalConfig.timeout,
+      })
+
       try {
-        await page.evaluate((selector) => {
-          const button = document.querySelector(selector)
-          if (button) {
-            button.click()
-          }
-        }, selector)
-
-        await Helpers.wait(1)
-
-        await page.waitForSelector(selector, {
-          timeout: globalConfig.timeout,
-        })
         await page.click(selector)
-      } catch (e) {
-        console.log(e.message)
-        console.log(selector)
-      }
+        await Helpers.wait(1)
+      } catch {}
+
+      await page.evaluate((selector) => {
+        const button = document.querySelector(selector)
+        button && button.click()
+      }, selector)
 
       await Helpers.wait(2)
     }
