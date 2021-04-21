@@ -7,6 +7,7 @@ import {
   SettingOutlined,
   UnorderedListOutlined,
   AppstoreAddOutlined,
+  UpOutlined,
 } from '@ant-design/icons'
 import SideBar from '@comp/SideBar'
 
@@ -25,20 +26,14 @@ const Wrapper = ({ children }) => {
           mode="horizontal"
           selectedKeys={[router.route]}
         >
-          <Menu.Item
-            icon={<AppstoreAddOutlined className="md:align-text-bottom" />}
-            key="/"
-          >
+          <Menu.Item icon={<AppstoreAddOutlined />} key="/">
             <Link href="/">Store List</Link>
           </Menu.Item>
-          <Menu.Item
-            icon={<UnorderedListOutlined className="md:align-text-bottom" />}
-            key="/tasks"
-          >
+          <Menu.Item icon={<UnorderedListOutlined />} key="/tasks">
             <Link href="/tasks">Task List</Link>
           </Menu.Item>
           <Menu.Item
-            icon={<SettingOutlined className="md:align-text-bottom" />}
+            icon={<SettingOutlined />}
             key="/settings"
             className="ml-auto"
             onClick={() => handleSwitchVisible()}
@@ -60,7 +55,11 @@ const Wrapper = ({ children }) => {
       </Content>
       <aside>
         <SideBar visible={visible} handleSwitchVisible={handleSwitchVisible} />
-        <BackTop />
+        <BackTop>
+          <div className="rounded bg-blue-500 w-10 h-10 text-white font-blod text-lg flex items-center justify-center">
+            <UpOutlined />
+          </div>
+        </BackTop>
       </aside>
     </Layout>
   )

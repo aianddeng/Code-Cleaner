@@ -1,11 +1,12 @@
 import 'antd/dist/antd.min.css'
 import 'tailwindcss/tailwind.css'
-import Section from '@comp/Section'
+import '../style/global.css'
+import Wrapper from '@comp/Wrapper'
 
 const MyApp = ({ Component, pageProps }) => (
-  <Section>
+  <Wrapper>
     <Component {...pageProps} />
-  </Section>
+  </Wrapper>
 )
 
 export default MyApp

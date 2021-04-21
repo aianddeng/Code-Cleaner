@@ -102,13 +102,7 @@ const Tasks = ({ data: initialData }) => {
               <Button
                 type="primary"
                 loading={checkLoading('controller')}
-                icon={
-                  paused ? (
-                    <PlayCircleOutlined className="md:align-text-bottom" />
-                  ) : (
-                    <PauseCircleOutlined className="md:align-text-bottom" />
-                  )
-                }
+                icon={paused ? <PlayCircleOutlined /> : <PauseCircleOutlined />}
                 onClick={() => handleControllerTask()}
               >
                 {paused ? 'Resume' : 'Pause'}
@@ -143,6 +137,7 @@ const Tasks = ({ data: initialData }) => {
           render={(value, record) =>
             value ? `${value}(${record.attemptsMade})` : '-'
           }
+          responsive={['md']}
         />
         <Table.Column
           key="coupons"
@@ -179,6 +174,7 @@ const Tasks = ({ data: initialData }) => {
               </ul>
             )
           }}
+          responsive={['sm']}
         />
         <Table.Column
           key="createdAt"
@@ -194,6 +190,7 @@ const Tasks = ({ data: initialData }) => {
               <p>{value ? moment(value).format('YYYY-MM-DD HH:mm:ss') : '-'}</p>
             </>
           )}
+          responsive={['lg']}
         />
         <Table.Column
           key="actions"

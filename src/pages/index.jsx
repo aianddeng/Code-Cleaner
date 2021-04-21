@@ -75,9 +75,14 @@ const Index = ({ stores: initialData }) => {
           defaultPageSize: 50,
         }}
       >
-        <Table.Column key="id" title="ID" dataIndex="id" />
+        <Table.Column key="id" title="ID" dataIndex="id" responsive={['md']} />
         <Table.Column key="name" title="Store Name" dataIndex="name" />
-        <Table.Column key="domain" title="Website Domain" dataIndex="domain" />
+        <Table.Column
+          key="domain"
+          title="Website Domain"
+          dataIndex="domain"
+          responsive={['md']}
+        />
         <Table.Column
           fixed="right"
           key="mapping"
