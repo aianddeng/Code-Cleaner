@@ -329,12 +329,13 @@ class Scrapy {
         await Helpers.wait(1)
       } catch {}
 
-      await page.evaluate((selector) => {
-        const button = document.querySelector(selector)
-        button && button.click()
-      }, selector)
-
-      await Helpers.wait(2)
+      try {
+        await page.evaluate((selector) => {
+          const button = document.querySelector(selector)
+          button && button.click()
+        }, selector)
+        await Helpers.wait(1)
+      } catch {}
     }
 
     if (!this.config.cart.startsWith('http')) {

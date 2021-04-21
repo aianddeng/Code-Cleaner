@@ -59,10 +59,14 @@ module.exports = class {
   static async PUT(ctx) {
     const [settings] = await Settings.find({}).sort({ _id: -1 }).limit(1)
 
-    const body = ctx.request.body
+    const { storeId, storeName } = ctx.request.body
 
-    const { data } = await axios.get(
-      `https://apis.fatcoupon.com/stores/${body.storeId}/coupons/all`,
+    const {
+      data: {
+        data: { data },
+      },
+    } = await axios.get(
+      `https://apis.fatcoupon.com/stores/${storeId}/coupons/all`,
       {
         params: {
           key: '6Jl4CDXyYddTK7V2erVY9jcmpXqozfu',
@@ -70,25 +74,36 @@ module.exports = class {
       }
     )
 
+    const coupons = data
+      .filter((el) => {
+        if (settings && settings.promoType !== 'all') {
+          return el.type === settings.promoType
+        }
+        return true
+      })
+      .map((el) => ({
+        id: el.id,
+        storeId: el.storeId,
+        code: el.code,
+        type: el.type,
+        priority: el.priority,
+        description: el.description,
+      }))
+
+    if (process.env.NODE_ENV !== 'production') {
+      const fakeCode = coupons[coupons.length - 2]
+      if (fakeCode) {
+        fakeCode.code = 'fakeCode'
+      }
+      coupons.slice(0, 20)
+    }
+
     const job = await queue.add(
       'clean-code',
       {
-        storeId: body.storeId,
-        storeName: body.storeName,
-        coupons: data.data.data
-          .filter((el) => el.code !== 'FatCoupon')
-          .filter((el) => {
-            if (!settings || settings.promoType === 'all') return true
-            return el.type === settings.promoType
-          })
-          .map((el) => ({
-            id: el.id,
-            storeId: el.storeId,
-            code: el.code,
-            type: el.type,
-            priority: el.priority,
-            description: el.description,
-          })),
+        coupons,
+        storeId,
+        storeName,
         promotype: settings ? settings.promoType : 'all',
       },
       {
