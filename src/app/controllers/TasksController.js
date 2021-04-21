@@ -91,11 +91,12 @@ module.exports = class {
       }))
 
     if (process.env.NODE_ENV !== 'production') {
+      coupons.splice(20)
+
       const fakeCode = coupons[coupons.length - 2]
       if (fakeCode) {
         fakeCode.code = 'fakeCode'
       }
-      coupons.slice(0, 20)
     }
 
     const job = await queue.add(
