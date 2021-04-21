@@ -15,7 +15,7 @@ import {
   message,
   Progress,
   Modal,
-  Checkbox,
+  Transfer,
 } from 'antd'
 import { SmileOutlined } from '@ant-design/icons'
 
@@ -79,9 +79,19 @@ const TaskManage = ({ data: initialData }) => {
             .sort((a, b) => (b.validStatus || 0) - (a.validStatus || 0))
         )
       } else if (key === 'Valid') {
-        setCoupons(data.coupons.slice().filter((el) => el.validStatus === 1))
+        setCoupons(
+          data.coupons
+            .slice()
+            .filter((el) => el.validStatus === 1)
+            .sort((a, b) => (b.validStatus || 0) - (a.validStatus || 0))
+        )
       } else if (key === 'Invalid') {
-        setCoupons(data.coupons.slice().filter((el) => el.validStatus === -1))
+        setCoupons(
+          data.coupons
+            .slice()
+            .filter((el) => el.validStatus <= -1)
+            .sort((a, b) => (b.validStatus || 0) - (a.validStatus || 0))
+        )
       } else if (key === 'Repeat') {
         const couponsSlice = data.coupons.slice().map((el) => el.code)
 
@@ -128,7 +138,7 @@ const TaskManage = ({ data: initialData }) => {
 
     await mutate()
     message.success({
-      content: `Deactive codes num: ${couponIds.length}`,
+      content: `Deactive codes total: ${couponIds.length}`,
       duration: 6,
       key: actionKey.current,
     })
@@ -136,6 +146,7 @@ const TaskManage = ({ data: initialData }) => {
   }, [])
 
   const [allDeactivateCode, setAllDeactivateCode] = useState([])
+  const [targetDeactivateCode, setTargetDeactivateCode] = useState([])
   const filterDeactivateCode = useCallback(() => {
     const coupons = data.coupons
     const couponsSlice = coupons.slice().map((el) => el.code)
@@ -146,6 +157,9 @@ const TaskManage = ({ data: initialData }) => {
     const invalidCoupons = coupons.filter((el) => el.validStatus === -1)
 
     setAllDeactivateCode([...repeatCoupons, ...invalidCoupons])
+    setTargetDeactivateCode(
+      [...repeatCoupons, ...invalidCoupons].map((el) => el.id)
+    )
   }, [data])
 
   return (
@@ -194,97 +208,84 @@ const TaskManage = ({ data: initialData }) => {
         />
         {coupons.length ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-            {data.state === 'completed' && (
-              <>
-                <Modal
-                  centered
-                  title="Choice need deactivate promo code"
-                  width={1000}
-                  visible={isModal}
-                  onOk={() => {
-                    const coupons = allDeactivateCode
-                      .filter((el) => !el.unChoice)
-                      .map((el) => el.id)
-                    coupons.length && handleDeactiveCode(coupons)
-                    setIsModal(false)
-                  }}
-                  onCancel={() => {
-                    setIsModal(false)
-                  }}
-                >
-                  {allDeactivateCode.length ? (
-                    <Checkbox.Group
-                      className="grid grid-cols-2 md:grid-cols-4"
-                      options={allDeactivateCode.slice().map((el) => ({
-                        label: el.code,
-                        value: el.id,
-                      }))}
-                      defaultValue={allDeactivateCode
-                        .slice()
-                        .map((el) => el.id)}
-                      onChange={(value) =>
-                        setAllDeactivateCode(
-                          allDeactivateCode.slice().map((el) =>
-                            value.includes(el.id)
-                              ? {
-                                  ...el,
-                                  unChoice: false,
-                                }
-                              : {
-                                  ...el,
-                                  unChoice: true,
-                                }
-                          )
-                        )
-                      }
-                    />
-                  ) : (
-                    <Result
-                      icon={<SmileOutlined />}
-                      title="Great, not found invalid promo code!"
-                    />
-                  )}
-                </Modal>
-                <Card
-                  onClick={() => {
-                    filterDeactivateCode()
-                    setIsModal(true)
-                  }}
-                  key="removeAll"
-                  className="cursor-pointer flex justify-center items-center border-2 border-red-500 m-1 text-lg text-red-500"
-                >
-                  Remove All Invlid Code
-                </Card>
-              </>
-            )}
+            <Modal
+              centered
+              title="Choice promo code that need deactive"
+              visible={isModal}
+              onOk={() => {
+                handleDeactiveCode(targetDeactivateCode)
+                setIsModal(false)
+              }}
+              onCancel={() => {
+                setIsModal(false)
+              }}
+            >
+              <Transfer
+                oneWay
+                titles={['Keep', 'Deactive']}
+                listStyle={{
+                  width: 600,
+                  height: 400,
+                }}
+                rowKey={(el) => el.id}
+                dataSource={allDeactivateCode}
+                render={(el) => ({
+                  label: el.code,
+                  value: el.id,
+                })}
+                targetKeys={targetDeactivateCode}
+                onChange={(nextTargetKeys) => {
+                  setTargetDeactivateCode(nextTargetKeys)
+                }}
+              />
+            </Modal>
+            <Card
+              onClick={() => {
+                filterDeactivateCode()
+                setIsModal(true)
+              }}
+              key="removeAll"
+              className="cursor-pointer flex justify-center items-center border-1 border-red-500 m-1 text-lg text-red-500"
+            >
+              Remove All Invlid Code
+            </Card>
             {coupons.slice().map((el) => (
               <Card
+                style={{
+                  animationIterationCount: 1,
+                }}
                 className={[
-                  'm-1',
+                  'm-1 cursor-pointer transition-all',
                   !el.validStatus && 'border-gray-200',
                   el.validStatus === 1 && 'border-blue-500',
                   el.validStatus === -1 && 'border-red-500',
+                  el.validStatus !== -2 && 'hover:shadow-xl',
+                  el.validStatus === -2 &&
+                    'filter blur-sm shadow-md cursor-not-allowed select-none',
                 ]}
-                hoverable
                 key={el.id}
-                actions={[
-                  <Button>Manage</Button>,
-                  <Popconfirm
-                    title="Are you sure to deactive this code?"
-                    onConfirm={() => handleDeactiveCode([el.id])}
-                    disabled={el.validStatus !== -1 || el.deactiveStatus}
-                    okText="Yes"
-                    cancelText="No"
-                  >
-                    <Button
-                      danger
-                      loading={checkLoading(el.id)}
-                      disabled={el.validStatus !== -1 || el.deactiveStatus}
-                    >
-                      Deactive
-                    </Button>
-                  </Popconfirm>,
-                ]}
+                actions={
+                  el.validStatus === -2
+                    ? []
+                    : [
+                        <Button>Manage</Button>,
+                        <Popconfirm
+                          title="Are you sure to deactive this code?"
+                          onConfirm={() => handleDeactiveCode([el.id])}
+                          disabled={el.validStatus !== -1}
+                          okText="Yes"
+                          cancelText="No"
+                        >
+                          <Button
+                            danger
+                            loading={checkLoading(el.id)}
+                            disabled={el.validStatus !== -1}
+                          >
+                            Deactive
+                          </Button>
+                        </Popconfirm>,
+                      ]
+                }
               >
                 <Card.Meta
                   title={el.code}

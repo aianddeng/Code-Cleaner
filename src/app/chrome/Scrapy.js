@@ -407,6 +407,14 @@ class Scrapy {
 
     const page = await this.createNewpage(this.config.cart, '#fatcoupon-root')
 
+    if (this.config.cartAfterButton) {
+      await page.evaluate((selector) => {
+        const button = document.querySelector(selector)
+        button && button.click()
+      }, this.config.cartAfterButton)
+      await Helpers.wait(2)
+    }
+
     await page.waitForFunction(
       () =>
         document

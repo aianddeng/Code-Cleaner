@@ -41,7 +41,7 @@ module.exports = class {
           allLength: job.data.coupons.length,
           validLength: job.data.coupons.filter((el) => el.validStatus === 1)
             .length,
-          invalidLength: job.data.coupons.filter((el) => el.validStatus === -1)
+          invalidLength: job.data.coupons.filter((el) => el.validStatus <= -1)
             .length,
         }))
       )
@@ -90,12 +90,16 @@ module.exports = class {
         description: el.description,
       }))
 
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.NODE_ENV !== 'production' && coupons.length >= 20) {
       coupons.splice(20)
 
       const fakeCode = coupons[coupons.length - 2]
       if (fakeCode) {
         fakeCode.code = 'fakeCode'
+      }
+      const fakeCode2 = coupons[1]
+      if (fakeCode2) {
+        fakeCode2.code = 'fakeCode2'
       }
     }
 
@@ -121,7 +125,7 @@ module.exports = class {
       processedOn: job.processedOn,
       allLength: job.data.coupons.length,
       validLength: job.data.coupons.filter((el) => el.validStatus === 1).length,
-      invalidLength: job.data.coupons.filter((el) => el.validStatus === -1)
+      invalidLength: job.data.coupons.filter((el) => el.validStatus <= -1)
         .length,
     }
     ctx.body = datas
@@ -181,7 +185,7 @@ module.exports = class {
       processedOn: job.processedOn,
       allLength: job.data.coupons.length,
       validLength: job.data.coupons.filter((el) => el.validStatus === 1).length,
-      invalidLength: job.data.coupons.filter((el) => el.validStatus === -1)
+      invalidLength: job.data.coupons.filter((el) => el.validStatus <= -1)
         .length,
     }
   }
