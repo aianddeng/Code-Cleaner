@@ -3,13 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "nodemon src/server.js",
-    "build": "next build",
+    "dev": "NODE_ENV=development nodemon src/server.js",
+    "build": "NODE_ENV=production next build",
     "start": "NODE_ENV=production node src/server.js",
     "background": "NODE_ENV=production pm2 start src/server.js --watch"
   },
   "dependencies": {
-    "agenda": "4.1.0",
     "antd": "^4.15.0",
     "autoprefixer": "^10.2.5",
     "axios": "^0.21.1",

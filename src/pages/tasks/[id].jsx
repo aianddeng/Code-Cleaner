@@ -10,7 +10,6 @@ import {
   Card,
   Button,
   Result,
-  notification,
   Popconfirm,
   message,
   Progress,
@@ -19,20 +18,12 @@ import {
 } from 'antd'
 import { SmileOutlined } from '@ant-design/icons'
 
-const openNotificationWithIcon = (type, message, description) => {
-  notification[type]({
-    message,
-    description,
-    duration: 1 * 60,
-  })
-}
-
 const TaskManage = ({ data: initialData }) => {
   const router = useRouter()
   const currentId = router.query.id
 
   const { actionKey, checkLoading, pushLoading, popLoading } = useActionLoading(
-    'removeCode'
+    'deactiveCode'
   )
 
   const [refreshInterval, setRefreshInterval] = useState(5000)
@@ -51,17 +42,6 @@ const TaskManage = ({ data: initialData }) => {
 
   useEffect(() => {
     handleTabChange(tab.key)
-
-    if (
-      initialData.coupons.slice().filter((el) => !el.validStatus).length &&
-      data.state === 'completed'
-    ) {
-      openNotificationWithIcon(
-        'success',
-        'Store: ' + data.storeName,
-        'This task is finished now. Please check out that coupon is valid right.'
-      )
-    }
 
     if (data.state === 'completed' && refreshInterval) {
       setRefreshInterval(0)
@@ -91,28 +71,6 @@ const TaskManage = ({ data: initialData }) => {
             .slice()
             .filter((el) => el.validStatus <= -1)
             .sort((a, b) => (b.validStatus || 0) - (a.validStatus || 0))
-        )
-      } else if (key === 'Repeat') {
-        const couponsSlice = data.coupons.slice().map((el) => el.code)
-
-        const repeatCoupons = couponsSlice.filter(
-          (code) =>
-            couponsSlice.indexOf(code) !== couponsSlice.lastIndexOf(code)
-        )
-
-        setCoupons(
-          data.coupons
-            .slice()
-            .filter((el) => repeatCoupons.includes(el.code))
-            .sort((a, b) => {
-              if (a.code < b.code) {
-                return -1
-              }
-              if (a.code > b.code) {
-                return 1
-              }
-              return 0
-            })
         )
       } else if (key === 'Waiting') {
         setCoupons(data.coupons.slice().filter((el) => !el.validStatus))
@@ -148,18 +106,10 @@ const TaskManage = ({ data: initialData }) => {
   const [allDeactivateCode, setAllDeactivateCode] = useState([])
   const [targetDeactivateCode, setTargetDeactivateCode] = useState([])
   const filterDeactivateCode = useCallback(() => {
-    const coupons = data.coupons
-    const couponsSlice = coupons.slice().map((el) => el.code)
+    const invalidCoupons = data.coupons.filter((el) => el.validStatus === -1)
 
-    const repeatCoupons = coupons.filter(
-      (el, index) => couponsSlice.indexOf(el.code) !== index
-    )
-    const invalidCoupons = coupons.filter((el) => el.validStatus === -1)
-
-    setAllDeactivateCode([...repeatCoupons, ...invalidCoupons])
-    setTargetDeactivateCode(
-      [...repeatCoupons, ...invalidCoupons].map((el) => el.id)
-    )
+    setAllDeactivateCode(invalidCoupons)
+    setTargetDeactivateCode(invalidCoupons.map((el) => el.id))
   }, [data])
 
   return (
@@ -185,10 +135,6 @@ const TaskManage = ({ data: initialData }) => {
               data.allLength - data.validLength - data.invalidLength
             })`,
           },
-          {
-            key: 'Repeat',
-            tab: `Repeat${tab.key === 'Repeat' ? `(${coupons.length})` : ''}`,
-          },
         ]}
         activeTabKey={tab.key}
         onTabChange={(key) => handleTabChange(key)}
@@ -211,6 +157,7 @@ const TaskManage = ({ data: initialData }) => {
             <Modal
               centered
               title="Choice promo code that need deactive"
+              okText="Submit"
               visible={isModal}
               onOk={() => {
                 handleDeactiveCode(targetDeactivateCode)
@@ -244,16 +191,13 @@ const TaskManage = ({ data: initialData }) => {
                 filterDeactivateCode()
                 setIsModal(true)
               }}
-              key="removeAll"
+              key="deactiveAll"
               className="cursor-pointer flex justify-center items-center border-1 border-red-500 m-1 text-lg text-red-500"
             >
-              Remove All Invlid Code
+              Deactive All Invalid Codes
             </Card>
             {coupons.slice().map((el) => (
               <Card
-                style={{
-                  animationIterationCount: 1,
-                }}
                 className={[
                   'm-1 cursor-pointer transition-all',
                   !el.validStatus && 'border-gray-200',

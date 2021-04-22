@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import useMessagePop from '@hook/useMessagePop'
 import useRouterLoading from '@hook/useRouterLoading'
 import useSideBarLoader from '@hook/useSideBarLoader'
 
@@ -14,6 +15,7 @@ import SideBar from '@comp/SideBar'
 const { Header, Content } = Layout
 
 const Wrapper = ({ children }) => {
+  const { pushLocalMessage } = useMessagePop()
   const { router, loading } = useRouterLoading()
   const { visible, handleSwitchVisible } = useSideBarLoader()
 

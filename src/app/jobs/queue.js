@@ -36,11 +36,33 @@ queue.on('active', async (job) => {
 queue.on('completed', async (job) => {
   const { data, id } = job
 
+  await redis.lpush(
+    'fatcoupon:message',
+    JSON.stringify({
+      type: 'success',
+      message: 'Task Completed',
+      description: `Task <${data.storeName}> (id: ${id}) is completed. Check it now.`,
+    })
+  )
+
   console.log(`Task <${data.storeName}> (id: ${id}) completed`)
 })
 
 queue.on('failed', async (job) => {
-  const { data, id } = job
+  const { attemptsMade, data, id } = job
+
+  const [settings] = await Settings.find({}).sort({ _id: -1 }).limit(1)
+
+  if (attemptsMade >= (settings.attempts || 3)) {
+    await redis.lpush(
+      'fatcoupon:message',
+      JSON.stringify({
+        type: 'error',
+        message: 'Task Error',
+        description: `Task <${data.storeName}> (id: ${id}) is failed. Retry it now.`,
+      })
+    )
+  }
 
   console.log(`Task <${data.storeName}> (id: ${id}) failed`)
 })

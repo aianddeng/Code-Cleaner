@@ -23,29 +23,29 @@ module.exports = class {
     const start = (query.index - 1) * query.size
     const end = query.index * query.size
 
-    const jobs = (await queue.getJobs(types)).slice(start, end)
+    const jobs = (await queue.getJobs(types))
+      .sort((a, b) => b.id - a.id)
+      .slice(start, end)
     const jobCounts = await queue.getJobCounts()
 
     const total = Object.values(jobCounts).reduce((a, b) => a + b)
-    const datas = (
-      await Promise.all(
-        jobs.map(async (job) => ({
-          ...job.data,
-          id: job.id,
-          state: await job.getState(),
-          createdOn: job.timestamp,
-          finishedOn: job.finishedOn,
-          processedOn: job.processedOn,
-          failedReason: job.failedReason,
-          attemptsMade: job.attemptsMade,
-          allLength: job.data.coupons.length,
-          validLength: job.data.coupons.filter((el) => el.validStatus === 1)
-            .length,
-          invalidLength: job.data.coupons.filter((el) => el.validStatus <= -1)
-            .length,
-        }))
-      )
-    ).sort((a, b) => b.id - a.id)
+    const datas = await Promise.all(
+      jobs.map(async (job) => ({
+        ...job.data,
+        id: job.id,
+        state: await job.getState(),
+        createdOn: job.timestamp,
+        finishedOn: job.finishedOn,
+        processedOn: job.processedOn,
+        failedReason: job.failedReason,
+        attemptsMade: job.attemptsMade,
+        allLength: job.data.coupons.length,
+        validLength: job.data.coupons.filter((el) => el.validStatus === 1)
+          .length,
+        invalidLength: job.data.coupons.filter((el) => el.validStatus <= -1)
+          .length,
+      }))
+    )
 
     datas.forEach((el) => delete el.coupons)
 
@@ -75,12 +75,6 @@ module.exports = class {
     )
 
     const coupons = data
-      .filter((el) => {
-        if (settings && settings.promoType !== 'all') {
-          return el.type === settings.promoType
-        }
-        return true
-      })
       .map((el) => ({
         id: el.id,
         storeId: el.storeId,
@@ -89,18 +83,26 @@ module.exports = class {
         priority: el.priority,
         description: el.description,
       }))
+      .map((el, index) =>
+        data
+          .slice()
+          .map((el) => el.code)
+          .indexOf(el.code) === index
+          ? { ...el }
+          : { ...el, validStatus: -1 }
+      )
+      .filter((el) => {
+        if (settings && settings.promoType !== 'all') {
+          return el.type === settings.promoType
+        }
+        return true
+      })
 
-    if (process.env.NODE_ENV !== 'production' && coupons.length >= 20) {
+    if (process.env.NODE_ENV !== 'production' && coupons.length >= 5) {
       coupons.splice(20)
 
-      const fakeCode = coupons[coupons.length - 2]
-      if (fakeCode) {
-        fakeCode.code = 'fakeCode'
-      }
-      const fakeCode2 = coupons[1]
-      if (fakeCode2) {
-        fakeCode2.code = 'fakeCode2'
-      }
+      coupons[1].code = 'fakeCode1'
+      coupons[3].code = 'fakeCode3'
     }
 
     const job = await queue.add(
@@ -136,12 +138,12 @@ module.exports = class {
 
     switch (action) {
       case 'resume':
-        paused = false
         await queue.resume(true)
+        paused = false
         break
       case 'pause':
-        paused = true
         await queue.pause(true, true)
+        paused = true
         break
     }
 

@@ -177,30 +177,6 @@ class Scrapy {
     })
   }
 
-  async handleLogin() {
-    if (this.config.login) {
-      const page = await this.createNewpage(
-        this.config.cart,
-        this.config.login.selector.username
-      )
-
-      await page.type(
-        this.config.login.selector.username,
-        this.config.login.username
-      )
-      await page.type(
-        this.config.login.selector.password,
-        this.config.login.password
-      )
-      await page.waitForSelector(this.config.login.selector.button, {
-        timeout: globalConfig.timeout,
-      })
-      await page.click(this.config.login.selector.button)
-
-      await Helpers.wait(2)
-    }
-  }
-
   async extensionLoaded() {
     await Promise.race([
       this.backgroundPage.waitForFunction(
@@ -316,7 +292,33 @@ class Scrapy {
     })
   }
 
+  async handleLogin() {
+    if (!this.config.login) return
+
+    const page = await this.createNewpage(
+      this.config.cart,
+      this.config.login.selector.username
+    )
+
+    await page.type(
+      this.config.login.selector.username,
+      this.config.login.username
+    )
+    await page.type(
+      this.config.login.selector.password,
+      this.config.login.password
+    )
+    await page.waitForSelector(this.config.login.selector.button, {
+      timeout: globalConfig.timeout,
+    })
+    await page.click(this.config.login.selector.button)
+
+    await Helpers.wait(2)
+  }
+
   async handleAddProduct() {
+    if (this.config.login) return
+
     const page = await this.createNewpage(this.config.product)
 
     for (const selector of this.config.button) {

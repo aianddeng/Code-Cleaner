@@ -135,7 +135,7 @@ const Tasks = ({ data: initialData }) => {
           title="Failed Reason"
           dataIndex="failedReason"
           render={(value, record) =>
-            value ? `${value}(${record.attemptsMade})` : '-'
+            value ? `${value}(tries: ${record.attemptsMade})` : '-'
           }
           responsive={['md']}
         />
