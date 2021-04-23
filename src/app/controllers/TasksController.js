@@ -182,9 +182,12 @@ module.exports = class {
       ...job.data,
       id: job.id,
       state: await job.getState(),
+      jobLogs: await queue.getJobLogs(job.id),
       createdOn: job.timestamp,
       finishedOn: job.finishedOn,
       processedOn: job.processedOn,
+      failedReason: job.failedReason,
+      attemptsMade: job.attemptsMade,
       allLength: job.data.coupons.length,
       validLength: job.data.coupons.filter((el) => el.validStatus === 1).length,
       invalidLength: job.data.coupons.filter((el) => el.validStatus <= -1)

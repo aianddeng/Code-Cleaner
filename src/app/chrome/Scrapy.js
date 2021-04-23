@@ -225,7 +225,7 @@ class Scrapy {
             if (codeMatch && currentTabData.applyPopup.curCouponIndex > -1) {
               console.log(
                 JSON.stringify({
-                  master: 'fatcoupon:clear-coupon',
+                  master: 'fatcoupon:clean-coupon',
                   storeId: currentTabData.storeId,
                   type:
                     codeMatch[1] === 'valid' ? 'applySuccess' : 'applyFailed',
@@ -236,7 +236,7 @@ class Scrapy {
           } else if (currentTabData.phase === 5) {
             console.log(
               JSON.stringify({
-                master: 'fatcoupon:clear-coupon',
+                master: 'fatcoupon:clean-coupon',
                 storeId: currentTabData.storeId,
                 type: 'applyDone',
               })
@@ -244,7 +244,7 @@ class Scrapy {
           } else if (currentTabData.phase === 6) {
             console.log(
               JSON.stringify({
-                master: 'fatcoupon:clear-coupon',
+                master: 'fatcoupon:clean-coupon',
                 storeId: currentTabData.storeId,
                 type: 'errorDone',
               })
@@ -259,7 +259,7 @@ class Scrapy {
     this.backgroundPage.on('console', async (msg) => {
       const msgText = msg.text()
       if (
-        msgText.includes('fatcoupon:clear-coupon') &&
+        msgText.includes('fatcoupon:clean-coupon') &&
         this.lastMessage !== msgText
       ) {
         this.lastMessage = msgText

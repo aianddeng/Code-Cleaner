@@ -24,11 +24,15 @@ queue.on('waiting', async (jobId) => {
   const job = await queue.getJob(jobId)
   const { data, id } = job
 
+  await job.log(`Task <${data.storeName}> (id: ${id}) waiting`)
+
   console.log(`Task <${data.storeName}> (id: ${id}) waiting`)
 })
 
 queue.on('active', async (job) => {
   const { data, id } = job
+
+  await job.log(`Task <${data.storeName}> (id: ${id}) starting`)
 
   console.log(`Task <${data.storeName}> (id: ${id}) starting`)
 })
@@ -44,6 +48,8 @@ queue.on('completed', async (job) => {
       description: `Task <${data.storeName}> (id: ${id}) is completed. Check it now.`,
     })
   )
+
+  await job.log(`Task <${data.storeName}> (id: ${id}) completed`)
 
   console.log(`Task <${data.storeName}> (id: ${id}) completed`)
 })
@@ -64,11 +70,15 @@ queue.on('failed', async (job) => {
     )
   }
 
+  await job.log(`Task <${data.storeName}> (id: ${id}) failed`)
+
   console.log(`Task <${data.storeName}> (id: ${id}) failed`)
 })
 
 queue.on('removed', async (job) => {
   const { data, id } = job
+
+  await job.log(`Task <${data.storeName}> (id: ${id}) removed`)
 
   console.log(`Task <${data.storeName}> (id: ${id}) removed`)
 })

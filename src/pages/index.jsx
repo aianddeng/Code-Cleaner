@@ -68,7 +68,7 @@ const Index = ({ stores: initialData }) => {
         bordered
         rowKey="id"
         dataSource={storesList}
-        scroll={{ y: 380, x: 600 }}
+        scroll={{ y: 380, x: 300 }}
         title={() => <h2>Store List</h2>}
         pagination={{
           showSizeChanger: true,
@@ -76,7 +76,18 @@ const Index = ({ stores: initialData }) => {
         }}
       >
         <Table.Column key="id" title="ID" dataIndex="id" responsive={['md']} />
-        <Table.Column key="name" title="Store Name" dataIndex="name" />
+        <Table.Column
+          key="name"
+          title="Store Name"
+          dataIndex="name"
+          sortDirections={['descend', 'ascend']}
+          sorter={(a, b) => {
+            return a.name.toLowerCase() < b.name.toLowerCase() ? 1 : -1
+          }}
+          showSorterTooltip={{
+            title: 'sort mappings store name',
+          }}
+        />
         <Table.Column
           key="domain"
           title="Website Domain"
@@ -92,7 +103,7 @@ const Index = ({ stores: initialData }) => {
           sortDirections={['descend']}
           sorter={(a, b) => Number(a.mapping) - Number(b.mapping)}
           showSorterTooltip={{
-            title: 'sort mappings store',
+            title: 'sort mappings store actions',
           }}
           render={(value, record) => (
             <Button

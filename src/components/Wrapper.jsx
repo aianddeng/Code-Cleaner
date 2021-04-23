@@ -45,7 +45,7 @@ const Wrapper = ({ children }) => {
       <Content className="mt-16 px-2 md:px-12">
         <Breadcrumb className="my-3">
           <Breadcrumb.Item>FatCoupon</Breadcrumb.Item>
-          <Breadcrumb.Item>Clear Invalid Code</Breadcrumb.Item>
+          <Breadcrumb.Item>Clean Invalid Code</Breadcrumb.Item>
           <Breadcrumb.Item>App</Breadcrumb.Item>
         </Breadcrumb>
         <div className="bg-white p-2 md:p-6">

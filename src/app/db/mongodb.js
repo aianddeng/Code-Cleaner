@@ -4,15 +4,15 @@ const globalConfig = require('../config/config.local')
 mongoose.Promise = global.Promise
 
 mongoose.connection.on('connected', () => {
-  console.log('> mongodb connected')
+  console.log('event - mongodb connected')
 })
 
 mongoose.connection.on('disconnected', () => {
-  console.log('> mongodb disconnected')
+  console.log('event - mongodb disconnected')
 })
 
 mongoose.connection.on('error', () => {
-  console.log('> mongodb catch some problem')
+  console.log('event - mongodb catch some problem')
 })
 
 mongoose.connect(globalConfig.mongoPath, {

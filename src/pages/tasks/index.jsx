@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import useSWR from 'swr'
@@ -24,6 +24,49 @@ const Tasks = ({ data: initialData }) => {
     initialData,
     refreshInterval: 1000,
   })
+
+  // cache the next page
+  useSWR(`/api/tasks?size=${size}&index=${index + 1}`)
+
+  const [taskState, setTaskState] = useState([
+    {
+      text: 'Active',
+      value: 'active',
+    },
+    {
+      text: 'Completed',
+      value: 'completed',
+    },
+    {
+      text: 'Delayed',
+      value: 'delayed',
+    },
+    {
+      text: 'Failed',
+      value: 'failed',
+    },
+    {
+      text: 'Paused',
+      value: 'paused',
+    },
+    {
+      text: 'Waiting',
+      value: 'waiting',
+    },
+  ])
+
+  useEffect(() => {
+    setTaskState(
+      Array.from(new Set(taskList.slice().map((el) => el.state)))
+        .map((state) => ({
+          text: [...state]
+            .map((el, index) => (index ? el : el.toUpperCase()))
+            .join(''),
+          value: state,
+        }))
+        .sort((a, b) => (a < b ? -1 : 1))
+    )
+  }, [taskList])
 
   const handleRemoveTask = useCallback(async (id) => {
     pushLoading(id)
@@ -94,7 +137,7 @@ const Tasks = ({ data: initialData }) => {
         bordered
         rowKey="id"
         dataSource={taskList}
-        scroll={{ y: 380, x: 800 }}
+        scroll={{ y: 420, x: 600 }}
         title={() => (
           <div className="flex">
             <h2>Task List</h2>
@@ -129,7 +172,13 @@ const Tasks = ({ data: initialData }) => {
             </p>
           )}
         />
-        <Table.Column key="state" title="Task State" dataIndex="state" />
+        <Table.Column
+          key="state"
+          title="Task State"
+          dataIndex="state"
+          filters={taskState}
+          onFilter={(value, record) => record.state === value}
+        />
         <Table.Column
           key="failedReason"
           title="Failed Reason"
@@ -137,7 +186,7 @@ const Tasks = ({ data: initialData }) => {
           render={(value, record) =>
             value ? `${value}(tries: ${record.attemptsMade})` : '-'
           }
-          responsive={['md']}
+          responsive={['xl']}
         />
         <Table.Column
           key="coupons"
@@ -174,7 +223,6 @@ const Tasks = ({ data: initialData }) => {
               </ul>
             )
           }}
-          responsive={['sm']}
         />
         <Table.Column
           key="createdAt"

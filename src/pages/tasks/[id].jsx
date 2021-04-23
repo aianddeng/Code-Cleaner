@@ -16,7 +16,8 @@ import {
   Modal,
   Transfer,
 } from 'antd'
-import { SmileOutlined } from '@ant-design/icons'
+import { MehOutlined } from '@ant-design/icons'
+import Summary from '@comp/Summary'
 
 const TaskManage = ({ data: initialData }) => {
   const router = useRouter()
@@ -35,7 +36,7 @@ const TaskManage = ({ data: initialData }) => {
   const [isModal, setIsModal] = useState(false)
 
   const [tab, setTab] = useState({
-    key: 'All',
+    key: 'Summary',
   })
 
   const [coupons, setCoupons] = useState([])
@@ -74,6 +75,7 @@ const TaskManage = ({ data: initialData }) => {
         )
       } else if (key === 'Waiting') {
         setCoupons(data.coupons.slice().filter((el) => !el.validStatus))
+      } else if (key === 'Summary') {
       }
     },
     [data]
@@ -120,6 +122,10 @@ const TaskManage = ({ data: initialData }) => {
       <Card
         title={'Store: ' + data.storeName}
         tabList={[
+          {
+            key: 'Summary',
+            tab: 'Summary',
+          },
           { key: 'All', tab: `All(${data.allLength})` },
           {
             key: 'Valid',
@@ -131,7 +137,7 @@ const TaskManage = ({ data: initialData }) => {
           },
           {
             key: 'Waiting',
-            tab: `Waiting(${
+            tab: `Waiting (${
               data.allLength - data.validLength - data.invalidLength
             })`,
           },
@@ -139,115 +145,120 @@ const TaskManage = ({ data: initialData }) => {
         activeTabKey={tab.key}
         onTabChange={(key) => handleTabChange(key)}
       >
-        <Progress
-          showInfo={false}
-          percent={
-            ((data.validLength + data.invalidLength) / data.allLength) * 100
-          }
-          status="exception"
-          strokeColor="rgba(239, 68, 68)"
-          success={{
-            percent: (data.validLength / data.allLength) * 100,
-            strokeColor: 'rgba(59, 130, 246)',
-          }}
-          className="mb-5 px-1"
-        />
-        {coupons.length ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-            <Modal
-              centered
-              title="Choice promo code that need deactive"
-              okText="Submit"
-              visible={isModal}
-              onOk={() => {
-                handleDeactiveCode(targetDeactivateCode)
-                setIsModal(false)
+        {tab.key === 'Summary' ? (
+          <Summary {...data} />
+        ) : coupons.length ? (
+          <>
+            <Progress
+              showInfo={false}
+              percent={
+                ((data.validLength + data.invalidLength) / data.allLength) * 100
+              }
+              status="exception"
+              strokeColor="rgba(239, 68, 68)"
+              success={{
+                percent: (data.validLength / data.allLength) * 100,
+                strokeColor: 'rgba(59, 130, 246)',
               }}
-              onCancel={() => {
-                setIsModal(false)
-              }}
-            >
-              <Transfer
-                oneWay
-                titles={['Keep', 'Deactive']}
-                listStyle={{
-                  width: 600,
-                  height: 400,
+              className="mb-5 px-1"
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+              <Modal
+                centered
+                title="Choice promo code that need deactive"
+                okText="Submit"
+                visible={isModal}
+                onOk={() => {
+                  handleDeactiveCode(targetDeactivateCode)
+                  setIsModal(false)
                 }}
-                rowKey={(el) => el.id}
-                dataSource={allDeactivateCode}
-                render={(el) => ({
-                  label: el.code,
-                  value: el.id,
-                })}
-                targetKeys={targetDeactivateCode}
-                onChange={(nextTargetKeys) => {
-                  setTargetDeactivateCode(nextTargetKeys)
+                onCancel={() => {
+                  setIsModal(false)
                 }}
-              />
-            </Modal>
-            <Card
-              onClick={() => {
-                filterDeactivateCode()
-                setIsModal(true)
-              }}
-              key="deactiveAll"
-              className="cursor-pointer flex justify-center items-center border-1 border-red-500 m-1 text-lg text-red-500"
-            >
-              Deactive All Invalid Codes
-            </Card>
-            {coupons.slice().map((el) => (
-              <Card
-                className={[
-                  'm-1 cursor-pointer transition-all',
-                  !el.validStatus && 'border-gray-200',
-                  el.validStatus === 1 && 'border-blue-500',
-                  el.validStatus === -1 && 'border-red-500',
-                  el.validStatus !== -2 && 'hover:shadow-xl',
-                  el.validStatus === -2 &&
-                    'filter blur-sm shadow-md cursor-not-allowed select-none',
-                ]}
-                key={el.id}
-                actions={
-                  el.validStatus === -2
-                    ? []
-                    : [
-                        <Button>Manage</Button>,
-                        <Popconfirm
-                          title="Are you sure to deactive this code?"
-                          onConfirm={() => handleDeactiveCode([el.id])}
-                          disabled={el.validStatus !== -1}
-                          okText="Yes"
-                          cancelText="No"
-                        >
-                          <Button
-                            danger
-                            loading={checkLoading(el.id)}
-                            disabled={el.validStatus !== -1}
-                          >
-                            Deactive
-                          </Button>
-                        </Popconfirm>,
-                      ]
-                }
               >
-                <Card.Meta
-                  title={el.code}
-                  description={
-                    <p className="whitespace-nowrap">
-                      {el.description
-                        ? el.description.trim()
-                        : 'FatCoupon Code'}
-                    </p>
-                  }
+                <Transfer
+                  oneWay
+                  titles={['Keep', 'Deactive']}
+                  listStyle={{
+                    width: 600,
+                    height: 400,
+                  }}
+                  rowKey={(el) => el.id}
+                  dataSource={allDeactivateCode}
+                  render={(el) => ({
+                    label: el.code,
+                    value: el.id,
+                  })}
+                  targetKeys={targetDeactivateCode}
+                  onChange={(nextTargetKeys) => {
+                    setTargetDeactivateCode(nextTargetKeys)
+                  }}
                 />
+              </Modal>
+              <Card
+                onClick={() => {
+                  filterDeactivateCode()
+                  setIsModal(true)
+                }}
+                key="deactiveAll"
+                className="cursor-pointer flex justify-center items-center border-1 border-red-500 m-1 text-lg text-red-500"
+              >
+                Deactive All Invalid Codes
               </Card>
-            ))}
-          </div>
+              {coupons.slice().map((el) => (
+                <Card
+                  className={[
+                    'm-1 cursor-pointer transition-all',
+                    !el.validStatus && 'border-gray-200',
+                    el.validStatus === 1 && 'border-blue-500',
+                    el.validStatus === -1 && 'border-red-500',
+                    el.validStatus !== -2 && 'hover:shadow-xl',
+                    el.validStatus === -2 &&
+                      'filter blur-sm shadow-md cursor-not-allowed select-none',
+                  ]}
+                  key={el.id}
+                  actions={
+                    el.validStatus === -2
+                      ? []
+                      : [
+                          <Button>Manage</Button>,
+                          <Popconfirm
+                            title="Are you sure to deactive this code?"
+                            onConfirm={() => handleDeactiveCode([el.id])}
+                            disabled={el.validStatus !== -1}
+                            okText="Yes"
+                            cancelText="No"
+                          >
+                            <Button
+                              danger
+                              loading={checkLoading(el.id)}
+                              disabled={el.validStatus !== -1}
+                            >
+                              Deactive
+                            </Button>
+                          </Popconfirm>,
+                        ]
+                  }
+                >
+                  <Card.Meta
+                    title={el.code}
+                    description={
+                      <p className="whitespace-nowrap">
+                        {el.description
+                          ? el.description.trim()
+                          : 'FatCoupon Code'}
+                      </p>
+                    }
+                  />
+                </Card>
+              ))}
+            </div>
+          </>
         ) : (
           <Result
-            icon={<SmileOutlined />}
-            title="Great, we have done all the coupons!"
+            status="info"
+            icon={<MehOutlined />}
+            title="Ops, not found any coupons in this tab!"
             extra={
               <Link href="/tasks">
                 <Button type="primary">Back</Button>
