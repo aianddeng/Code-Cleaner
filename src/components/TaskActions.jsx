@@ -88,12 +88,11 @@ const TaskActions = ({ data, showManage }) => {
         cancelText="No"
         title="Are you sure to delete this task?"
         onConfirm={() => handleRemoveTask(data.id)}
-        className="flex-auto"
       >
         <Button
-          block={showManage ? true : false}
-          danger
           disabled={data.state === 'active'}
+          danger
+          block={true}
           loading={checkLoading(data.id)}
           className="flex-auto"
         >

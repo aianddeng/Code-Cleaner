@@ -27,28 +27,6 @@ const TaskManage = ({ data: initialData }) => {
     key: 'Summary',
   })
 
-  const [tabList] = useState([
-    {
-      key: 'Summary',
-      tab: 'Summary',
-    },
-    { key: 'All', tab: `All(${data.allLength})` },
-    {
-      key: 'Valid',
-      tab: `Valid(${data.validLength})`,
-    },
-    {
-      key: 'Invalid',
-      tab: `Invalid(${data.invalidLength})`,
-    },
-    {
-      key: 'Waiting',
-      tab: `Waiting (${
-        data.allLength - data.validLength - data.invalidLength
-      })`,
-    },
-  ])
-
   const handleTabChange = useCallback(
     (key) => {
       setTab({ key })
@@ -88,6 +66,8 @@ const TaskManage = ({ data: initialData }) => {
 
     if (data.state === 'completed' && refreshInterval) {
       setRefreshInterval(0)
+    } else if (data.state !== 'completed' && !refreshInterval) {
+      setRefreshInterval(2000)
     }
   }, [data])
 
@@ -98,7 +78,27 @@ const TaskManage = ({ data: initialData }) => {
       </Head>
       <Card
         title={'Store: ' + data.storeName}
-        tabList={tabList}
+        tabList={[
+          {
+            key: 'Summary',
+            tab: 'Summary',
+          },
+          { key: 'All', tab: `All(${data.allLength})` },
+          {
+            key: 'Valid',
+            tab: `Valid(${data.validLength})`,
+          },
+          {
+            key: 'Invalid',
+            tab: `Invalid(${data.invalidLength})`,
+          },
+          {
+            key: 'Waiting',
+            tab: `Waiting (${
+              data.allLength - data.validLength - data.invalidLength
+            })`,
+          },
+        ]}
         activeTabKey={tab.key}
         onTabChange={(key) => handleTabChange(key)}
       >

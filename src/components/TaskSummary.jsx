@@ -8,23 +8,27 @@ const TaskSummary = ({ data }) => {
   const [logs, setLogs] = useState([])
 
   useEffect(() => {
-    setLogs(
-      data.jobLogs.logs.slice().map((el) => {
-        const logs = JSON.parse(el)
-        logs.label = moment(logs.label).format('YYYY-MM-DD HH:mm:ss')
-        return logs
-      })
-    )
+    data.jobLogs &&
+      setLogs(
+        data.jobLogs.logs.slice().map((el) => {
+          const logs = JSON.parse(el)
+          logs.label = moment(logs.label).format('YYYY-MM-DD HH:mm:ss')
+          return logs
+        })
+      )
   }, [data])
 
   return (
     <div className="space-y-8">
-      <div className="flex space-y-2 flex-col md:space-y-0 md:space-x-2 md:flex-row">
+      <div className="flex space-y-2 flex-col max-w-[320px] m-auto">
         <TaskActions data={data} showManage={false} />
       </div>
       <Timeline
+        reverse={true}
         pending={
-          ['completed', 'failed'].includes(data.state) ? false : 'Recording...'
+          ['completed', 'failed', 'waiting'].includes(data.state)
+            ? false
+            : 'Recording...'
         }
         mode="alternate"
       >
