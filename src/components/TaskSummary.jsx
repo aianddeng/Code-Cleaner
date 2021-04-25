@@ -20,7 +20,7 @@ const TaskSummary = ({ data }) => {
 
   return (
     <div className="space-y-8">
-      <div className="flex space-y-2 flex-col max-w-[320px] m-auto">
+      <div className="flex space-y-2 flex-col max-w-xs m-auto">
         <TaskActions data={data} showManage={false} />
       </div>
       <Timeline
