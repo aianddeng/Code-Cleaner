@@ -40,6 +40,7 @@ const Index = ({ stores: initialData }) => {
       storeId,
       storeName,
     })
+    await mutate('/api/tasks')
 
     message.success({
       content: `Create a new task: ${data.id}`,
@@ -47,7 +48,6 @@ const Index = ({ stores: initialData }) => {
       key: actionKey.current,
     })
 
-    mutate('/api/tasks?size=10&index=1')
     popLoading(storeId)
   }, [])
 

@@ -1,33 +1,40 @@
 import { useCallback, useEffect, useState } from 'react'
 import Head from 'next/head'
-import Link from 'next/link'
 import useSWR from 'swr'
 import axios from 'axios'
 import moment from 'moment'
 import usePageSize from '@hook/usePageSize'
-import useActionLoading from '@hook/useActionLoading'
+import useTaskActions from '@hook/useTaskActions'
 
-import { Table, Button, message, Popconfirm, Progress } from 'antd'
+import { Table, Button, Progress } from 'antd'
 import { PlayCircleOutlined, PauseCircleOutlined } from '@ant-design/icons'
+import TaskActions from '@comp/TaskActions'
 
 const Tasks = ({ data: initialData }) => {
-  const { actionKey, checkLoading, pushLoading, popLoading } = useActionLoading(
-    'removetask'
-  )
+  const { checkLoading, handleControllerTask } = useTaskActions()
 
+  // 任务列表
   const { index, size, setPageSize } = usePageSize()
+
+  const fetcher = useCallback(
+    (url, size, index) =>
+      axios.get(url, { params: { size, index } }).then((res) => res.data),
+    [size, index]
+  )
 
   const {
     data: { total, datas: taskList, paused },
-    mutate,
-  } = useSWR(`/api/tasks?size=${size}&index=${index}`, {
+  } = useSWR('/api/tasks', (url) => fetcher(url, size, index), {
     initialData,
-    refreshInterval: 1000,
+    refreshInterval: 2000,
+    revalidateOnMount: true,
   })
 
-  // cache the next page
-  useSWR(`/api/tasks?size=${size}&index=${index + 1}`)
+  useSWR(() =>
+    total > index * size ? `/api/tasks?size=${size}&index=${index}` : null
+  )
 
+  // 列表筛选
   const [taskState, setTaskState] = useState([
     {
       text: 'Active',
@@ -67,65 +74,6 @@ const Tasks = ({ data: initialData }) => {
         .sort((a, b) => (a < b ? -1 : 1))
     )
   }, [taskList])
-
-  const handleRemoveTask = useCallback(async (id) => {
-    pushLoading(id)
-    message.loading({
-      content: 'Waiting...',
-      duration: 0,
-      key: actionKey.current,
-    })
-
-    await axios.delete('/api/tasks/' + id)
-
-    await mutate()
-    message.success({
-      content: `Switch the task: ${id}`,
-      duration: 6,
-      key: actionKey.current,
-    })
-    popLoading(id)
-  }, [])
-
-  const handleControllerTask = useCallback(async () => {
-    pushLoading('controller')
-    message.loading({
-      content: 'Waiting...',
-      duration: 0,
-      key: actionKey.current,
-    })
-
-    await axios.post('/api/tasks', {
-      action: paused ? 'resume' : 'pause',
-    })
-
-    await mutate()
-    message.success({
-      content: `Pause / Resume the task process.`,
-      duration: 6,
-      key: actionKey.current,
-    })
-    popLoading('controller')
-  })
-
-  const handleRetryTask = useCallback(async (id) => {
-    pushLoading(id)
-    message.loading({
-      content: 'Waiting...',
-      duration: 0,
-      key: actionKey.current,
-    })
-
-    await axios.post('/api/tasks/' + id)
-
-    await mutate()
-    message.success({
-      content: `Switch the task: ${id}`,
-      duration: 6,
-      key: actionKey.current,
-    })
-    popLoading(id)
-  })
 
   return (
     <>
@@ -247,32 +195,7 @@ const Tasks = ({ data: initialData }) => {
           fixed="right"
           render={(value, record) => (
             <div className="flex flex-col space-y-2">
-              <Button type="primary">
-                <Link href={'/tasks/' + value}>Manage</Link>
-              </Button>
-              <Button
-                loading={checkLoading(value)}
-                disabled={record.state !== 'failed'}
-                onClick={() => handleRetryTask(value)}
-              >
-                Retry
-              </Button>
-              <Popconfirm
-                disabled={record.state === 'active'}
-                okText="Yes"
-                cancelText="No"
-                title="Are you sure to delete this task?"
-                onConfirm={() => handleRemoveTask(value)}
-              >
-                <Button
-                  danger
-                  block
-                  disabled={record.state === 'active'}
-                  loading={checkLoading(value)}
-                >
-                  Delete
-                </Button>
-              </Popconfirm>
+              {value ? <TaskActions data={record} showManage={true} /> : false}
             </div>
           )}
         />
@@ -282,7 +205,7 @@ const Tasks = ({ data: initialData }) => {
 }
 
 export const getServerSideProps = async () => {
-  const { data } = await axios.get('/api/tasks?size=10&index=1')
+  const { data } = await axios.get('/api/tasks')
 
   return {
     props: {

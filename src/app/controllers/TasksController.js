@@ -134,18 +134,8 @@ module.exports = class {
   }
 
   static async POST(ctx) {
-    const { action } = ctx.request.body
-
-    switch (action) {
-      case 'resume':
-        await queue.resume(true)
-        paused = false
-        break
-      case 'pause':
-        await queue.pause(true, true)
-        paused = true
-        break
-    }
+    paused ? await queue.resume(true) : await queue.pause(true, true)
+    paused = !paused
 
     ctx.body = {
       status: 'success',
@@ -178,20 +168,25 @@ module.exports = class {
 
     const job = await queue.getJob(id)
 
-    ctx.body = {
-      ...job.data,
-      id: job.id,
-      state: await job.getState(),
-      jobLogs: await queue.getJobLogs(job.id),
-      createdOn: job.timestamp,
-      finishedOn: job.finishedOn,
-      processedOn: job.processedOn,
-      failedReason: job.failedReason,
-      attemptsMade: job.attemptsMade,
-      allLength: job.data.coupons.length,
-      validLength: job.data.coupons.filter((el) => el.validStatus === 1).length,
-      invalidLength: job.data.coupons.filter((el) => el.validStatus <= -1)
-        .length,
-    }
+    ctx.body = job
+      ? {
+          ...job.data,
+          id: job.id,
+          state: await job.getState(),
+          jobLogs: await queue.getJobLogs(job.id),
+          createdOn: job.timestamp,
+          finishedOn: job.finishedOn,
+          processedOn: job.processedOn,
+          failedReason: job.failedReason,
+          attemptsMade: job.attemptsMade,
+          allLength: job.data.coupons.length,
+          validLength: job.data.coupons.filter((el) => el.validStatus === 1)
+            .length,
+          invalidLength: job.data.coupons.filter((el) => el.validStatus <= -1)
+            .length,
+        }
+      : {
+          status: 'failed',
+        }
   }
 }

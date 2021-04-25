@@ -295,6 +295,13 @@ class Scrapy {
   async handleLogin() {
     if (!this.config.login) return
 
+    await this.job.log(
+      JSON.stringify({
+        label: Date.now(),
+        content: 'try login the website',
+      })
+    )
+
     const page = await this.createNewpage(
       this.config.cart,
       this.config.login.selector.username
@@ -318,6 +325,13 @@ class Scrapy {
 
   async handleAddProduct() {
     if (this.config.login) return
+
+    await this.job.log(
+      JSON.stringify({
+        label: Date.now(),
+        content: 'try add product to cart',
+      })
+    )
 
     const page = await this.createNewpage(this.config.product)
 
@@ -444,16 +458,46 @@ class Scrapy {
 
     try {
       await this.createBrowser()
+      await this.job.log(
+        JSON.stringify({
+          label: Date.now(),
+          content: 'created a new browser instance',
+        })
+      )
       await this.extensionLoaded()
+      await this.job.log(
+        JSON.stringify({
+          label: Date.now(),
+          content: 'loaded fatcoupon extension',
+        })
+      )
 
       await this.watchBackground()
       await this.watchApplyCoupon()
+      await this.job.log(
+        JSON.stringify({
+          label: Date.now(),
+          content: 'watch the extension redux events',
+        })
+      )
 
       await this.handleLogin()
       await this.handleAddProduct()
       await this.handleApplyCoupon()
+      await this.job.log(
+        JSON.stringify({
+          label: Date.now(),
+          content: 'start test promo code...',
+        })
+      )
     } catch (e) {
       this.browser.disconnect()
+      await this.job.log(
+        JSON.stringify({
+          label: Date.now(),
+          content: e.message,
+        })
+      )
       this.done(new Error(e.message))
     }
   }

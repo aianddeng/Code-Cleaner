@@ -5,26 +5,28 @@ const Settings = require('../models/Settings')
 
 const queue = new Queue('fatcoupon', redis.client)
 
-queue.process('clean-code', async (job, done) => {
-  const { storeId, coupons } = job.data
+queue.process(
+  'clean-code',
+  process.env.NODE_ENV === 'production' ? 3 : 1,
+  async (job, done) => {
+    const { storeId, coupons } = job.data
 
-  const [settings] = await Settings.find({}).sort({ _id: -1 }).limit(1)
+    const [settings] = await Settings.find({}).sort({ _id: -1 }).limit(1)
 
-  const unTestCoupon = coupons
-    .filter((el) => {
-      if (!settings || settings.promoType === 'all') return true
-      return el.type === settings.promoType
-    })
-    .filter((el) => !el.validStatus)
+    const unTestCoupon = coupons
+      .filter((el) => {
+        if (!settings || settings.promoType === 'all') return true
+        return el.type === settings.promoType
+      })
+      .filter((el) => !el.validStatus)
 
-  unTestCoupon.length ? run(storeId, unTestCoupon, job, done) : done()
-})
+    unTestCoupon.length ? run(storeId, unTestCoupon, job, done) : done()
+  }
+)
 
 queue.on('waiting', async (jobId) => {
   const job = await queue.getJob(jobId)
   const { data, id } = job
-
-  await job.log(`Task <${data.storeName}> (id: ${id}) waiting`)
 
   console.log(`Task <${data.storeName}> (id: ${id}) waiting`)
 })
@@ -32,7 +34,12 @@ queue.on('waiting', async (jobId) => {
 queue.on('active', async (job) => {
   const { data, id } = job
 
-  await job.log(`Task <${data.storeName}> (id: ${id}) starting`)
+  await job.log(
+    JSON.stringify({
+      label: Date.now(),
+      content: `starting run current job...`,
+    })
+  )
 
   console.log(`Task <${data.storeName}> (id: ${id}) starting`)
 })
@@ -49,7 +56,13 @@ queue.on('completed', async (job) => {
     })
   )
 
-  await job.log(`Task <${data.storeName}> (id: ${id}) completed`)
+  await job.log(
+    JSON.stringify({
+      color: 'green',
+      label: Date.now(),
+      content: `current job completed`,
+    })
+  )
 
   console.log(`Task <${data.storeName}> (id: ${id}) completed`)
 })
@@ -70,15 +83,19 @@ queue.on('failed', async (job) => {
     )
   }
 
-  await job.log(`Task <${data.storeName}> (id: ${id}) failed`)
+  await job.log(
+    JSON.stringify({
+      color: 'red',
+      label: Date.now(),
+      content: `current job failed`,
+    })
+  )
 
   console.log(`Task <${data.storeName}> (id: ${id}) failed`)
 })
 
 queue.on('removed', async (job) => {
   const { data, id } = job
-
-  await job.log(`Task <${data.storeName}> (id: ${id}) removed`)
 
   console.log(`Task <${data.storeName}> (id: ${id}) removed`)
 })

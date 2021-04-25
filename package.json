@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_ENV=development nodemon src/server.js",
+    "dev": "nodemon src/server.js",
     "build": "NODE_ENV=production next build",
     "start": "NODE_ENV=production node src/server.js",
     "background": "NODE_ENV=production pm2 start src/server.js --watch"
@@ -37,6 +37,9 @@
     "watch": [
       "src/app/"
     ],
+    "env": {
+      "NODE_ENV": "development"
+    },
     "ext": "js",
     "ignore": [
       ".git/",
