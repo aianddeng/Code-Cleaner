@@ -303,7 +303,7 @@ class Scrapy {
     )
 
     const page = await this.createNewpage(
-      this.config.cart,
+      this.config.login.url || this.config.cart,
       this.config.login.selector.username
     )
 
