@@ -161,7 +161,7 @@ class Scrapy {
     }
     await Helpers.wait(2)
 
-    page.screenshot({
+    await page.screenshot({
       path: path.join(__dirname, '../../../public', this.job.id + '.jpg'),
     })
 
