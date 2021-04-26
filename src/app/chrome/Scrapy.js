@@ -78,6 +78,50 @@ class Scrapy {
     await page.setUserAgent(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36 Edg/89.0.774.68'
     )
+    await page.evaluate(() => {
+      Object.defineProperties(navigator, {
+        webdriver: {
+          get: () => false,
+        },
+      })
+    })
+    await page.evaluateOnNewDocument(() => {
+      const newProto = navigator.__proto__
+      delete newProto.webdriver
+      navigator.__proto__ = newProto
+      window.chrome = {}
+      window.chrome.app = {
+        InstallState: 'hehe',
+        RunningState: 'haha',
+        getDetails: 'xixi',
+        getIsInstalled: 'ohno',
+      }
+      window.chrome.csi = function () {}
+      window.chrome.loadTimes = function () {}
+      window.chrome.runtime = function () {}
+      Object.defineProperty(navigator, 'userAgent', {
+        get: () =>
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36',
+      })
+      Object.defineProperty(navigator, 'plugins', {
+        get: () => [
+          {
+            description: 'Portable Document Format',
+            filename: 'internal-pdf-viewer',
+            length: 1,
+            name: 'Chrome PDF Plugin',
+          },
+        ],
+      })
+      Object.defineProperty(navigator, 'languages', {
+        get: () => ['en-US', 'en'],
+      })
+      const originalQuery = window.navigator.permissions.query
+      window.navigator.permissions.query = (parameters) =>
+        parameters.name === 'notifications'
+          ? Promise.resolve({ state: Notification.permission })
+          : originalQuery(parameters)
+    })
     await page.setRequestInterception(true)
     page.on('request', (req) => {
       if (
