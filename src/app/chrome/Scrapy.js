@@ -251,6 +251,25 @@ class Scrapy {
       this.config.login.selector.username
     )
 
+    if (this.config.login.urlAfterBtn) {
+      page.waitForSelector(this.config.login.urlAfterBtn, {
+        timeout: globalConfig.timeout,
+      })
+      await page.click(this.config.login.urlAfterBtn)
+    }
+
+    await Promise.all([
+      page.waitForSelector(this.config.login.selector.username, {
+        timeout: globalConfig.timeout,
+      }),
+      page.waitForSelector(this.config.login.selector.password, {
+        timeout: globalConfig.timeout,
+      }),
+      page.waitForSelector(this.config.login.selector.button, {
+        timeout: globalConfig.timeout,
+      }),
+    ])
+
     await page.type(
       this.config.login.selector.username,
       this.config.login.username
@@ -259,9 +278,6 @@ class Scrapy {
       this.config.login.selector.password,
       this.config.login.password
     )
-    await page.waitForSelector(this.config.login.selector.button, {
-      timeout: globalConfig.timeout,
-    })
     await page.click(this.config.login.selector.button)
 
     await Helpers.wait(2)

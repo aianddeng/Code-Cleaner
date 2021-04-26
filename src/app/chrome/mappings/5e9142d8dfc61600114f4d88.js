@@ -1,7 +1,15 @@
 module.exports = {
   storeId: '5e9142d8dfc61600114f4d88',
-  product:
-    'https://www.ugg.com/s/UGG-US/men-apparel-outerwear/diego-rubberized-hoodie/1105656.html?dwvar_1105656_color=BLK&dwvar_1105656_size=XS',
-  button: ['.product__detail .add-to-cart'],
+  login: {
+    url: 'https://www.ugg.com/account',
+    username: 'deng@fatcoupon.com',
+    password: 'deng@fatcoupon.com',
+    selector: {
+      url: 'https://www.ugg.com/account',
+      username: '#dwfrm_login input.email',
+      password: '#dwfrm_login input.password',
+      button: '#dwfrm_login [name=dwfrm_login_login]',
+    },
+  },
   cart: 'https://www.ugg.com/cart',
 }
