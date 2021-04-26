@@ -2,6 +2,7 @@ const { relativeTimeThreshold } = require('moment')
 const puppeteer = require('puppeteer')
 const globalConfig = require('../config/config.local')
 const Helpers = require('../helpers/index')
+const path = require('path')
 
 class Scrapy {
   constructor(config, coupons, job, done) {
@@ -148,14 +149,21 @@ class Scrapy {
         Helpers.wait((globalConfig.timeout - 1000) / 1000),
       ])
       if (selector) {
-        await page.waitForSelector(selector, {
-          timeout: globalConfig.timeout,
-        })
+        await Promise.race([
+          page.waitForSelector(selector, {
+            timeout: globalConfig.timeout,
+          }),
+          Helpers.wait((globalConfig.timeout - 1000) / 1000),
+        ])
 
         await page.$eval(selector, (el) => el.removeAttribute('disabled'))
       }
     }
     await Helpers.wait(2)
+
+    page.screenshot({
+      path: path.join(__dirname, '../../../public', this.job.id + '.jpg'),
+    })
 
     return page
   }
@@ -336,9 +344,12 @@ class Scrapy {
     const page = await this.createNewpage(this.config.product)
 
     for (const selector of this.config.button) {
-      await page.waitForSelector(selector, {
-        timeout: globalConfig.timeout,
-      })
+      await Promise.race([
+        page.waitForSelector(selector, {
+          timeout: globalConfig.timeout,
+        }),
+        Helpers.wait((globalConfig.timeout - 1000) / 1000),
+      ])
 
       try {
         await page.click(selector)
