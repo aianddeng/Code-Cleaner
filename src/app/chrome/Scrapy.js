@@ -152,10 +152,6 @@ class Scrapy {
         })
       )
 
-      await page.screenshot({
-        path: path.join(__dirname, '../../../public', this.job.id + '.jpg'),
-      })
-
       if (selector) {
         await Promise.race([
           page.waitForSelector(selector, {
