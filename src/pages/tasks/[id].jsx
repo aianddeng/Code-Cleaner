@@ -5,7 +5,7 @@ import Link from 'next/link'
 import useSWR from 'swr'
 import axios from 'axios'
 
-import { Card, Button, Result, Progress } from 'antd'
+import { Card, Button, Result, Progress, Badge } from 'antd'
 import { MehOutlined } from '@ant-design/icons'
 import TaskSummary from '@comp/TaskSummary'
 import TaskCards from '@comp/TaskCards'
@@ -83,20 +83,53 @@ const TaskManage = ({ data: initialData }) => {
             key: 'Summary',
             tab: 'Summary',
           },
-          { key: 'All', tab: `All(${data.allLength})` },
+          {
+            key: 'All',
+            tab: `All(${data.allLength})`,
+          },
           {
             key: 'Valid',
-            tab: `Valid(${data.validLength})`,
+            tab: (
+              <Badge
+                className={data.validLength ? 'pr-4' : ''}
+                count={data.validLength}
+                style={{ backgroundColor: 'rgba(59, 130, 246)' }}
+              >
+                Valid
+              </Badge>
+            ),
           },
           {
             key: 'Invalid',
-            tab: `Invalid(${data.invalidLength})`,
+            tab: (
+              <Badge
+                className={data.invalidLength ? 'pr-4' : ''}
+                count={data.invalidLength}
+                style={{
+                  backgroundColor: 'red',
+                }}
+              >
+                Invalid
+              </Badge>
+            ),
           },
           {
             key: 'Waiting',
-            tab: `Waiting (${
-              data.allLength - data.validLength - data.invalidLength
-            })`,
+            tab: (
+              <Badge
+                className={
+                  data.allLength - data.validLength - data.invalidLength
+                    ? 'pr-4'
+                    : ''
+                }
+                count={data.allLength - data.validLength - data.invalidLength}
+                style={{
+                  backgroundColor: 'gray',
+                }}
+              >
+                Waiting
+              </Badge>
+            ),
           },
         ]}
         activeTabKey={tab.key}
@@ -113,7 +146,7 @@ const TaskManage = ({ data: initialData }) => {
             percent: (data.validLength / data.allLength) * 100,
             strokeColor: 'rgba(59, 130, 246)',
           }}
-          className="mb-5 px-1"
+          className="mb-5"
         />
         {tab.key === 'Summary' ? (
           <TaskSummary data={data} />

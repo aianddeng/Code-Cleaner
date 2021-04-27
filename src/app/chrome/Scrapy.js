@@ -145,6 +145,13 @@ class Scrapy {
         Helpers.wait((globalConfig.timeout - 1000) / 1000),
       ])
 
+      await this.job.log(
+        JSON.stringify({
+          label: Date.now(),
+          content: `Browser page title: <${await page.title()}>`,
+        })
+      )
+
       await page.screenshot({
         path: path.join(__dirname, '../../../public', this.job.id + '.jpg'),
       })
@@ -286,7 +293,7 @@ class Scrapy {
     await this.job.log(
       JSON.stringify({
         label: Date.now(),
-        content: 'try login the website',
+        content: 'Try login the website',
       })
     )
 
@@ -333,7 +340,7 @@ class Scrapy {
     await this.job.log(
       JSON.stringify({
         label: Date.now(),
-        content: 'try add product to cart',
+        content: 'Try add product to cart',
       })
     )
 
@@ -468,14 +475,14 @@ class Scrapy {
       await this.job.log(
         JSON.stringify({
           label: Date.now(),
-          content: 'created a new browser instance',
+          content: 'Created a new browser instance',
         })
       )
       await this.extensionLoaded()
       await this.job.log(
         JSON.stringify({
           label: Date.now(),
-          content: 'loaded fatcoupon extension',
+          content: 'Loaded fatcoupon extension',
         })
       )
 
@@ -484,7 +491,7 @@ class Scrapy {
       await this.job.log(
         JSON.stringify({
           label: Date.now(),
-          content: 'watch the extension redux events',
+          content: 'Watch the extension redux events',
         })
       )
 
@@ -494,7 +501,7 @@ class Scrapy {
       await this.job.log(
         JSON.stringify({
           label: Date.now(),
-          content: 'start test promo code...',
+          content: 'Starting test promo code...',
         })
       )
     } catch (e) {

@@ -5,11 +5,11 @@ import useTaskActions from '@hook/useTaskActions'
 const TaskCards = ({ id, coupons }) => {
   const { checkLoading, handleDeactiveCode } = useTaskActions()
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
       {coupons.slice().map((el) => (
         <Card
           className={[
-            'm-1 cursor-pointer transition-all',
+            'cursor-pointer transition-all',
             !el.validStatus && 'border-gray-200',
             el.validStatus === 1 && 'border-blue-500',
             el.validStatus === -1 && 'border-red-500',

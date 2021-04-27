@@ -33,7 +33,7 @@ queue.on('active', async (job) => {
   await job.log(
     JSON.stringify({
       label: Date.now(),
-      content: `starting run current job...`,
+      content: `Starting run current job...`,
     })
   )
 
@@ -56,7 +56,7 @@ queue.on('completed', async (job) => {
     JSON.stringify({
       color: 'green',
       label: Date.now(),
-      content: `current job completed`,
+      content: `Current job completed`,
     })
   )
 
@@ -83,7 +83,7 @@ queue.on('failed', async (job) => {
     JSON.stringify({
       color: 'red',
       label: Date.now(),
-      content: `current job failed`,
+      content: `Current job failed`,
     })
   )
 

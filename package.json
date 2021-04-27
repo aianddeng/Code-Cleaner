@@ -9,6 +9,7 @@
     "background": "NODE_ENV=production pm2 start src/server.js --watch"
   },
   "dependencies": {
+    "@tailwindcss/jit": "^0.1.18",
     "antd": "^4.15.0",
     "autoprefixer": "^10.2.5",
     "axios": "^0.21.1",
