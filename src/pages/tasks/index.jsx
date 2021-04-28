@@ -10,28 +10,25 @@ import { Table, Button, Progress } from 'antd'
 import { PlayCircleOutlined, PauseCircleOutlined } from '@ant-design/icons'
 import TaskActions from '@comp/TaskActions'
 
+const fetcher = (url, size, index) =>
+  axios.get(url, { params: { size, index } }).then((res) => res.data)
+
 const Tasks = ({ data: initialData }) => {
   const { checkLoading, handleControllerTask } = useTaskActions()
 
   // 任务列表
   const { index, size, setPageSize } = usePageSize()
 
-  const fetcher = useCallback(
-    (url, size, index) =>
-      axios.get(url, { params: { size, index } }).then((res) => res.data),
-    [size, index]
-  )
-
   const {
     data: { total, datas: taskList, paused },
-  } = useSWR('/api/tasks', (url) => fetcher(url, size, index), {
+  } = useSWR(['/api/tasks', size, index], fetcher, {
     initialData,
     refreshInterval: 2000,
     revalidateOnMount: true,
   })
 
   useSWR(() =>
-    total > index * size ? `/api/tasks?size=${size}&index=${index}` : null
+    total > index * size ? `/api/tasks?size=${size}&index=${index + 1}` : null
   )
 
   // 列表筛选
@@ -94,7 +91,7 @@ const Tasks = ({ data: initialData }) => {
                 type="primary"
                 loading={checkLoading('controller')}
                 icon={paused ? <PlayCircleOutlined /> : <PauseCircleOutlined />}
-                onClick={() => handleControllerTask()}
+                onClick={() => handleControllerTask({ size, index })}
               >
                 {paused ? 'Resume' : 'Pause'}
               </Button>
@@ -195,7 +192,16 @@ const Tasks = ({ data: initialData }) => {
           fixed="right"
           render={(value, record) => (
             <div className="flex flex-col space-y-2">
-              {value ? <TaskActions data={record} showManage={true} /> : false}
+              {value ? (
+                <TaskActions
+                  data={record}
+                  showManage={true}
+                  size={size}
+                  index={index}
+                />
+              ) : (
+                false
+              )}
             </div>
           )}
         />

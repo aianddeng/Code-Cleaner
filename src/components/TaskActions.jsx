@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 import useTaskActions from '@hook/useTaskActions'
 
-const TaskActions = ({ data, showManage }) => {
+const TaskActions = ({ data, showManage, size, index }) => {
   const {
     checkLoading,
     handleRetryTask,
@@ -77,7 +77,7 @@ const TaskActions = ({ data, showManage }) => {
       <Button
         loading={checkLoading(data.id)}
         disabled={data.state !== 'failed'}
-        onClick={() => handleRetryTask(data.id)}
+        onClick={() => handleRetryTask(data.id, { size, index })}
         className="flex-auto"
       >
         Retry
@@ -87,7 +87,7 @@ const TaskActions = ({ data, showManage }) => {
         okText="Yes"
         cancelText="No"
         title="Are you sure to delete this task?"
-        onConfirm={() => handleRemoveTask(data.id)}
+        onConfirm={() => handleRemoveTask(data.id, { size, index })}
       >
         <Button
           disabled={data.state === 'active'}

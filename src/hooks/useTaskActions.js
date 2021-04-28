@@ -11,7 +11,7 @@ const useTaskActions = () => {
     'taskActions'
   )
 
-  const handleRetryTask = useCallback(async (id) => {
+  const handleRetryTask = useCallback(async (id, props) => {
     pushLoading(id)
     message.loading({
       content: 'Waiting...',
@@ -21,7 +21,11 @@ const useTaskActions = () => {
 
     // 重新运行任务并重载任务列表
     await axios.post('/api/tasks/' + id)
+
     await mutate('/api/tasks/' + id)
+    if (props) {
+      await mutate(['/api/tasks', props.size, props.index])
+    }
 
     message.success({
       content: `Switch the task: ${id}`,
@@ -31,7 +35,7 @@ const useTaskActions = () => {
     popLoading(id)
   })
 
-  const handleRemoveTask = useCallback(async (id) => {
+  const handleRemoveTask = useCallback(async (id, props) => {
     pushLoading(id)
     message.loading({
       content: 'Waiting...',
@@ -41,7 +45,10 @@ const useTaskActions = () => {
 
     // 删除任务并重新加载任务列表
     await axios.delete('/api/tasks/' + id)
-    await mutate('/api/tasks')
+
+    if (props) {
+      await mutate(['/api/tasks', props.size, props.index])
+    }
 
     message.success({
       content: `Delete the task: ${id}`,
@@ -78,7 +85,7 @@ const useTaskActions = () => {
     popLoading(couponIds.join(','))
   }, [])
 
-  const handleControllerTask = useCallback(async () => {
+  const handleControllerTask = useCallback(async (props) => {
     pushLoading('controller')
     message.loading({
       content: 'Waiting...',
@@ -87,7 +94,9 @@ const useTaskActions = () => {
     })
 
     await axios.post('/api/tasks')
-    await mutate('/api/tasks')
+    if (props) {
+      await mutate(['/api/tasks', props.size, props.index])
+    }
 
     message.success({
       content: `Pause / Resume the task process.`,
