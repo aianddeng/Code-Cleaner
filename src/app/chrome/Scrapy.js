@@ -265,13 +265,15 @@ class Scrapy {
           } else if (data.type === 'errorDone') {
             if (this.runNumber) {
               this.runNumber = 0
+              this.lastMessage = null
               this.coupons = this.coupons.filter((el) => !el.validStatus)
-              this.handleApplyCoupon()
+              await this.handleApplyCoupon()
             } else {
               this.browser.disconnect()
               this.done(new Error('Extension Done'))
             }
           } else {
+            this.runNumber += 1
             if (data.type === 'applyFailed') {
               this.job.data.coupons.find(
                 (el) => el.code.toUpperCase() === currentCoupon.toUpperCase()
@@ -284,7 +286,6 @@ class Scrapy {
               await this.job.update(this.job.data)
             }
           }
-          this.runNumber += 1
         }
       }
     })
