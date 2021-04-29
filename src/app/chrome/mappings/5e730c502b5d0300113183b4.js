@@ -7,5 +7,4 @@ module.exports = {
     '[data-auto-id=add-to-bag]',
   ],
   cart: 'https://www.reebok.com/us/cart',
-  useLocalScript: true,
 }

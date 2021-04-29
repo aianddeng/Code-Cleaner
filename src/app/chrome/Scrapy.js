@@ -1,8 +1,6 @@
-const { relativeTimeThreshold } = require('moment')
 const puppeteer = require('puppeteer')
 const globalConfig = require('../config/config.local')
 const Helpers = require('../helpers/index')
-const path = require('path')
 
 class Scrapy {
   constructor(config, coupons, job, done) {
@@ -14,6 +12,8 @@ class Scrapy {
     this.coupons = coupons
     this.job = job
     this.done = done
+
+    this.runNumber = 0
 
     if (typeof this.config.button === 'string') {
       this.config.button = [this.config.button]
@@ -263,8 +263,14 @@ class Scrapy {
             this.browser.disconnect()
             this.done()
           } else if (data.type === 'errorDone') {
-            this.browser.disconnect()
-            this.done(new Error('Extension Done'))
+            if (this.runNumber) {
+              this.runNumber = 0
+              this.coupons = this.coupons.filter((el) => !el.validStatus)
+              this.handleApplyCoupon()
+            } else {
+              this.browser.disconnect()
+              this.done(new Error('Extension Done'))
+            }
           } else {
             if (data.type === 'applyFailed') {
               this.job.data.coupons.find(
@@ -278,6 +284,7 @@ class Scrapy {
               await this.job.update(this.job.data)
             }
           }
+          this.runNumber += 1
         }
       }
     })
@@ -364,7 +371,9 @@ class Scrapy {
       } catch {}
     }
 
-    if (!this.config.cart.startsWith('http')) {
+    if (typeof this.config.cart === 'function') {
+      this.config.cart = await this.config.cart(page)
+    } else if (!this.config.cart.startsWith('http')) {
       this.config.cart = await page.$eval(this.config.cart, (el) =>
         el.getAttribute('href')
       )

@@ -4,7 +4,7 @@ module.exports = {
   concurrency: 1,
   maxFailCount: 3,
   headless: false,
-  timeout: 1 * 60 * 1000,
+  timeout: 2 * 60 * 1000,
   extensionPath: path.join(__dirname, '../chrome', 'dist'),
   mongoPath:
     process.env.NODE_ENV === 'production'

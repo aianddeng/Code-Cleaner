@@ -4,8 +4,9 @@ const run = require('../chrome/index')
 const Settings = require('../models/Settings')
 
 const queue = new Queue('fatcoupon', redis.client)
+const isProduction = process.env.NODE_ENV === 'production'
 
-queue.process('clean-code', 1, async (job, done) => {
+queue.process('clean-code', isProduction ? 3 : 1, async (job, done) => {
   const { storeId, coupons } = job.data
 
   const [settings] = await Settings.find({}).sort({ _id: -1 }).limit(1)
