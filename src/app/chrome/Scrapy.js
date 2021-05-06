@@ -441,7 +441,10 @@ class Scrapy {
         .map((target) => target.page().then((page) => page.close()))
     )
 
-    const page = await this.createNewpage(this.config.cart, '#fatcoupon-root')
+    const page = await this.createNewpage(
+      this.config.cart,
+      this.config.cartAfterButton ? '' : '#fatcoupon-root'
+    )
 
     if (this.config.cartAfterButton) {
       await page.evaluate((selector) => {
