@@ -15,6 +15,19 @@ module.exports = class {
       )
       await job.update(job.data)
 
+      await job.log(
+        JSON.stringify({
+          label: Date.now(),
+          content:
+            'Deactivate codes: ' +
+            job.data.coupons
+              .filter((el) => el.validStatus === -2)
+              .filter((el) => coupons.includes(el.id))
+              .map((el) => el.code)
+              .join(', '),
+        })
+      )
+
       if (process.env.NODE_ENV === 'production') {
         await axios.post(
           'https://apis.fatcoupon.com/api/extension/coupons/deactivate',
@@ -24,7 +37,16 @@ module.exports = class {
           }
         )
       } else {
-        console.log('remove code: ', coupons)
+        console.log('event - remove code:')
+        console.table(
+          job.data.coupons
+            .filter((el) => el.validStatus === -2)
+            .filter((el) => coupons.includes(el.id))
+            .map((el) => ({
+              id: el.id,
+              code: el.code,
+            }))
+        )
       }
     }
 
