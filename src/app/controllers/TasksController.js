@@ -1,7 +1,6 @@
 const Settings = require('../models/Settings')
 const queue = require('../jobs/queue')
 const axios = require('axios')
-
 let paused = false
 
 module.exports = class {
@@ -9,6 +8,7 @@ module.exports = class {
     const query = {
       size: 10,
       index: 1,
+      storeId: null,
       ...ctx.request.query,
     }
 
@@ -25,12 +25,11 @@ module.exports = class {
 
     const jobs = (await queue.getJobs(types))
       .sort((a, b) => b.id - a.id)
-      .slice(start, end)
-    const jobCounts = await queue.getJobCounts()
+      .filter((el) => !query.storeId || query.storeId === el.data.storeId)
 
-    const total = Object.values(jobCounts).reduce((a, b) => a + b)
+    const total = jobs.length
     const datas = await Promise.all(
-      jobs.map(async (job) => ({
+      jobs.slice(start, end).map(async (job) => ({
         ...job.data,
         id: job.id,
         state: await job.getState(),

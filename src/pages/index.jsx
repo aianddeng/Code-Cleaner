@@ -1,12 +1,13 @@
 import { useState, useCallback } from 'react'
 import Head from 'next/head'
+import Link from 'next/link'
 import { mutate } from 'swr'
 import axios from 'axios'
 import useActionLoading from '@hook/useActionLoading'
 
 import { Input, Table, Button, message } from 'antd'
 
-const Index = ({ stores: initialData }) => {
+const Index = ({ initialData }) => {
   const { actionKey, checkLoading, pushLoading, popLoading } = useActionLoading(
     'addtotasks'
   )
@@ -106,14 +107,26 @@ const Index = ({ stores: initialData }) => {
             title: 'sort mappings store actions',
           }}
           render={(value, record) => (
-            <Button
-              type="primary"
-              disabled={!value}
-              loading={checkLoading(record.id)}
-              onClick={() => handleSubmitTask(record.id, record.name)}
-            >
-              Add to Tasks
-            </Button>
+            <div className="space-y-2 flex flex-col md:flex-row md:space-x-2 md:space-y-0">
+              <Button
+                type="primary"
+                disabled={!value}
+                loading={checkLoading(record.id)}
+                onClick={() => handleSubmitTask(record.id, record.name)}
+              >
+                Add To Tasks
+              </Button>
+              <Button>
+                <Link
+                  href={{
+                    pathname: '/tasks',
+                    query: { storeId: record.id },
+                  }}
+                >
+                  Check Store Tasks
+                </Link>
+              </Button>
+            </div>
           )}
         />
       </Table>
@@ -126,7 +139,7 @@ export const getServerSideProps = async () => {
 
   return {
     props: {
-      stores: data,
+      initialData: data,
     },
   }
 }

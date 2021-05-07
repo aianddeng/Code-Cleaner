@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 import useSWR from 'swr'
 import axios from 'axios'
 import moment from 'moment'
@@ -10,25 +11,30 @@ import { Table, Button, Progress } from 'antd'
 import { PlayCircleOutlined, PauseCircleOutlined } from '@ant-design/icons'
 import TaskActions from '@comp/TaskActions'
 
-const fetcher = (url, size, index) =>
-  axios.get(url, { params: { size, index } }).then((res) => res.data)
+const fetcher = (url, size, index, storeId) =>
+  axios.get(url, { params: { size, index, storeId } }).then((res) => res.data)
 
-const Tasks = ({ data: initialData }) => {
+const Tasks = ({ initialData }) => {
+  const router = useRouter()
+  const { storeId, index: queryIndex, size: querySize } = router.query
+
   const { checkLoading, handleControllerTask } = useTaskActions()
 
   // 任务列表
-  const { index, size, setPageSize } = usePageSize()
+  const { index, size, setPageSize } = usePageSize(queryIndex, querySize)
 
   const {
     data: { total, datas: taskList, paused },
-  } = useSWR(['/api/tasks', size, index], fetcher, {
+  } = useSWR(['/api/tasks', size, index, storeId], fetcher, {
     initialData,
     refreshInterval: 2 * 1000,
     revalidateOnMount: true,
   })
 
-  useSWR(() =>
-    total > index * size ? `/api/tasks?size=${size}&index=${index + 1}` : null
+  useSWR(
+    () =>
+      total > index * size ? ['/api/tasks', size, index + 1, storeId] : null,
+    fetcher
   )
 
   // 列表筛选
@@ -100,6 +106,8 @@ const Tasks = ({ data: initialData }) => {
         )}
         pagination={{
           total,
+          current: Number(index),
+          pageSize: Number(size),
           showSizeChanger: true,
           defaultPageSize: size,
           onChange: (index, size) => {
@@ -210,12 +218,16 @@ const Tasks = ({ data: initialData }) => {
   )
 }
 
-export const getServerSideProps = async () => {
-  const { data } = await axios.get('/api/tasks')
+export const getServerSideProps = async ({ query }) => {
+  const { storeId, index, size } = query
+
+  const { data } = await axios.get('/api/tasks', {
+    params: { size, index, storeId },
+  })
 
   return {
     props: {
-      data,
+      initialData: data,
     },
   }
 }

@@ -10,13 +10,13 @@ import { MehOutlined } from '@ant-design/icons'
 import TaskSummary from '@comp/TaskSummary'
 import TaskCards from '@comp/TaskCards'
 
-const TaskManage = ({ data: initialData }) => {
+const TaskManage = ({ initialData }) => {
   const router = useRouter()
-  const currentId = router.query.id
+  const { taskId } = router.query
 
   // 加载任务详情
   const [refreshInterval, setRefreshInterval] = useState(2000)
-  const { data } = useSWR('/api/tasks/' + currentId, {
+  const { data } = useSWR('/api/tasks/' + taskId, {
     initialData,
     refreshInterval,
     revalidateOnMount: true,
@@ -151,7 +151,7 @@ const TaskManage = ({ data: initialData }) => {
         {tab.key === 'Summary' ? (
           <TaskSummary data={data} />
         ) : coupons.length ? (
-          <TaskCards id={currentId} coupons={coupons} />
+          <TaskCards id={taskId} coupons={coupons} />
         ) : (
           <Result
             status="info"
@@ -169,14 +169,14 @@ const TaskManage = ({ data: initialData }) => {
   )
 }
 
-export const getServerSideProps = async (context) => {
-  const taskId = context.query.id
+export const getServerSideProps = async ({ query }) => {
+  const { taskId } = query
   const { data } = await axios.get('/api/tasks/' + taskId)
 
   return data.id
     ? {
         props: {
-          data,
+          initialData: data,
         },
       }
     : {
