@@ -142,7 +142,7 @@ class Scrapy {
           waitUntil: 'load',
           timeout: globalConfig.timeout,
         }),
-        Helpers.wait((globalConfig.timeout - 1000) / 1000),
+        Helpers.wait(globalConfig.timeout / 1000 - 1),
       ])
 
       await this.job.log(
@@ -157,7 +157,7 @@ class Scrapy {
           page.waitForSelector(selector, {
             timeout: globalConfig.timeout,
           }),
-          Helpers.wait((globalConfig.timeout - 1000) / 1000),
+          Helpers.wait(globalConfig.timeout / 1000 - 1),
         ])
 
         await page.$eval(selector, (el) => el.removeAttribute('disabled'))
@@ -355,7 +355,7 @@ class Scrapy {
         page.waitForSelector(selector, {
           timeout: globalConfig.timeout,
         }),
-        Helpers.wait((globalConfig.timeout - 1000) / 1000),
+        Helpers.wait(globalConfig.timeout / 1000 - 1),
       ])
 
       try {
@@ -403,15 +403,10 @@ class Scrapy {
           return await new Promise((resolve) => {
             const store = window.controller.reduxStore
             const checkStoreState = () => {
-              const ready = store
-                .getState()
-                .stores.find((el) => el.id === config.storeId)
+              const ready = store.getState().stores[config.storeId]
 
               if (ready && ready.coupons) {
-                store
-                  .getState()
-                  .stores.find((el) => el.id === config.storeId).coupons =
-                  config.coupons
+                store.getState().stores[config.storeId].coupons = config.coupons
 
                 resolve(true)
               } else {
@@ -458,7 +453,7 @@ class Scrapy {
       () =>
         document
           .querySelector('#fatcoupon-root')
-          .shadowRoot.querySelector('.apply-coupon button'),
+          .shadowRoot.querySelector('.coupons-found-popup-label + button'),
       {
         timeout: globalConfig.timeout,
       }
@@ -467,7 +462,7 @@ class Scrapy {
     await page.evaluate(() => {
       const button = document
         .querySelector('#fatcoupon-root')
-        .shadowRoot.querySelector('.apply-coupon button')
+        .shadowRoot.querySelector('.coupons-found-popup-label + button')
       button && button.click()
     })
   }

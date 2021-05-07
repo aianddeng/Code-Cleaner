@@ -1,1 +1,69 @@
-{"manifest_version":2,"name":"FatCoupon: Automatic Promo Codes At Check-out","version":"0.2.22","description":"Promo codes handpicked and tested by our staff - guaranteed working!","author":"stationfuk","icons":{"16":"assets/icons/active/16.png","32":"assets/icons/active/32.png","48":"assets/icons/active/48.png","64":"assets/icons/active/64.png","128":"assets/icons/active/128.png"},"permissions":["storage","cookies","tabs","webRequest","webNavigation","*://*/*","https://d3itvsmwj0r86k.cloudfront.net/*","https://apis.fatcoupon.com/*","https://www.fatcoupon.com/*"],"background":{"scripts":["js/env.js","js/background.js"],"persistent":true},"browser_action":{"default_icon":{"16":"assets/icons/inactive/16.png","32":"assets/icons/inactive/32.png","48":"assets/icons/inactive/48.png","64":"assets/icons/inactive/64.png","128":"assets/icons/inactive/128.png"},"default_title":"FatCoupon","default_popup":"popup/popup.html"},"content_scripts":[{"matches":["*://*/*"],"js":["js/env.js","js/fatcoupon.js"],"run_at":"document_start"}],"externally_connectable":{"matches":["*://localhost/*","*://*.fatcoupon.com/*","*://*.fatcoupon-www-dev.s3-website-us-west-2.amazonaws.com/*"]},"web_accessible_resources":["/js/fatcoupon.js","/stores/*","/assets/fonts/*","/assets/icons/*","/assets/images/*"],"content_security_policy":"script-src 'self' 'unsafe-eval' https://www.google-analytics.com/ https://www.googletagmanager.com/ https://googletagmanager.com/ https://www.googleadservices.com/ https://googleads.g.doubleclick.net/ https://connect.facebook.net/ 'sha256-B951I+23GHVGyMAmk5LF5sIZsxpYxpsYVb5H48DXghg=' https://apis.fatcoupon.com/ https://d3itvsmwj0r86k.cloudfront.net/; object-src 'self'; connect-src https://d3itvsmwj0r86k.cloudfront.net/ https://apis.fatcoupon.com/;","key":"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsfvX/yz8+F2ZzJ5ik0EzHYzcfFCH06w5gE3Dvt7o8A2DSaNZ/lwExAD53yvsFaRG5xDELIW6no5qM1lF5EyRQoc3k/RvosRuQi6/LAHbb2MXr9aLMi7ANtjKXFIIqNmXGUPtTQ7esGzd8QLGdjXDOWHon0IqNsr+5d1xQc765bznwjKUfTV/Q60b73/or7UFbAXXT1qsNS5TBRYhq9e5YDBnAvm+hH7kjLxIN75A3OJq5D9ETGXmwrqNnFDZnbme+r8gw6vwKqeGJHJYF7coZp9RmzbpkRP9utZLKV0lUGphA1Jid+4BD+jUKPmtNqwpJzfyL6l5xPZMY7Kkl23neQIDAQAB"}
+{
+  "manifest_version": 2,
+  "name": "FatCoupon: Automatic Promo Codes At Check-out",
+  "version": "0.2.25",
+  "description": "Promo codes handpicked and tested by our staff - guaranteed working!",
+  "author": "stationfuk",
+  "icons": {
+    "16": "assets/icons/active/16.png",
+    "32": "assets/icons/active/32.png",
+    "48": "assets/icons/active/48.png",
+    "64": "assets/icons/active/64.png",
+    "128": "assets/icons/active/128.png"
+  },
+  "permissions": [
+    "storage",
+    "cookies",
+    "tabs",
+    "webRequest",
+    "webNavigation",
+    "*://*/*"
+  ],
+  "background": {
+    "scripts": [
+      "js/env.js",
+      "analytics/ga.js",
+      "js/background.js"
+    ],
+    "persistent": true
+  },
+  "browser_action": {
+    "default_icon": {
+      "16": "assets/icons/inactive/16.png",
+      "32": "assets/icons/inactive/32.png",
+      "48": "assets/icons/inactive/48.png",
+      "64": "assets/icons/inactive/64.png",
+      "128": "assets/icons/inactive/128.png"
+    },
+    "default_title": "FatCoupon",
+    "default_popup": "popup/popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*/*"
+      ],
+      "js": [
+        "js/env.js",
+        "js/fatcoupon.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "externally_connectable": {
+    "matches": [
+      "*://localhost/*",
+      "*://*.fatcoupon.com/*",
+      "*://*.fatcoupon.vercel.app/*"
+    ]
+  },
+  "web_accessible_resources": [
+    "/js/fatcoupon.js",
+    "/stores/*",
+    "/assets/fonts/*",
+    "/assets/icons/*",
+    "/assets/images/*"
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval' https://www.google-analytics.com/ https://www.googletagmanager.com/ https://googletagmanager.com/ https://www.googleadservices.com/ https://googleads.g.doubleclick.net/ https://connect.facebook.net/ 'sha256-B951I+23GHVGyMAmk5LF5sIZsxpYxpsYVb5H48DXghg=' https://apis.fatcoupon.com/ https://d3itvsmwj0r86k.cloudfront.net/; object-src 'self'; connect-src https://d3itvsmwj0r86k.cloudfront.net/ https://apis.fatcoupon.com/;",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsfvX/yz8+F2ZzJ5ik0EzHYzcfFCH06w5gE3Dvt7o8A2DSaNZ/lwExAD53yvsFaRG5xDELIW6no5qM1lF5EyRQoc3k/RvosRuQi6/LAHbb2MXr9aLMi7ANtjKXFIIqNmXGUPtTQ7esGzd8QLGdjXDOWHon0IqNsr+5d1xQc765bznwjKUfTV/Q60b73/or7UFbAXXT1qsNS5TBRYhq9e5YDBnAvm+hH7kjLxIN75A3OJq5D9ETGXmwrqNnFDZnbme+r8gw6vwKqeGJHJYF7coZp9RmzbpkRP9utZLKV0lUGphA1Jid+4BD+jUKPmtNqwpJzfyL6l5xPZMY7Kkl23neQIDAQAB"
+}
