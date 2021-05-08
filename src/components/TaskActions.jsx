@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 import useTaskActions from '@hook/useTaskActions'
 
-const TaskActions = ({ data, showManage, size, index }) => {
+const TaskActions = ({ data, showManage, size, index, storeId }) => {
   const {
     checkLoading,
     handleRetryTask,
@@ -70,14 +70,14 @@ const TaskActions = ({ data, showManage, size, index }) => {
               setIsModal(true)
             }}
           >
-            Remove All Invalid Coupons
+            Deactive All Invalid Coupons
           </Button>
         </>
       )}
       <Button
         loading={checkLoading(data.id)}
         disabled={data.state !== 'failed'}
-        onClick={() => handleRetryTask(data.id, { size, index })}
+        onClick={() => handleRetryTask(data.id, { size, index, storeId })}
         className="flex-auto"
       >
         Retry
@@ -87,7 +87,7 @@ const TaskActions = ({ data, showManage, size, index }) => {
         okText="Yes"
         cancelText="No"
         title="Are you sure to delete this task?"
-        onConfirm={() => handleRemoveTask(data.id, { size, index })}
+        onConfirm={() => handleRemoveTask(data.id, { size, index, storeId })}
       >
         <Button
           disabled={data.state === 'active'}

@@ -28,7 +28,6 @@ const Tasks = ({ initialData }) => {
   } = useSWR(['/api/tasks', size, index, storeId], fetcher, {
     initialData,
     refreshInterval: 2 * 1000,
-    revalidateOnMount: true,
   })
 
   useSWR(
@@ -97,7 +96,7 @@ const Tasks = ({ initialData }) => {
                 type="primary"
                 loading={checkLoading('controller')}
                 icon={paused ? <PlayCircleOutlined /> : <PauseCircleOutlined />}
-                onClick={() => handleControllerTask({ size, index })}
+                onClick={() => handleControllerTask({ size, index, storeId })}
               >
                 {paused ? 'Resume' : 'Pause'}
               </Button>

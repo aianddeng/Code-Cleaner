@@ -41,7 +41,7 @@ const Index = ({ initialData }) => {
       storeId,
       storeName,
     })
-    await mutate('/api/tasks')
+    await mutate(['/api/tasks', 10, 1, undefined])
 
     message.success({
       content: `Create a new task: ${data.id}`,

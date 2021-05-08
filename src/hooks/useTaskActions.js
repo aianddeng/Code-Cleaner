@@ -24,7 +24,7 @@ const useTaskActions = () => {
 
     await mutate('/api/tasks/' + id)
     if (props) {
-      await mutate(['/api/tasks', props.size, props.index])
+      await mutate(['/api/tasks', props.size, props.index, props.storeId])
     }
 
     message.success({
@@ -47,7 +47,7 @@ const useTaskActions = () => {
     await axios.delete('/api/tasks/' + id)
 
     if (props) {
-      await mutate(['/api/tasks', props.size, props.index])
+      await mutate(['/api/tasks', props.size, props.index, props.storeId])
     }
 
     message.success({
@@ -95,7 +95,7 @@ const useTaskActions = () => {
 
     await axios.post('/api/tasks')
     if (props) {
-      await mutate(['/api/tasks', props.size, props.index])
+      await mutate(['/api/tasks', props.size, props.index, props.storeId])
     }
 
     message.success({
