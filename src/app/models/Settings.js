@@ -7,6 +7,11 @@ const settingsSchema = new mongoose.Schema(
       default: 'all',
       enum: ['all', 'public', 'exclusive'],
     },
+    themeType: {
+      type: String,
+      default: 'white',
+      enum: ['dark', 'white'],
+    },
     concurrency: {
       type: Number,
       default: 1,

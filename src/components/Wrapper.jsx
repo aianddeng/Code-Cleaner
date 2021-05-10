@@ -48,7 +48,7 @@ const Wrapper = ({ children }) => {
           <Breadcrumb.Item>Clean Invalid Code</Breadcrumb.Item>
           <Breadcrumb.Item>App</Breadcrumb.Item>
         </Breadcrumb>
-        <div className="bg-white p-2 md:p-6">
+        <div className="bg-white dark:bg-[#1f1f1f] p-2 md:p-6">
           <Skeleton loading={loading} active />
           <Skeleton loading={loading} active>
             {children}

@@ -24,7 +24,7 @@ const TaskSummary = ({ data }) => {
       <div className="max-w-xs flex space-y-2 flex-col md:flex-row md:space-x-2 md:space-y-0">
         <TaskActions data={data} showManage={false} />
       </div>
-      <div className="bg-gray-800 rounded-sm pl-5 pt-5 h-96 w-full overflow-y-auto overflow-x-hidden">
+      <div className="bg-[#031527] dark:bg-[#1f1f1f] rounded-sm pl-5 pt-5 h-96 w-full overflow-y-auto overflow-x-hidden">
         <Timeline
           reverse={true}
           className="text-white"

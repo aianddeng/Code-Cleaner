@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 import useSWR from 'swr'
 import axios from 'axios'
 
-import { Drawer, Button, Form, Select, Input, Skeleton } from 'antd'
+import { Drawer, Button, Form, Select, Input, Skeleton, Radio } from 'antd'
 
 const { useForm } = Form
 
@@ -11,11 +11,18 @@ const SideBar = ({ visible, handleSwitchVisible }) => {
   const { data, mutate } = useSWR('/api/settings')
 
   const handleSubmitSettings = useCallback(async () => {
-    const { data } = await axios.post('/api/settings', form.getFieldsValue())
+    const { data: afterData } = await axios.post(
+      '/api/settings',
+      form.getFieldsValue()
+    )
 
-    form.setFieldsValue(data)
-    await mutate(data, false)
+    if (afterData.themeType !== data.themeType) {
+      location.reload()
+      return
+    }
 
+    form.setFieldsValue(afterData)
+    await mutate(afterData, false)
     await handleSwitchVisible()
   })
 
@@ -55,6 +62,12 @@ const SideBar = ({ visible, handleSwitchVisible }) => {
           </Form.Item> */}
           <Form.Item name="attempts" label="Task Attempts" required={true}>
             <Input type="number" min="1" max="100" />
+          </Form.Item>
+          <Form.Item name="themeType" label="Website Theme" required={true}>
+            <Radio.Group placeholder="Please select a website theme">
+              <Radio.Button value="white">White</Radio.Button>
+              <Radio.Button value="dark">Dark</Radio.Button>
+            </Radio.Group>
           </Form.Item>
         </Form>
       </Skeleton>
