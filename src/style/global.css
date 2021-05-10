@@ -1,4 +1,4 @@
-@tailwind base;
+@import 'tailwindcss/base';
 
 svg {
   vertical-align: baseline;
@@ -18,5 +18,10 @@ svg {
   background-color: rgba(128, 128, 128, 0.5);
 }
 
-@tailwind components;
-@tailwind utilities;
+@import 'antd/dist/antd.min.css';
+@media (prefers-color-scheme: dark) {
+  @import 'antd/dist/antd.dark.min.css';
+}
+
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
