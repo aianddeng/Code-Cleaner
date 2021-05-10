@@ -1,17 +1,17 @@
+require('./app/db/mongodb')
+require('./app/db/redis')
+require('./app/jobs/queue')
+
+const Koa = require('koa')
+const bodyParser = require('koa-bodyparser')
+const cors = require('koa2-cors')
+const router = require('./app/router')
+
 const next = require('next')
 const app = next({ dev: process.env.NODE_ENV !== 'production' })
 const handle = app.getRequestHandler()
 
 app.prepare().then(() => {
-  require('./app/db/mongodb')
-  require('./app/db/redis')
-  require('./app/jobs/queue')
-
-  const Koa = require('koa')
-  const bodyParser = require('koa-bodyparser')
-  const cors = require('koa2-cors')
-  const router = require('./app/router')
-
   new Koa()
     .use(cors())
     .use(bodyParser())
