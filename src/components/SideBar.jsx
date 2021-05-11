@@ -63,12 +63,13 @@ const SideBar = ({ visible, handleSwitchVisible }) => {
           <Form.Item name="attempts" label="Task Attempts" required={true}>
             <Input type="number" min="1" max="100" />
           </Form.Item>
-          <Form.Item name="themeType" label="Website Theme" required={true}>
+          {/* <Form.Item name="themeType" label="Website Theme" required={true}>
             <Radio.Group placeholder="Please select a website theme">
+              <Radio.Button value="auto">Auto</Radio.Button>
               <Radio.Button value="white">White</Radio.Button>
               <Radio.Button value="dark">Dark</Radio.Button>
             </Radio.Group>
-          </Form.Item>
+          </Form.Item> */}
         </Form>
       </Skeleton>
     </Drawer>
