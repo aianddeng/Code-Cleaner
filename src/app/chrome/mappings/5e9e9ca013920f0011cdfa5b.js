@@ -1,0 +1,25 @@
+module.exports = {
+  storeId: '5e9e9ca013920f0011cdfa5b',
+  login: {
+    url: 'https://www.farfetch.com/login.aspx',
+    username: 'deng@fatcoupon.com',
+    password: 'Az6dJfJafg_E_Qg',
+    selector: {
+      username: '#email-input-login',
+      password: '#password-input-login',
+      button: '#form_validate_sign_in .submit-button button',
+    },
+  },
+  cart: async (page)=>{
+    await page.goto('https://www.farfetch.com/checkout/basket/GoToCheckout', {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000,
+    })
+    await page.waitForNavigation({
+      waitUntil: 'domcontentloaded',
+      timeout: 60000,
+    })
+    return 'https://secure.farfetch.com/v2/ShippingAddress';
+  },
+  useLocalScript: true,
+}

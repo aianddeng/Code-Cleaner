@@ -371,10 +371,8 @@ class Scrapy {
         await Helpers.wait(1)
       } catch {}
     }
-
-    if (typeof this.config.cart === 'function') {
-      this.config.cart = await this.config.cart(page)
-    } else if (!this.config.cart.startsWith('http')) {
+     
+    if(!this.config.cart.startsWith('http')) {
       this.config.cart = await page.$eval(this.config.cart, (el) =>
         el.getAttribute('href')
       )
@@ -396,6 +394,11 @@ class Scrapy {
   }
 
   async handleApplyCoupon() {
+    if (typeof this.config.cart === 'function') {
+      const page = await this.createNewpage()
+      this.config.cart = await this.config.cart(page)
+    }
+
     // 等待加载完店铺信息，防止反复更改折扣码
     await Promise.race([
       this.backgroundPage.waitForFunction(
