@@ -45,7 +45,7 @@ queue.on('completed', async (job) => {
   const { data, id } = job
 
   await redis.lpush(
-    'fatcoupon:message',
+    'fatcoupon:message:' + data.ip,
     JSON.stringify({
       type: 'success',
       message: 'Task Completed',
@@ -71,7 +71,7 @@ queue.on('failed', async (job) => {
 
   if (attemptsMade >= (settings.attempts || 3)) {
     await redis.lpush(
-      'fatcoupon:message',
+      'fatcoupon:message:' + data.ip,
       JSON.stringify({
         type: 'error',
         message: 'Task Error',

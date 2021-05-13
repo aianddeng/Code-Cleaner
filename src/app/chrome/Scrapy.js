@@ -371,8 +371,11 @@ class Scrapy {
         await Helpers.wait(1)
       } catch {}
     }
-     
-    if(!this.config.cart.startsWith('http')) {
+
+    if (
+      typeof this.config.cart === 'string' &&
+      !this.config.cart.startsWith('http')
+    ) {
       this.config.cart = await page.$eval(this.config.cart, (el) =>
         el.getAttribute('href')
       )
