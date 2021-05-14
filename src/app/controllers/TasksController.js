@@ -170,6 +170,7 @@ module.exports = class {
     const job = await queue.getJob(id)
     const state = await job.getState()
     if (state === 'failed') {
+      job.attemptsMade = 0
       await job.retry()
     }
 

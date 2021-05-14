@@ -273,6 +273,7 @@ class Scrapy {
               this.done(new Error('Extension Done'))
             }
           } else {
+            this.job.attemptsMade = 0
             this.runNumber += 1
             if (data.type === 'applyFailed') {
               this.job.data.coupons.find(
@@ -359,15 +360,15 @@ class Scrapy {
       ])
 
       try {
-        await page.click(selector)
-        await Helpers.wait(1)
-      } catch {}
-
-      try {
         await page.evaluate((selector) => {
           const button = document.querySelector(selector)
           button && button.click()
         }, selector)
+        await Helpers.wait(1)
+      } catch {}
+
+      try {
+        await page.click(selector)
         await Helpers.wait(1)
       } catch {}
     }

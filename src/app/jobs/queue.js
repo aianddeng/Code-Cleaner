@@ -65,17 +65,15 @@ queue.on('completed', async (job) => {
 })
 
 queue.on('failed', async (job) => {
-  const { attemptsMade, data, id } = job
+  const { attemptsMade, attempts, data, id } = job
 
-  const [settings] = await Settings.find({}).sort({ _id: -1 }).limit(1)
-
-  if (attemptsMade >= (settings.attempts || 3)) {
+  if (attemptsMade >= attempts) {
     await redis.lpush(
       'fatcoupon:message:' + data.ip,
       JSON.stringify({
         type: 'error',
         message: 'Task Error',
-        description: `Task <${data.storeName}> (id: ${id}) is failed. Retry it now.`,
+        description: `Task <${data.storeName}> (id: ${id}) is failed. Please retry it now.`,
       })
     )
   }
