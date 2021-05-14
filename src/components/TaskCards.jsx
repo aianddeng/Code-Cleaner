@@ -1,8 +1,22 @@
+import { useCallback, useEffect } from 'react'
 import { Card, Button, Popconfirm } from 'antd'
 
 import useTaskActions from '@hook/useTaskActions'
 
 const TaskCards = ({ id, coupons }) => {
+  const handleCopyText = useCallback((text) => {
+    const input = document.createElement('input')
+    input.value = text
+    document.body.appendChild(input)
+    input.select()
+    document.execCommand('copy')
+    document.body.removeChild(input)
+  }, [])
+
+  useEffect(() => {
+    console.log('update')
+  })
+
   const { checkLoading, handleDeactiveCode } = useTaskActions()
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
@@ -22,7 +36,8 @@ const TaskCards = ({ id, coupons }) => {
             el.validStatus === -2
               ? []
               : [
-                  <Button>Manage</Button>,
+                  // <Button>Manage</Button>,
+                  <Button onClick={() => handleCopyText(el.code)}>Copy</Button>,
                   <Popconfirm
                     title="Are you sure to deactive this code?"
                     onConfirm={() => handleDeactiveCode(id, [el.id])}
