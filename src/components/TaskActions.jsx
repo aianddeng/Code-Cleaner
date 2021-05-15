@@ -90,7 +90,7 @@ const TaskActions = ({ data, showManage, size, index, storeId }) => {
         onConfirm={() => handleRemoveTask(data.id, { size, index, storeId })}
       >
         <Button
-          disabled={data.state === 'active'}
+          disabled={data.state === 'active' || data.state === 'completed'}
           danger
           block={true}
           loading={checkLoading(data.id)}

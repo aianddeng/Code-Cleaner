@@ -6,3 +6,19 @@ module.exports = {
   cart: 'cart-mini-cart a',
   useLocalScript: true,
 }
+
+// module.exports = {
+//   storeId: '5e9010a697ae8d00118d9487',
+//   login: {
+//     url: 'https://www.dickssportinggoods.com/MyAccount/AccountSummary',
+//     username: 'deng@fatcoupon.com',
+//     password: 'Az6dJfJa$',
+//     selector: {
+//       username: '#email',
+//       password: '#signinPass',
+//       button: '#btn-login',
+//     },
+//   },
+//   cart: 'https://www.dickssportinggoods.com/DSGPaymentViewCmd',
+//   useLocalScript: true,
+// }

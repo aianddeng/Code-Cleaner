@@ -28,7 +28,7 @@ const Tasks = ({ initialData }) => {
   } = useSWR(['/api/tasks', size, index, storeId], fetcher, {
     initialData,
     revalidateOnMount: true,
-    refreshInterval: 2 * 1000,
+    refreshInterval: 1 * 1000,
   })
 
   useSWR(

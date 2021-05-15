@@ -1,12 +1,7 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 
-@media (prefers-color-scheme: no-preference) {
-  @import 'antd/dist/antd.min';
-}
-@media (prefers-color-scheme: light) {
-  @import 'antd/dist/antd.min';
-}
+@import 'antd/dist/antd.min';
 @media (prefers-color-scheme: dark) {
   @import 'antd/dist/antd.dark.min';
 }

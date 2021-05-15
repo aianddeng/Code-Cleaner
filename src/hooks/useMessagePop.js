@@ -10,13 +10,13 @@ const openNotificationWithIcon = (props) => {
   notification[type]({
     message,
     description,
-    duration: 1 * 10,
+    duration: 6,
   })
 }
 
 const useMessagePop = () => {
   const { data: serverMessage } = useSWR('/api/message', {
-    refreshInterval: 2 * 1000,
+    refreshInterval: 1 * 1000,
   })
 
   const pushLocalMessage = useCallback(async (el) => {

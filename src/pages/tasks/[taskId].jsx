@@ -15,7 +15,7 @@ const TaskManage = ({ initialData }) => {
   const { taskId } = router.query
 
   // 加载任务详情
-  const [refreshInterval, setRefreshInterval] = useState(2000)
+  const [refreshInterval, setRefreshInterval] = useState(1000)
   const { data } = useSWR('/api/tasks/' + taskId, {
     initialData,
     refreshInterval,
@@ -67,7 +67,7 @@ const TaskManage = ({ initialData }) => {
     if (data.state === 'completed' && refreshInterval) {
       setRefreshInterval(0)
     } else if (data.state !== 'completed' && !refreshInterval) {
-      setRefreshInterval(2000)
+      setRefreshInterval(1000)
     }
   }, [data])
 
@@ -85,7 +85,7 @@ const TaskManage = ({ initialData }) => {
           },
           {
             key: 'All',
-            tab: `All(${data.allLength})`,
+            tab: `All (${data.allLength})`,
           },
           {
             key: 'Valid',
