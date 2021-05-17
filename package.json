@@ -9,7 +9,6 @@
     "background": "NODE_ENV=production pm2 start src/server.js --watch"
   },
   "dependencies": {
-    "@tailwindcss/jit": "^0.1.18",
     "antd": "^4.15.0",
     "autoprefixer": "^10.2.5",
     "axios": "^0.21.1",
@@ -20,7 +19,6 @@
     "koa-router": "^10.0.0",
     "koa-static": "^5.0.0",
     "koa2-cors": "^2.0.6",
-    "log4js": "^6.3.0",
     "moment": "^2.29.1",
     "mongoose": "^5.12.2",
     "next": "10.1.2",

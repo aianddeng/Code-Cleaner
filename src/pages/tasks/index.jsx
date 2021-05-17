@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Head from 'next/head'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import useSWR from 'swr'
 import axios from 'axios'
 import moment from 'moment'
@@ -11,34 +11,56 @@ import { Table, Button, Progress } from 'antd'
 import { PlayCircleOutlined, PauseCircleOutlined } from '@ant-design/icons'
 import TaskActions from '@comp/TaskActions'
 
-const fetcher = (url, size, index, storeId) =>
-  axios.get(url, { params: { size, index, storeId } }).then((res) => res.data)
+const fetcher = (url, size, index, storeId, states) =>
+  axios
+    .get(url, { params: { size, index, storeId, states } })
+    .then((res) => res.data)
 
 const Tasks = ({ initialData }) => {
-  const router = useRouter()
-  const { storeId, index: queryIndex, size: querySize } = router.query
-
   const { checkLoading, handleControllerTask } = useTaskActions()
 
   // 任务列表
+  const router = useRouter()
+  const {
+    states: queryStates,
+    storeId,
+    index: queryIndex,
+    size: querySize,
+  } = router.query
+
+  const [states, setStates] = useState(
+    queryStates ? queryStates.split(',') : []
+  )
   const { index, size, setPageSize } = usePageSize(queryIndex, querySize)
 
   const {
     data: { total, datas: taskList, paused },
-  } = useSWR(['/api/tasks', size, index, storeId], fetcher, {
-    initialData,
-    revalidateOnMount: true,
-    refreshInterval: 1 * 1000,
-  })
+  } = useSWR(
+    ['/api/tasks', size, index, storeId, states ? states.join(',') : null],
+    fetcher,
+    {
+      initialData,
+      revalidateOnMount: true,
+      refreshInterval: 1 * 1000,
+    }
+  )
 
   useSWR(
     () =>
-      total > index * size ? ['/api/tasks', size, index + 1, storeId] : null,
+      total > index * size
+        ? [
+            '/api/tasks',
+            size,
+            index + 1,
+            storeId,
+            states ? states.join(',') : null,
+          ]
+        : null,
     fetcher
   )
 
   // 列表筛选
-  const [taskState, setTaskState] = useState([
+  const [taskStates] = useState([
     {
       text: 'Active',
       value: 'active',
@@ -65,19 +87,6 @@ const Tasks = ({ initialData }) => {
     },
   ])
 
-  useEffect(() => {
-    setTaskState(
-      Array.from(new Set(taskList.slice().map((el) => el.state)))
-        .map((state) => ({
-          text: [...state]
-            .map((el, index) => (index ? el : el.toUpperCase()))
-            .join(''),
-          value: state,
-        }))
-        .sort((a, b) => (a < b ? -1 : 1))
-    )
-  }, [taskList])
-
   return (
     <>
       <Head>
@@ -97,7 +106,9 @@ const Tasks = ({ initialData }) => {
                 type="primary"
                 loading={checkLoading('controller')}
                 icon={paused ? <PlayCircleOutlined /> : <PauseCircleOutlined />}
-                onClick={() => handleControllerTask({ size, index, storeId })}
+                onClick={() =>
+                  handleControllerTask({ size, index, storeId, states })
+                }
               >
                 {paused ? 'Resume' : 'Pause'}
               </Button>
@@ -110,9 +121,10 @@ const Tasks = ({ initialData }) => {
           pageSize: Number(size),
           showSizeChanger: true,
           defaultPageSize: size,
-          onChange: (index, size) => {
-            setPageSize({ index, size })
-          },
+        }}
+        onChange={(pagination, filters) => {
+          setPageSize({ index: pagination.current, size: pagination.pageSize })
+          setStates(filters.state)
         }}
       >
         <Table.Column
@@ -129,8 +141,7 @@ const Tasks = ({ initialData }) => {
           key="state"
           title="Task State"
           dataIndex="state"
-          filters={taskState}
-          onFilter={(value, record) => record.state === value}
+          filters={taskStates}
         />
         <Table.Column
           key="failedReason"
@@ -206,6 +217,8 @@ const Tasks = ({ initialData }) => {
                   showManage={true}
                   size={size}
                   index={index}
+                  storeId={storeId}
+                  states={states}
                 />
               ) : (
                 false
@@ -219,10 +232,10 @@ const Tasks = ({ initialData }) => {
 }
 
 export const getServerSideProps = async ({ query }) => {
-  const { storeId, index, size } = query
+  const { size, index, storeId, states } = query
 
   const { data } = await axios.get('/api/tasks', {
-    params: { size, index, storeId },
+    params: { size, index, storeId, states },
   })
 
   return {

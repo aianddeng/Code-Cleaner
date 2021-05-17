@@ -19,22 +19,18 @@ module.exports = class {
     const query = {
       size: 10,
       index: 1,
+      states: null,
       storeId: null,
       ...ctx.request.query,
     }
 
-    const types = [
-      'active',
-      'completed',
-      'delayed',
-      'failed',
-      'paused',
-      'waiting',
-    ]
+    const states = query.states
+      ? query.states.split(',')
+      : ['active', 'completed', 'delayed', 'failed', 'paused', 'waiting']
     const start = (query.index - 1) * query.size
     const end = query.index * query.size
 
-    const jobs = (await queue.getJobs(types))
+    const jobs = (await queue.getJobs(states))
       .sort((a, b) => b.id - a.id)
       .filter((el) => !query.storeId || query.storeId === el.data.storeId)
 

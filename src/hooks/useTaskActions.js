@@ -7,9 +7,8 @@ import axios from 'axios'
 import { message } from 'antd'
 
 const useTaskActions = () => {
-  const { actionKey, checkLoading, pushLoading, popLoading } = useActionLoading(
-    'taskActions'
-  )
+  const { actionKey, checkLoading, pushLoading, popLoading } =
+    useActionLoading('taskActions')
 
   const handleRetryTask = useCallback(async (id, props) => {
     pushLoading(id)
@@ -95,7 +94,13 @@ const useTaskActions = () => {
 
     await axios.post('/api/tasks')
     if (props) {
-      await mutate(['/api/tasks', props.size, props.index, props.storeId])
+      await mutate([
+        '/api/tasks',
+        props.size,
+        props.index,
+        props.storeId,
+        props.states,
+      ])
     }
 
     message.success({
