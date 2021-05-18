@@ -350,27 +350,45 @@ class Scrapy {
     )
 
     const page = await this.createNewpage(this.config.product)
+    await Promise.race(
+      this.config.button
+        .slice()
+        .map((selector) =>
+          page.waitForSelector(selector, {
+            timeout: globalConfig.timeout,
+          })
+        )
+        .concat(Helpers.wait(globalConfig.timeout / 1000 - 1))
+    )
 
     for (const selector of this.config.button) {
-      await Promise.race([
-        page.waitForSelector(selector, {
-          timeout: globalConfig.timeout,
-        }),
-        Helpers.wait(globalConfig.timeout / 1000 - 1),
-      ])
+      if (await page.$(selector)) {
+        const tagName = await page.$eval(selector, (el) => el.tagName)
+        if (tagName === 'SELECT') {
+          try {
+            await page.select(
+              selector,
+              await page.$eval(
+                selector,
+                (el) => el.options[el.options.length - 1].value
+              )
+            )
+          } catch {}
+        } else {
+          try {
+            await page.evaluate((selector) => {
+              const button = document.querySelector(selector)
+              button && button.click()
+            }, selector)
+            await Helpers.wait(1)
+          } catch {}
 
-      try {
-        await page.evaluate((selector) => {
-          const button = document.querySelector(selector)
-          button && button.click()
-        }, selector)
-        await Helpers.wait(1)
-      } catch {}
-
-      try {
-        await page.click(selector)
-        await Helpers.wait(1)
-      } catch {}
+          try {
+            await page.click(selector)
+            await Helpers.wait(1)
+          } catch {}
+        }
+      }
     }
 
     if (
