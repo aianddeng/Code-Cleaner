@@ -5,12 +5,11 @@ import { mutate } from 'swr'
 import axios from 'axios'
 import useActionLoading from '@hook/useActionLoading'
 
-import { Input, Table, Button, message } from 'antd'
+import { Input, Table, Button, message, Dropdown, Menu, Modal } from 'antd'
 
 const Index = ({ initialData }) => {
-  const { actionKey, checkLoading, pushLoading, popLoading } = useActionLoading(
-    'addtotasks'
-  )
+  const { actionKey, checkLoading, pushLoading, popLoading } =
+    useActionLoading('addtotasks')
 
   const [storesList, setStoresList] = useState(initialData)
 
@@ -52,8 +51,39 @@ const Index = ({ initialData }) => {
     popLoading(storeId)
   }, [])
 
+  const [isModal, setIsModal] = useState(false)
+  const [productInfo, setProductInfo] = useState({})
+
+  const handleEditProduct = useCallback(async () => {
+    await axios.put('/api/product', productInfo)
+  }, [productInfo])
+
   return (
     <>
+      <Modal
+        centered
+        title="Enter product link and submit"
+        okText="Submit"
+        visible={isModal}
+        onOk={() => {
+          handleEditProduct()
+          setIsModal(false)
+        }}
+        onCancel={() => {
+          setIsModal(false)
+        }}
+      >
+        <Input
+          placeholder="Product Link"
+          value={productInfo.link}
+          onChange={(e) =>
+            setProductInfo({
+              ...productInfo,
+              link: e.target.value,
+            })
+          }
+        />
+      </Modal>
       <Head>
         <title>Store List - Fatcoupon</title>
       </Head>
@@ -108,14 +138,24 @@ const Index = ({ initialData }) => {
           }}
           render={(value, record) => (
             <div className="space-y-2 flex flex-col md:flex-row md:space-x-2 md:space-y-0">
-              <Button
+              <Dropdown.Button
                 type="primary"
                 disabled={!value}
-                loading={checkLoading(record.id)}
+                // loading={checkLoading(record.id)}
                 onClick={() => handleSubmitTask(record.id, record.name)}
+                overlay={
+                  <Menu
+                    onClick={() => {
+                      setIsModal(true)
+                      setProductInfo({ storeId: record.id })
+                    }}
+                  >
+                    <Menu.Item key="1">Edit Product Link</Menu.Item>
+                  </Menu>
+                }
               >
                 Add To Tasks
-              </Button>
+              </Dropdown.Button>
               <Button>
                 <Link
                   href={{
@@ -123,7 +163,7 @@ const Index = ({ initialData }) => {
                     query: { storeId: record.id },
                   }}
                 >
-                  Check Store Tasks
+                  Check Store
                 </Link>
               </Button>
             </div>

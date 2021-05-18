@@ -1,6 +1,7 @@
 const Router = require('koa-router')
 const TasksController = require('./controllers/TasksController')
 const StoresController = require('./controllers/StoresController')
+const ProductController = require('./controllers/ProductController')
 const CodesController = require('./controllers/CodesController')
 const SettingsController = require('./controllers/SettingsController')
 const MessageController = require('./controllers/MessageController')
@@ -19,6 +20,9 @@ router.delete('/tasks/:id', TasksController.DELETE_ID)
 
 router.get('/stores', StoresController.GET)
 router.get('/stores/:id', StoresController.GET_ID)
+
+router.get('/product', ProductController.GET)
+router.put('/product', ProductController.PUT)
 
 router.delete('/coupons', CodesController.DELETE)
 
