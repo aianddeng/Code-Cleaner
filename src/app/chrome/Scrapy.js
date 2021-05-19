@@ -75,6 +75,7 @@ class Scrapy {
 
   async createNewpage(url = '', selector = '') {
     const page = await this.browser.newPage()
+
     await page.setUserAgent(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36 Edg/89.0.774.68'
     )
@@ -122,19 +123,22 @@ class Scrapy {
           ? Promise.resolve({ state: Notification.permission })
           : originalQuery(parameters)
     })
-    await page.setRequestInterception(true)
-    page.on('request', (req) => {
-      if (
-        ['image', 'media', 'font', 'stylesheet'].includes(req.resourceType())
-      ) {
-        req.respond({
-          status: 200,
-          body: '',
-        })
-      } else {
-        req.continue()
-      }
-    })
+
+    if (!this.config.unRequestInterception) {
+      await page.setRequestInterception(true)
+      page.on('request', (req) => {
+        if (
+          ['image', 'media', 'font', 'stylesheet'].includes(req.resourceType())
+        ) {
+          req.respond({
+            status: 200,
+            body: '',
+          })
+        } else {
+          req.continue()
+        }
+      })
+    }
 
     if (url) {
       await Promise.race([
