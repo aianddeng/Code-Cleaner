@@ -62,7 +62,7 @@ class Scrapy {
       this.browser && this.browser.close()
 
       // 这个判断主要针对开始扫描时手贱关闭浏览器的行为
-      if ((await this.job.getState()) === 'active') {
+      if (!this.job.getState || (await this.job.getState()) === 'active') {
         this.done(new Error('Browser Closed'))
       }
     })

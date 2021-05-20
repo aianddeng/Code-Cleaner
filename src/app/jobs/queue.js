@@ -1,25 +1,11 @@
 const Queue = require('bull')
 const redis = require('../db/redis')
-const run = require('../chrome/index')
-const Settings = require('../models/Settings')
+const cleanCode = require('./cleanCode')
 
 const queue = new Queue('fatcoupon', redis.client)
 const isProduction = process.env.NODE_ENV === 'production'
 
-queue.process('clean-code', isProduction ? 3 : 1, async (job, done) => {
-  const { storeId, coupons } = job.data
-
-  const [settings] = await Settings.find({}).sort({ _id: -1 }).limit(1)
-
-  const unTestCoupon = coupons
-    .filter((el) => {
-      if (!settings || settings.promoType === 'all') return true
-      return el.type === settings.promoType
-    })
-    .filter((el) => !el.validStatus)
-
-  unTestCoupon.length ? run(storeId, unTestCoupon, job, done) : done()
-})
+queue.process('clean-code', isProduction ? 3 : 1, cleanCode)
 
 queue.on('waiting', async (jobId) => {
   const job = await queue.getJob(jobId)
