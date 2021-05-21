@@ -67,7 +67,8 @@ module.exports = class {
 
     const [settings] = await Settings.find({}).sort({ _id: -1 }).limit(1)
 
-    const { storeId, storeName } = ctx.request.body
+    // 手动添加的任务高优先级
+    const { storeId, storeName, priority = 10 } = ctx.request.body
 
     const {
       data: {
@@ -124,6 +125,7 @@ module.exports = class {
       },
       {
         attempts: settings ? settings.attempts : 3,
+        priority,
       }
     )
 

@@ -58,6 +58,14 @@ const Index = ({ initialData }) => {
     await axios.put('/api/product', productInfo)
   }, [productInfo])
 
+  const handleAddMulit = useCallback(async (props) => {
+    const { id: storeId, name: storeName } = props
+    await axios.put('/api/tasks/repeat', {
+      storeId,
+      storeName,
+    })
+  }, [])
+
   return (
     <>
       <Modal
@@ -138,6 +146,13 @@ const Index = ({ initialData }) => {
           }}
           render={(value, record) => (
             <div className="space-y-2 flex flex-col md:flex-row md:space-x-2 md:space-y-0">
+              <Button
+                onClick={() =>
+                  handleAddMulit({ name: record.name, id: record.id })
+                }
+              >
+                <Link href="/">Add Repeat Task</Link>
+              </Button>
               <Dropdown.Button
                 type="primary"
                 disabled={!value}

@@ -15,9 +15,9 @@ router.get('/tasks', TasksController.GET)
 router.put('/tasks', TasksController.PUT)
 router.post('/tasks', TasksController.POST)
 
-router.get('/tasks/multi', RepeatController.GET)
-router.put('/tasks/multi', RepeatController.PUT)
-router.delete('/tasks/multi', RepeatController.DELETE)
+router.get('/tasks/repeat', RepeatController.GET)
+router.put('/tasks/repeat', RepeatController.PUT)
+router.delete('/tasks/repeat', RepeatController.DELETE)
 
 router.get('/tasks/:id', TasksController.GET_ID)
 router.post('/tasks/:id', TasksController.POST_ID)

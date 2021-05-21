@@ -7,6 +7,7 @@ import { Layout, Menu, Breadcrumb, Skeleton, BackTop } from 'antd'
 import {
   SettingOutlined,
   UnorderedListOutlined,
+  MenuUnfoldOutlined,
   AppstoreAddOutlined,
   UpOutlined,
 } from '@ant-design/icons'
@@ -33,6 +34,9 @@ const Wrapper = ({ children }) => {
           </Menu.Item>
           <Menu.Item icon={<UnorderedListOutlined />} key="/tasks">
             <Link href="/tasks">Task List</Link>
+          </Menu.Item>
+          <Menu.Item icon={<MenuUnfoldOutlined />} key="/tasks/repeat">
+            <Link href="/tasks/repeat">Repeat List</Link>
           </Menu.Item>
           <Menu.Item
             icon={<SettingOutlined />}
