@@ -1,16 +1,12 @@
 import { useState, useCallback } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
-import { mutate } from 'swr'
 import axios from 'axios'
-import useActionLoading from '@hook/useActionLoading'
 
-import { Input, Table, Button, message, Dropdown, Menu, Modal } from 'antd'
+import { Input, Table, Button } from 'antd'
+import TaskSubmit from '@comp/TaskSubmit'
 
 const Index = ({ initialData }) => {
-  const { actionKey, checkLoading, pushLoading, popLoading } =
-    useActionLoading('addtotasks')
-
   const [storesList, setStoresList] = useState(initialData)
 
   const handleFilterStore = useCallback(
@@ -28,73 +24,22 @@ const Index = ({ initialData }) => {
     [storesList]
   )
 
-  const handleSubmitTask = useCallback(async (storeId, storeName) => {
-    pushLoading(storeId)
-    message.loading({
-      content: 'Waiting...',
-      duration: 0,
-      key: actionKey.current,
-    })
-
-    const { data } = await axios.put('/api/tasks', {
-      storeId,
-      storeName,
-    })
-    await mutate(['/api/tasks', 10, 1, undefined])
-
-    message.success({
-      content: `Create a new task: ${data.id}`,
-      duration: 6,
-      key: actionKey.current,
-    })
-
-    popLoading(storeId)
-  }, [])
-
   const [isModal, setIsModal] = useState(false)
-  const [productInfo, setProductInfo] = useState({})
-
-  const handleEditProduct = useCallback(async () => {
-    await axios.put('/api/product', productInfo)
-  }, [productInfo])
-
-  const handleAddMulit = useCallback(async (props) => {
-    const { id: storeId, name: storeName } = props
-    await axios.put('/api/tasks/repeat', {
-      storeId,
-      storeName,
-    })
-  }, [])
+  const [taskData, setTaskData] = useState({
+    storeId: null,
+    storeName: null,
+  })
 
   return (
     <>
-      <Modal
-        centered
-        title="Enter product link and submit"
-        okText="Submit"
-        visible={isModal}
-        onOk={() => {
-          handleEditProduct()
-          setIsModal(false)
-        }}
-        onCancel={() => {
-          setIsModal(false)
-        }}
-      >
-        <Input
-          placeholder="Product Link"
-          value={productInfo.link}
-          onChange={(e) =>
-            setProductInfo({
-              ...productInfo,
-              link: e.target.value,
-            })
-          }
-        />
-      </Modal>
       <Head>
         <title>Store List - Fatcoupon</title>
       </Head>
+      <TaskSubmit
+        isModal={isModal}
+        setIsModal={setIsModal}
+        taskData={taskData}
+      />
       <Input.Search
         enterButton
         className="mb-3"
@@ -147,30 +92,18 @@ const Index = ({ initialData }) => {
           render={(value, record) => (
             <div className="space-y-2 flex flex-col md:flex-row md:space-x-2 md:space-y-0">
               <Button
-                onClick={() =>
-                  handleAddMulit({ name: record.name, id: record.id })
-                }
-              >
-                <Link href="/">Add Repeat Task</Link>
-              </Button>
-              <Dropdown.Button
                 type="primary"
                 disabled={!value}
-                // loading={checkLoading(record.id)}
-                onClick={() => handleSubmitTask(record.id, record.name)}
-                overlay={
-                  <Menu
-                    onClick={() => {
-                      setIsModal(true)
-                      setProductInfo({ storeId: record.id })
-                    }}
-                  >
-                    <Menu.Item key="1">Edit Product Link</Menu.Item>
-                  </Menu>
-                }
+                onClick={() => {
+                  setTaskData({
+                    storeId: record.id,
+                    storeName: record.name,
+                  })
+                  setIsModal(true)
+                }}
               >
-                Add To Tasks
-              </Dropdown.Button>
+                Add To Task
+              </Button>
               <Button>
                 <Link
                   href={{
@@ -178,7 +111,7 @@ const Index = ({ initialData }) => {
                     query: { storeId: record.id },
                   }}
                 >
-                  Check Store
+                  Check Store Tasks
                 </Link>
               </Button>
             </div>

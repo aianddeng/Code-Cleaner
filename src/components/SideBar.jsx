@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 import useSWR from 'swr'
 import axios from 'axios'
 
-import { Drawer, Button, Form, Select, Input, Skeleton, Radio } from 'antd'
+import { Drawer, Button, Form, Select, Input, Skeleton } from 'antd'
 
 const { useForm } = Form
 
