@@ -1,7 +1,9 @@
-const repeatQueue = require('../jobs/repeatQueue')
+const axios = require('axios')
+const moment = require('moment')
 const redis = require('../db/redis')
+const repeatQueue = require('../jobs/repeatQueue')
 
-module.exports = class {
+class RepeatController {
   static async GET(ctx) {
     let storeData = JSON.parse(await redis.get('fatcoupon:store'))
 
@@ -22,14 +24,13 @@ module.exports = class {
       .map((el) => ({
         storeName: storeData.find((store) => store.id === el.name).name,
         storeId: el.name,
-        rule:
-          el.cron === '0 0 * * * ?'
-            ? 'Each Hour'
-            : el.cron === '0 0 0 * * ?'
-            ? 'Each Day'
-            : el.cron === '0 0 0 * * MON'
-            ? 'Each Week'
-            : 'Unset',
+        rule: el.cron.endsWith('* * * ?')
+          ? 'Each Hour'
+          : el.cron.endsWith('* * ?')
+          ? 'Each Day'
+          : el.cron.includes('* *')
+          ? 'Each Week'
+          : 'Unset',
         next: el.next,
         key: el.key,
       }))
@@ -42,7 +43,7 @@ module.exports = class {
   }
 
   static async PUT(ctx) {
-    const { storeId, storeName, repeatRule } = ctx.request.body
+    const { storeId, repeatRule, repeatTime } = ctx.request.body
 
     // 同一个店铺只允许添加一个循环任务
     const allRepeatable = await repeatQueue.getRepeatableJobs()
@@ -51,38 +52,40 @@ module.exports = class {
       await repeatQueue.removeRepeatableByKey(hasRepeatable.key)
     }
 
-    let cron = null
+    const currentDate = moment(Date.now())
+    const repeat = {
+      cron: null,
+      every: null,
+    }
     switch (repeatRule) {
       case 'hour':
-        cron = '0 0 * * * ?'
+        repeat.cron =
+          repeatTime === 'current'
+            ? `${currentDate.second()} ${currentDate.minute()} * * * ?`
+            : '0 0 * * * ?'
         break
       case 'day':
-        cron = '0 0 0 * * ?'
+        repeat.cron =
+          repeatTime === 'current'
+            ? `${currentDate.second()} ${currentDate.minute()} ${currentDate.hour()} * * ?`
+            : '0 0 0 * * ?'
         break
       case 'week':
-        cron = '0 0 0 * * MON'
+        repeat.cron =
+          repeatTime === 'current'
+            ? `${currentDate.second()} ${currentDate.minute()} ${currentDate.hour()} * * ${currentDate.weekday()}`
+            : '0 0 0 * * MON'
         break
       default:
-        cron = '0 * * * * ?'
+        repeat.cron = repeatTime === 'current' ? '' : '0 * * * * ?'
         break
     }
 
-    await repeatQueue.add(
-      storeId,
-      {
-        storeId,
-        storeName,
-      },
-      {
-        repeat: {
-          cron,
-        },
-      }
-    )
+    await repeatQueue.add(storeId, ctx.request.body, {
+      repeat,
+    })
 
-    ctx.body = {
-      status: 'success',
-    }
+    await RepeatController.GET(ctx)
   }
 
   static async DELETE(ctx) {
@@ -90,8 +93,8 @@ module.exports = class {
 
     await repeatQueue.removeRepeatableByKey(key)
 
-    ctx.body = {
-      status: 'success',
-    }
+    await RepeatController.GET(ctx)
   }
 }
+
+module.exports = RepeatController

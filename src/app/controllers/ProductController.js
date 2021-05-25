@@ -1,18 +1,32 @@
 const Product = require('../models/Product')
 
-module.exports = class {
+class ProductController {
   static async GET(ctx) {
     const { storeId } = ctx.request.query
-    const [product] = await Product.find({ storeId }).sort({ _id: -1 }).limit(1)
 
-    ctx.body = product
-      ? product
-      : {
-          status: 'failed',
-        }
+    if (storeId) {
+      const storeConfig = {
+        ...require('../chrome/mappings/' + storeId + '.js'),
+      }
+
+      const [product] = await Product.find({ storeId })
+        .sort({ _id: -1 })
+        .limit(1)
+      if (product && product.link) {
+        storeConfig['product'] = product.link
+      }
+
+      ctx.body = {
+        productLink: storeConfig['product'],
+      }
+    } else {
+      ctx.body = {
+        status: 'failed',
+      }
+    }
   }
   static async PUT(ctx) {
-    const { storeId, link } = ctx.request.body
+    const { storeId, productLink: link } = ctx.request.body
 
     if (!link || link.startsWith('http')) {
       await Product.findOneAndUpdate(
@@ -27,3 +41,5 @@ module.exports = class {
     }
   }
 }
+
+module.exports = ProductController

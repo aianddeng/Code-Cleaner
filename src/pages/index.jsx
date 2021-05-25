@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import Head from 'next/head'
 import Link from 'next/link'
 import axios from 'axios'
 
 import { Input, Table, Button } from 'antd'
-import TaskSubmit from '@comp/TaskSubmit'
+const TaskSubmit = dynamic(() => import('@comp/TaskSubmit'))
 
 const Index = ({ initialData }) => {
   const [storesList, setStoresList] = useState(initialData)
@@ -35,11 +36,13 @@ const Index = ({ initialData }) => {
       <Head>
         <title>Store List - Fatcoupon</title>
       </Head>
-      <TaskSubmit
-        isModal={isModal}
-        setIsModal={setIsModal}
-        taskData={taskData}
-      />
+      {taskData.storeId ? (
+        <TaskSubmit
+          isModal={isModal}
+          setIsModal={setIsModal}
+          taskData={taskData}
+        />
+      ) : null}
       <Input.Search
         enterButton
         className="mb-3"

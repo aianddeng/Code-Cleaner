@@ -2,7 +2,9 @@ const Scrapy = require('./Scrapy')
 const Product = require('../models/Product')
 
 const run = async (storeId, coupons, job, done) => {
-  const storeConfig = require('./mappings/' + storeId + '.js')
+  const storeConfig = {
+    ...require('./mappings/' + storeId + '.js'),
+  }
 
   const [product] = await Product.find({ storeId }).sort({ _id: -1 }).limit(1)
   if (product && product.link) {

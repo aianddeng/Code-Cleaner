@@ -14,6 +14,7 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
     useActionLoading('addtotask')
 
   const [showRepeatOptions, setShowRepeatOptions] = useState(false)
+  const [changeProductLink, setChangeProductLink] = useState(false)
 
   const handleSubmitTask = useCallback(async () => {
     const formData = form.getFieldsValue()
@@ -25,8 +26,11 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
       key: actionKey.current,
     })
 
-    if (formData.productLink.startsWith('http')) {
-      await axios.put('/api/product', productInfo)
+    if (
+      (changeProductLink && formData.productLink.startsWith('http')) ||
+      !formData.productLink
+    ) {
+      await axios.put('/api/product', formData)
     }
 
     if (formData.taskType === 'once') {
@@ -40,7 +44,7 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
       })
     } else if (formData.taskType === 'repeat') {
       const { data } = await axios.put('/api/tasks/repeat', formData)
-      await mutate('/api/tasks/repeat')
+      await mutate('/api/tasks/repeat', data, false)
 
       message.success({
         content: `Create a new repeat task: ${formData.storeName}`,
@@ -50,10 +54,28 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
     }
 
     popLoading(formData.storeId)
-  }, [])
+  }, [changeProductLink])
 
   useEffect(() => {
+    setChangeProductLink(false)
+    form.setFieldsValue({
+      productLink: '',
+    })
     form.setFieldsValue(taskData)
+
+    if (taskData && taskData.storeId) {
+      axios
+        .get('/api/product', {
+          params: {
+            storeId: taskData.storeId,
+          },
+        })
+        .then((res) =>
+          form.setFieldsValue({
+            productLink: res.data.productLink,
+          })
+        )
+    }
   }, [taskData])
 
   return (
@@ -82,11 +104,14 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
             storeId: '',
             taskType: 'once',
             repeatRule: 'day',
+            repeatTime: 'current',
             autoDeactive: 'no',
             productLink: '',
           }}
         >
-          <Form.Item lable="Store Name" name="storeName" className="hidden" />
+          <Form.Item lable="Store Name" name="storeName" className="hidden">
+            <Input disabled />
+          </Form.Item>
           <Form.Item label="Store ID" name="storeId" required>
             <Input disabled />
           </Form.Item>
@@ -112,6 +137,15 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
                   </Radio.Button>
                 </Radio.Group>
               </Form.Item>
+              <Form.Item label="Repeat Time" name="repeatTime" required>
+                <Radio.Group>
+                  <Radio.Button value="zero">Zero</Radio.Button>
+                  <Radio.Button value="current">Current</Radio.Button>
+                  <Radio.Button value="more" disabled={true}>
+                    More...
+                  </Radio.Button>
+                </Radio.Group>
+              </Form.Item>
             </>
           ) : null}
           <Form.Item label="Auto Deactive" name="autoDeactive" required>
@@ -123,7 +157,10 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
             </Radio.Group>
           </Form.Item>
           <Form.Item label="Product Link" name="productLink">
-            <Input placeholder="Change Store Global Product Link (Or Use Default)" />
+            <Input
+              placeholder="Submit blank product link to use default"
+              onChange={() => setChangeProductLink(true)}
+            />
           </Form.Item>
         </Form>
       </div>
