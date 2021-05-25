@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Head from 'next/head'
-import Router, { useRouter } from 'next/router'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
 import useSWR from 'swr'
 import axios from 'axios'
 import moment from 'moment'
@@ -102,6 +103,9 @@ const Tasks = ({ initialData }) => {
           <div className="flex">
             <h2>Task List</h2>
             <div className="ml-auto space-x-2">
+              <Button hidden={!Object.keys(router.query).length}>
+                <Link href="/tasks">Show All</Link>
+              </Button>
               <Button
                 type="primary"
                 loading={checkLoading('controller')}
