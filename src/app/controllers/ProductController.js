@@ -1,13 +1,13 @@
 const Product = require('../models/Product')
+const Mappings = require('../helpers/Mappings')
 
 class ProductController {
   static async GET(ctx) {
     const { storeId } = ctx.request.query
 
     if (storeId) {
-      const storeConfig = {
-        ...require('../chrome/mappings/' + storeId + '.js'),
-      }
+      const mappings = await Mappings.loadMappings()
+      const storeConfig = mappings.find((el) => el.storeId === storeId)
 
       const [product] = await Product.find({ storeId })
         .sort({ _id: -1 })

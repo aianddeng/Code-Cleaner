@@ -6,6 +6,7 @@ const ProductController = require('./controllers/ProductController')
 const CodesController = require('./controllers/CodesController')
 const SettingsController = require('./controllers/SettingsController')
 const MessageController = require('./controllers/MessageController')
+const MappingsController = require('./controllers/MappingsController')
 
 const router = new Router({
   prefix: '/api',
@@ -28,6 +29,9 @@ router.get('/stores/:id', StoresController.GET_ID)
 
 router.get('/product', ProductController.GET)
 router.put('/product', ProductController.PUT)
+
+router.get('/mappings', MappingsController.GET)
+router.put('/mappings', MappingsController.PUT)
 
 router.delete('/coupons', CodesController.DELETE)
 
