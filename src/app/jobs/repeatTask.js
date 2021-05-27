@@ -1,11 +1,10 @@
 const axios = require('axios')
 
-module.exports = async ({ data: { storeId, storeName } }) => {
+module.exports = async ({ data }) => {
   console.log('Create a new job from repeat-task.', Date.now())
 
-  const { data } = await axios.put('/api/tasks', {
-    storeId,
-    storeName,
+  await axios.put('/api/tasks', {
+    ...data,
     priority: 1, // 重复任务低优先级
   })
 }

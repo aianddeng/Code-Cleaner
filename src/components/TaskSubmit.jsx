@@ -105,7 +105,7 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
             taskType: 'once',
             repeatRule: 'day',
             repeatTime: 'current',
-            autoDeactive: 'no',
+            autoDeactive: true,
             productLink: '',
           }}
         >
@@ -150,10 +150,8 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
           ) : null}
           <Form.Item label="Auto Deactive" name="autoDeactive" required>
             <Radio.Group>
-              <Radio.Button value="yes" disabled={true}>
-                Yes
-              </Radio.Button>
-              <Radio.Button value="no">No</Radio.Button>
+              <Radio.Button value={true}>Yes</Radio.Button>
+              <Radio.Button value={false}>No</Radio.Button>
             </Radio.Group>
           </Form.Item>
           <Form.Item label="Product Link" name="productLink">
