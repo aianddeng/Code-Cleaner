@@ -103,7 +103,12 @@ const Tasks = ({ initialData }) => {
           <div className="flex">
             <h2>Task List</h2>
             <div className="ml-auto space-x-2">
-              <Button hidden={!Object.keys(router.query).length}>
+              <Button
+                hidden={
+                  !Object.keys(router.query).filter((el) => el !== 'settings')
+                    .length
+                }
+              >
                 <Link href="/tasks">Show All</Link>
               </Button>
               <Button

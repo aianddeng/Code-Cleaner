@@ -6,7 +6,7 @@
     "dev": "NODE_ENV=development nodemon src/server.js",
     "build": "NODE_ENV=production next build",
     "start": "NODE_ENV=production node src/server.js",
-    "background": "NODE_ENV=production pm2 start src/server.js --watch",
+    "server": "NODE_ENV=production next build && pm2 start src/server.js --watch",
     "upload": "node src/app/helpers/upload.js",
     "upload:cdn": "node src/app/helpers/uploadCDN.js"
   },

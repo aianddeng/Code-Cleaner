@@ -279,16 +279,21 @@ class Scrapy {
           } else {
             this.job.attemptsMade = 0
             this.runNumber += 1
-            if (data.type === 'applyFailed') {
-              this.job.data.coupons.find(
-                (el) => el.code.toUpperCase() === currentCoupon.toUpperCase()
-              ).validStatus = -1
-              await this.job.update(this.job.data)
-            } else if (data.type === 'applySuccess') {
-              this.job.data.coupons.find(
-                (el) => el.code.toUpperCase() === currentCoupon.toUpperCase()
-              ).validStatus = 1
-              await this.job.update(this.job.data)
+            const aliveCode = this.job.data.coupons.find(
+              (el) => el.code.toUpperCase() === currentCoupon.toUpperCase()
+            )
+            if (aliveCode) {
+              if (data.type === 'applyFailed') {
+                this.job.data.coupons.find(
+                  (el) => el.code.toUpperCase() === currentCoupon.toUpperCase()
+                ).validStatus = -1
+                await this.job.update(this.job.data)
+              } else if (data.type === 'applySuccess') {
+                this.job.data.coupons.find(
+                  (el) => el.code.toUpperCase() === currentCoupon.toUpperCase()
+                ).validStatus = 1
+                await this.job.update(this.job.data)
+              }
             }
           }
         }
