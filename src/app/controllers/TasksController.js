@@ -68,7 +68,13 @@ module.exports = class {
     const [settings] = await Settings.find({}).sort({ _id: -1 }).limit(1)
 
     // 手动添加的任务高优先级
-    const { storeId, storeName, autoDeactive, priority = 10 } = ctx.request.body
+    const {
+      storeId,
+      storeName,
+      autoDeactive,
+      promoType,
+      priority = 10,
+    } = ctx.request.body
 
     const {
       data: {
@@ -101,8 +107,14 @@ module.exports = class {
           : { ...el, validStatus: -1 }
       )
       .filter((el) => {
-        if (settings && settings.promoType !== 'all') {
-          return el.type === settings.promoType
+        if (promoType) {
+          if (promoType !== 'all') {
+            return el.type === promoType
+          }
+        } else if (settings) {
+          if (settings.promoType !== 'all') {
+            return el.type === settings.promoType
+          }
         }
         return true
       })
@@ -122,7 +134,11 @@ module.exports = class {
         storeId,
         storeName,
         autoDeactive,
-        promotype: settings ? settings.promoType : 'all',
+        promotype: promoType
+          ? promoType
+          : settings
+          ? settings.promoType
+          : 'all',
       },
       {
         attempts: settings ? settings.attempts : 3,

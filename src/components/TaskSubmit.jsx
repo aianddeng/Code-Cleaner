@@ -58,24 +58,7 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
 
   useEffect(() => {
     setChangeProductLink(false)
-    form.setFieldsValue({
-      productLink: '',
-    })
     form.setFieldsValue(taskData)
-
-    if (taskData && taskData.storeId) {
-      axios
-        .get('/api/product', {
-          params: {
-            storeId: taskData.storeId,
-          },
-        })
-        .then((res) =>
-          form.setFieldsValue({
-            productLink: res.data.productLink,
-          })
-        )
-    }
   }, [taskData])
 
   return (
@@ -93,7 +76,7 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
         setIsModal(false)
       }}
     >
-      <div>
+      <div className="max-h-[70vh] overflow-scroll">
         <h2 className="mb-6 font-normal">
           Store Name: <span className="font-bold">{taskData.storeName}</span>
         </h2>
@@ -105,6 +88,7 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
             taskType: 'once',
             repeatRule: 'day',
             repeatTime: 'current',
+            promoType: '',
             autoDeactive: false,
             productLink: '',
           }}
@@ -152,6 +136,13 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
             <Radio.Group>
               <Radio.Button value={true}>Yes</Radio.Button>
               <Radio.Button value={false}>No</Radio.Button>
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item label="Promo Type" name="promoType">
+            <Radio.Group>
+              <Radio.Button value="all">All</Radio.Button>
+              <Radio.Button value="public">Public</Radio.Button>
+              <Radio.Button value="exclusive">Exclusive</Radio.Button>
             </Radio.Group>
           </Form.Item>
           <Form.Item label="Product Link" name="productLink">

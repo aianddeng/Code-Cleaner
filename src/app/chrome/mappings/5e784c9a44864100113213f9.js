@@ -7,8 +7,6 @@ module.exports = {
     '.accessories .btn + a.modal-proceed',
   ],
   cart: (page, config) => {
-    console.log(config)
-    console.log(config.product)
     return config.product.includes('deals.dell.com')
       ? 'https://www.dell.com/en-us/buy'
       : 'https://www.dell.com/en-us/buy?ref=homecart'

@@ -29,6 +29,7 @@ const Index = ({ initialData }) => {
   const [taskData, setTaskData] = useState({
     storeId: null,
     storeName: null,
+    productLink: null,
   })
 
   return (
@@ -101,6 +102,7 @@ const Index = ({ initialData }) => {
                   setTaskData({
                     storeId: record.id,
                     storeName: record.name,
+                    productLink: record.product,
                   })
                   setIsModal(true)
                 }}
