@@ -1,11 +1,13 @@
+const fs = require('fs').promises
+const path = require('path')
 const axios = require('axios')
 const redis = require('../db/redis')
-const Mappings = require('../helpers/Mappings')
 
 module.exports = class {
   static async GET(ctx) {
-    const mappings = await Mappings.loadMappings()
-    const mappingsId = mappings.map((el) => el.storeId)
+    const mappingsId = (
+      await fs.readdir(path.join(__dirname, '../chrome/mappings'))
+    ).map((el) => el.replace(/\.js$/, ''))
 
     let storeData = JSON.parse(await redis.get('fatcoupon:store'))
 

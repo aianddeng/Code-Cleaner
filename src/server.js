@@ -28,6 +28,8 @@ app.prepare().then(() => {
                 './app/chrome/mappings',
                 file.name
               )
+
+              delete require.cache[file.path]
             } else if (name === 'connectors') {
               file.path = path.join(
                 __dirname,

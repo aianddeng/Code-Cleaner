@@ -427,7 +427,7 @@ class Scrapy {
   async handleApplyCoupon() {
     if (typeof this.config.cart === 'function') {
       const page = await this.createNewpage()
-      this.config.cart = await this.config.cart(page)
+      this.config.cart = await this.config.cart(page, this.config)
     }
 
     // 等待加载完店铺信息，防止反复更改折扣码
