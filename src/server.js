@@ -2,8 +2,9 @@ require('./app/db/mongodb')
 require('./app/db/redis')
 require('./app/jobs/queue')
 
+const path = require('path')
 const Koa = require('koa')
-const bodyParser = require('koa-bodyparser')
+const koaBody = require('koa-body')
 const cors = require('koa2-cors')
 const router = require('./app/router')
 
@@ -14,7 +15,30 @@ const handle = app.getRequestHandler()
 app.prepare().then(() => {
   new Koa()
     .use(cors())
-    .use(bodyParser())
+    .use(
+      koaBody({
+        multipart: true,
+        formidable: {
+          uploadDir: path.join(__dirname, './app/upload'),
+          keepExtensions: true,
+          onFileBegin: (name, file) => {
+            if (name === 'mappings') {
+              file.path = path.join(
+                __dirname,
+                './app/chrome/mappings',
+                file.name
+              )
+            } else if (name === 'connectors') {
+              file.path = path.join(
+                __dirname,
+                './app/chrome/dist/stores',
+                file.name
+              )
+            }
+          },
+        },
+      })
+    )
     .use(router.routes())
     .use(router.allowedMethods())
     .use(async (ctx) => {

@@ -10,6 +10,7 @@ import {
   MenuUnfoldOutlined,
   AppstoreAddOutlined,
   UpOutlined,
+  CloudUploadOutlined,
 } from '@ant-design/icons'
 import SideBar from '@comp/SideBar'
 
@@ -37,6 +38,9 @@ const Wrapper = ({ children }) => {
           </Menu.Item>
           <Menu.Item icon={<MenuUnfoldOutlined />} key="/tasks/repeat">
             <Link href="/tasks/repeat">Repeat List</Link>
+          </Menu.Item>
+          <Menu.Item icon={<CloudUploadOutlined />} key="/upload">
+            <Link href="/upload">Upload Scripts</Link>
           </Menu.Item>
           <Menu.Item
             icon={<SettingOutlined />}
