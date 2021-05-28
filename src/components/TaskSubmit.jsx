@@ -105,7 +105,7 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
             taskType: 'once',
             repeatRule: 'day',
             repeatTime: 'current',
-            autoDeactive: true,
+            autoDeactive: false,
             productLink: '',
           }}
         >
