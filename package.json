@@ -6,9 +6,7 @@
     "dev": "NODE_ENV=development nodemon src/server.js",
     "build": "NODE_ENV=production next build",
     "start": "NODE_ENV=production node src/server.js",
-    "server": "NODE_ENV=production next build && pm2 start src/server.js --watch",
-    "upload": "node src/app/helpers/upload.js",
-    "upload:cdn": "node src/app/helpers/uploadCDN.js"
+    "server": "NODE_ENV=production yarn install && next build && pm2 stop all && pm2 start src/server.js --watch"
   },
   "dependencies": {
     "antd": "^4.15.0",
@@ -18,7 +16,6 @@
     "ioredis": "^4.26.0",
     "koa": "^2.13.1",
     "koa-body": "^4.2.0",
-    "koa-bodyparser": "^4.3.0",
     "koa-router": "^10.0.0",
     "koa-static": "^5.0.0",
     "koa2-cors": "^2.0.6",
