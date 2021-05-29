@@ -17,6 +17,7 @@ app.prepare().then(() => {
     .use(cors())
     .use(
       koaBody({
+        strict: false,
         multipart: true,
         formidable: {
           uploadDir: path.join(__dirname, './app/upload'),
