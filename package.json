@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_ENV=development nodemon src/server.js",
-    "build": "NODE_ENV=production next build",
+    "dev": "TAILWIND_MODE=watch NODE_ENV=development nodemon src/server.js",
+    "build": "TAILWIND_MODE=build NODE_ENV=production next build",
     "start": "NODE_ENV=production node src/server.js",
-    "server": "NODE_ENV=production yarn install && next build && pm2 stop all && pm2 start src/server.js"
+    "server": "yarn install && yarn build && pm2 stop all && pm2 start src/server.js"
   },
   "dependencies": {
     "antd": "^4.15.0",
