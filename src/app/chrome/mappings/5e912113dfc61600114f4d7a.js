@@ -4,4 +4,5 @@ module.exports = {
     'https://www.levi.com/US/en_US/accessories/men/tactility-web-belt/p/380230020',
   button: ['.size-list-tile-button:not(.selected)', '#addToCartButton'],
   cart: 'https://www.levi.com/US/en_US/cart',
+  useLocalScript: true,
 }
