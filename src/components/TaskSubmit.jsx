@@ -76,7 +76,7 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
         setIsModal(false)
       }}
     >
-      <div className="max-h-[70vh] overflow-scroll">
+      <div className="max-h-[70vh] overflow-y-scroll">
         <h2 className="mb-6 font-normal">
           Store Name: <span className="font-bold">{taskData.storeName}</span>
         </h2>

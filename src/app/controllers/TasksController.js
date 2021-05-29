@@ -3,17 +3,6 @@ const queue = require('../jobs/queue')
 const axios = require('axios')
 let paused = false
 
-const getIP = (req) => {
-  const ip =
-    req.headers['x-forwarded-for'] ||
-    req.ip ||
-    req.connection.remoteAddress ||
-    req.socket.remoteAddress ||
-    req.connection.socket.remoteAddress
-
-  return ip ? ip.replace('::ffff:', '') : ''
-}
-
 module.exports = class {
   static async GET(ctx) {
     const query = {
@@ -63,8 +52,6 @@ module.exports = class {
   }
 
   static async PUT(ctx) {
-    const ip = getIP(ctx.request)
-
     const [settings] = await Settings.find({}).sort({ _id: -1 }).limit(1)
 
     // 手动添加的任务高优先级
@@ -129,7 +116,7 @@ module.exports = class {
     const job = await queue.add(
       'clean-code',
       {
-        ip,
+        ip: ctx.request.formatIP,
         coupons,
         storeId,
         storeName,

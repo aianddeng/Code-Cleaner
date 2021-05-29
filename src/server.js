@@ -13,8 +13,21 @@ const app = next({ dev: process.env.NODE_ENV !== 'production' })
 const handle = app.getRequestHandler()
 
 app.prepare().then(() => {
-  new Koa()
+  const server = new Koa()
+  server.proxy = true
+  server
     .use(cors())
+    .use(async (ctx, next) => {
+      const ip =
+        ctx.request.headers['x-forwarded-for'] ||
+        ctx.request.ip ||
+        ctx.request.connection.remoteAddress ||
+        ctx.request.socket.remoteAddress ||
+        ctx.request.connection.socket.remoteAddress
+
+      ctx.request.formatIP = ip ? ip.replace('::ffff:', '') : ''
+      await next()
+    })
     .use(
       koaBody({
         strict: false,
