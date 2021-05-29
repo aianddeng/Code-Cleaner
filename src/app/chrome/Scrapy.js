@@ -377,9 +377,11 @@ class Scrapy {
           try {
             await page.select(
               selector,
-              await page.$eval(
-                selector,
-                (el) => el.options[el.options.length - 1].value
+              await page.$eval(selector, (el) =>
+                [...el.options]
+                  .map((el) => !el.disabled && el.value)
+                  .filter(Boolean)
+                  .pop()
               )
             )
           } catch {}
@@ -389,14 +391,13 @@ class Scrapy {
               const button = document.querySelector(selector)
               button && button.click()
             }, selector)
-            await Helpers.wait(1)
           } catch {}
 
           try {
             await page.click(selector)
-            await Helpers.wait(1)
           } catch {}
         }
+        await Helpers.wait(1)
       }
     }
 
