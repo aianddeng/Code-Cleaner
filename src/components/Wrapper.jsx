@@ -52,9 +52,36 @@ const Wrapper = ({ children }) => {
       </Header>
       <Content className="mt-16 px-2 md:px-12">
         <Breadcrumb className="my-3">
-          <Breadcrumb.Item>FatCoupon</Breadcrumb.Item>
-          <Breadcrumb.Item>Clean Invalid Code</Breadcrumb.Item>
-          <Breadcrumb.Item>App</Breadcrumb.Item>
+          <Breadcrumb.Item>FatCoupon Cleaner</Breadcrumb.Item>
+          <Breadcrumb.Item>
+            <Link href="/">Store</Link>
+          </Breadcrumb.Item>
+          {router.asPath
+            .split('?')
+            .shift()
+            .split('/')
+            .filter(Boolean)
+            .map((el, index) => (
+              <Breadcrumb.Item key={el}>
+                <Link
+                  href={
+                    '/' +
+                    router.asPath
+                      .split('?')
+                      .shift()
+                      .split('/')
+                      .filter(Boolean)
+                      .slice(0, index + 1)
+                      .join('/')
+                  }
+                >
+                  {el
+                    .split('')
+                    .map((elem, index) => (index ? elem : elem.toUpperCase()))
+                    .join('')}
+                </Link>
+              </Breadcrumb.Item>
+            ))}
         </Breadcrumb>
         <div className="bg-white dark:bg-[#1f1f1f] p-2 md:p-6">
           <Skeleton loading={loading} active />
