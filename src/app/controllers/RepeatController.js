@@ -88,7 +88,7 @@ class RepeatController {
     await RepeatController.GET(ctx)
   }
 
-  static async DELETE(ctx) {
+  static async POST(ctx) {
     const { key } = ctx.request.body
 
     await repeatQueue.removeRepeatableByKey(key)

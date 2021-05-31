@@ -18,7 +18,7 @@ router.post('/tasks', TasksController.POST)
 
 router.get('/tasks/repeat', RepeatController.GET)
 router.put('/tasks/repeat', RepeatController.PUT)
-router.delete('/tasks/repeat', RepeatController.DELETE)
+router.post('/tasks/repeat', RepeatController.POST)
 
 router.get('/tasks/:id', TasksController.GET_ID)
 router.post('/tasks/:id', TasksController.POST_ID)
@@ -32,7 +32,7 @@ router.put('/product', ProductController.PUT)
 
 router.post('/upload', UploadController.POST)
 
-router.delete('/coupons', CodesController.DELETE)
+router.post('/coupons/deactivate', CodesController.POST)
 
 router.get('/settings', SettingsController.GET)
 router.post('/settings', SettingsController.POST)

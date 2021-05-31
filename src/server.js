@@ -1,6 +1,5 @@
 require('./app/db/mongodb')
 require('./app/db/redis')
-require('./app/jobs/queue')
 
 const path = require('path')
 const Koa = require('koa')
@@ -30,7 +29,6 @@ app.prepare().then(() => {
     })
     .use(
       koaBody({
-        strict: false,
         multipart: true,
         formidable: {
           uploadDir: path.join(__dirname, './app/upload'),

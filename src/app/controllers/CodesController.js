@@ -2,7 +2,7 @@ const axios = require('axios')
 const queue = require('../jobs/queue')
 
 module.exports = class {
-  static async DELETE(ctx) {
+  static async POST(ctx) {
     const { taskId, coupons } = ctx.request.body
 
     if (coupons && coupons.length) {

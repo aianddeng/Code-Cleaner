@@ -68,11 +68,9 @@ const useTaskActions = () => {
       key: actionKey.current,
     })
 
-    await axios.delete('/api/coupons', {
-      data: {
-        taskId: id,
-        coupons: couponIds,
-      },
+    await axios.post('/api/coupons/deactivate', {
+      taskId: id,
+      coupons: couponIds,
     })
     await mutate('/api/tasks/' + id)
 

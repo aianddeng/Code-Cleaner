@@ -17,12 +17,11 @@ import {
 } from 'antd'
 import { ClockCircleOutlined } from '@ant-design/icons'
 
-const RepeatSection = ({ initialData }) => {
+const RepeatSection = () => {
   const { actionKey, checkLoading, pushLoading, popLoading } =
     useActionLoading('removeRepeatTask')
 
   const { data, mutate } = useSWR('/api/tasks/repeat', {
-    initialData,
     refreshInterval: 5 * 1000,
   })
 
@@ -34,10 +33,8 @@ const RepeatSection = ({ initialData }) => {
       key: actionKey.current,
     })
 
-    const { data } = await axios.delete('/api/tasks/repeat', {
-      data: {
-        key,
-      },
+    const { data } = await axios.post('/api/tasks/repeat', {
+      key,
     })
     await mutate(data, false)
 
@@ -56,84 +53,81 @@ const RepeatSection = ({ initialData }) => {
       </Head>
       <div>
         <h1>Repeat Task List</h1>
-        {data.datas.length ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2">
-            {data.datas.slice().map((el, index) => (
-              <Card
-                type="inner"
-                title={el.storeName}
-                key={el.storeId}
-                actions={[
-                  <Button>
-                    <Link
-                      href={{
-                        pathname: '/tasks',
-                        query: { storeId: el.storeId },
-                      }}
+        {data ? (
+          data.datas.length ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2">
+              {data.datas.slice().map((el, index) => (
+                <Card
+                  type="inner"
+                  title={el.storeName}
+                  key={el.storeId}
+                  actions={[
+                    <Button>
+                      <Link
+                        href={{
+                          pathname: '/tasks',
+                          query: { storeId: el.storeId },
+                        }}
+                      >
+                        Check Store Tasks
+                      </Link>
+                    </Button>,
+                    <Popconfirm
+                      okText="Yes"
+                      cancelText="No"
+                      title="Are you sure to delete this repeat task?"
+                      onConfirm={() =>
+                        handleRemoveRepeatTask(el.key, el.storeName)
+                      }
                     >
-                      Check Store Tasks
-                    </Link>
-                  </Button>,
-                  <Popconfirm
-                    okText="Yes"
-                    cancelText="No"
-                    title="Are you sure to delete this repeat task?"
-                    onConfirm={() =>
-                      handleRemoveRepeatTask(el.key, el.storeName)
-                    }
-                  >
-                    <Button danger loading={checkLoading(el.key)}>
-                      Remove
-                    </Button>
-                  </Popconfirm>,
-                ]}
-                extra={
-                  <Badge
-                    status={!index ? 'processing' : 'default'}
-                    text={el.rule}
-                  />
-                }
-              >
-                {!index ? (
-                  <Statistic.Countdown
-                    title="Next"
-                    value={el.next}
-                    format="HH:mm:ss"
-                    valueStyle={{
-                      textAlign: 'center',
-                    }}
-                  />
-                ) : (
-                  <Statistic
-                    prefix={<ClockCircleOutlined />}
-                    suffix="..."
-                    title="Waiting"
-                    value={moment.duration(el.next - Date.now()).humanize()}
-                  />
-                )}
-              </Card>
-            ))}
-          </div>
+                      <Button danger loading={checkLoading(el.key)}>
+                        Remove
+                      </Button>
+                    </Popconfirm>,
+                  ]}
+                  extra={
+                    <Badge
+                      status={!index ? 'processing' : 'default'}
+                      text={el.rule}
+                    />
+                  }
+                >
+                  {!index ? (
+                    <Statistic.Countdown
+                      title="Next"
+                      value={el.next}
+                      format="HH:mm:ss"
+                      valueStyle={{
+                        textAlign: 'center',
+                      }}
+                    />
+                  ) : (
+                    <Statistic
+                      prefix={<ClockCircleOutlined />}
+                      suffix="..."
+                      title="Waiting"
+                      value={moment.duration(el.next - Date.now()).humanize()}
+                    />
+                  )}
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE}>
+              <Button type="link">
+                <Link href="/">Create Now</Link>
+              </Button>
+            </Empty>
+          )
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE}>
-            <Button type="link">
-              <Link href="/">Create Now</Link>
-            </Button>
-          </Empty>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2">
+            <Card type="inner" loading></Card>
+            <Card type="inner" loading></Card>
+          </div>
         )}
       </div>
     </>
   )
-}
-
-export const getServerSideProps = async () => {
-  const { data } = await axios.get('/api/tasks/repeat')
-
-  return {
-    props: {
-      initialData: data,
-    },
-  }
 }
 
 export default RepeatSection
