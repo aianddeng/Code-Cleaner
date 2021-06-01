@@ -6,8 +6,5 @@ module.exports = {
   headless: false,
   timeout: 2 * 60 * 1000,
   extensionPath: path.join(__dirname, '../chrome', 'dist'),
-  mongoPath:
-    process.env.NODE_ENV === 'production'
-      ? 'mongodb://chase:372100@localhost:29991/product_code_task?authSource=admin'
-      : 'mongodb://localhost:27017/product_code_task',
+  mongoPath: 'mongodb://localhost:27017/fatcoupon_cleaner',
 }
