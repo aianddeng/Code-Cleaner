@@ -59,7 +59,9 @@ app.prepare().then(() => {
       await handle(ctx.req, ctx.res)
       ctx.respond = false
     })
-    .listen(80, () => {
-      console.log('ready - started server on 0.0.0.0, url: http://localhost')
+    .listen(3000, () => {
+      console.log(
+        'ready - started server on 0.0.0.0:3000, url: http://localhost:3000'
+      )
     })
 })
