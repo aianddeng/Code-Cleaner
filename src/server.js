@@ -1,6 +1,10 @@
 require('./app/db/mongodb')
 require('./app/db/redis')
 
+const globalConfig = require('./config')
+const axios = require('axios')
+axios.defaults.baseURL = `http://127.0.0.1:${globalConfig.port}`
+
 const path = require('path')
 const Koa = require('koa')
 const koaBody = require('koa-body')
@@ -59,9 +63,9 @@ app.prepare().then(() => {
       await handle(ctx.req, ctx.res)
       ctx.respond = false
     })
-    .listen(3000, () => {
+    .listen(globalConfig.port, () => {
       console.log(
-        'ready - started server on 0.0.0.0:3000, url: http://localhost:3000'
+        `ready - started server on 0.0.0.0:${globalConfig.port}, url: http://localhost:${globalConfig.port}`
       )
     })
 })

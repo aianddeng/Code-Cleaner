@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer')
-const globalConfig = require('../config/config.local')
+const globalConfig = require('../../config')
 const Helpers = require('../helpers/index')
 
 class Scrapy {

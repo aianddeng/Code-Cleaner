@@ -7,7 +7,7 @@ const isProduction = process.env.NODE_ENV === 'production'
 
 queue.process('clean-code', isProduction ? 3 : 1, cleanCode)
 
-queue.once('waiting', async (jobId) => {
+queue.on('waiting', async (jobId) => {
   const job = await queue.getJob(jobId)
   const { data, id } = job
 
@@ -27,7 +27,7 @@ queue.on('active', async (job) => {
   console.log(`Task <${data.storeName}> (id: ${id}) starting`)
 })
 
-queue.once('completed', async (job) => {
+queue.on('completed', async (job) => {
   const {
     data: { ip, storeName, autoDeactive },
     id,
@@ -130,7 +130,7 @@ queue.on('failed', async (job) => {
   console.log(`Task <${data.storeName}> (id: ${id}) failed`)
 })
 
-queue.once('removed', async (job) => {
+queue.on('removed', async (job) => {
   const { data, id } = job
 
   console.log(`Task <${data.storeName}> (id: ${id}) removed`)
