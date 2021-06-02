@@ -3,6 +3,6 @@ module.exports = {
   product:
     'https://www.coachoutlet.com/products/graham-pack-in-signature-canvas/C2932.html?dwvar_color=QBMI5',
   button: 'button.add-to-cart',
-  cart: 'https://www.coachoutlet.com/home?launchCartDrawer=true',
+  cart: 'https://www.coachoutlet.com/cart',
   useLocalScript: true,
 }

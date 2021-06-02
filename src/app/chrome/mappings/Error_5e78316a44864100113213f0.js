@@ -1,4 +1,4 @@
-const globalConfig = require('../../config/config.local')
+const globalConfig = require('../../../config')
 
 module.exports = {
   storeId: '5e78316a44864100113213f0',
