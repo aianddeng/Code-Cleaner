@@ -109,7 +109,9 @@ const Tasks = ({ initialData }) => {
                     .length
                 }
               >
-                <Link href="/tasks">Show All</Link>
+                <Link href="/tasks">
+                  <a>Show All</a>
+                </Link>
               </Button>
               <Button
                 type="primary"

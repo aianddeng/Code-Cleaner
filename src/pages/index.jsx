@@ -116,7 +116,7 @@ const Index = ({ initialData }) => {
                     query: { storeId: record.id },
                   }}
                 >
-                  Check Store Tasks
+                  <a>Check Store Tasks</a>
                 </Link>
               </Button>
             </div>

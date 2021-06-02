@@ -69,7 +69,7 @@ const RepeatSection = () => {
                           query: { storeId: el.storeId },
                         }}
                       >
-                        Check Store Tasks
+                        <a>Check Store Tasks</a>
                       </Link>
                     </Button>,
                     <Popconfirm
@@ -115,7 +115,9 @@ const RepeatSection = () => {
           ) : (
             <Empty image={Empty.PRESENTED_IMAGE_SIMPLE}>
               <Button type="link">
-                <Link href="/">Create Now</Link>
+                <Link href="/">
+                  <a>Create Now</a>
+                </Link>
               </Button>
             </Empty>
           )

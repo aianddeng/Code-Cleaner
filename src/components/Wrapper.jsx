@@ -31,16 +31,24 @@ const Wrapper = ({ children }) => {
           selectedKeys={[router.route]}
         >
           <Menu.Item icon={<AppstoreAddOutlined />} key="/">
-            <Link href="/">Store List</Link>
+            <Link href="/">
+              <a>Store List</a>
+            </Link>
           </Menu.Item>
           <Menu.Item icon={<UnorderedListOutlined />} key="/tasks">
-            <Link href="/tasks">Task List</Link>
+            <Link href="/tasks">
+              <a>Task List</a>
+            </Link>
           </Menu.Item>
           <Menu.Item icon={<MenuUnfoldOutlined />} key="/tasks/repeat">
-            <Link href="/tasks/repeat">Repeat List</Link>
+            <Link href="/tasks/repeat">
+              <a>Repeat List</a>
+            </Link>
           </Menu.Item>
           <Menu.Item icon={<CloudUploadOutlined />} key="/upload">
-            <Link href="/upload">Upload Scripts</Link>
+            <Link href="/upload">
+              <a>Upload Scripts</a>
+            </Link>
           </Menu.Item>
           <Menu.Item
             icon={<SettingOutlined />}
@@ -54,7 +62,9 @@ const Wrapper = ({ children }) => {
         <Breadcrumb className="my-3">
           <Breadcrumb.Item>FatCoupon Cleaner</Breadcrumb.Item>
           <Breadcrumb.Item>
-            <Link href="/">Store</Link>
+            <Link href="/">
+              <a>Store</a>
+            </Link>
           </Breadcrumb.Item>
           {router.asPath
             .split('?')
@@ -75,10 +85,12 @@ const Wrapper = ({ children }) => {
                       .join('/')
                   }
                 >
-                  {el
-                    .split('')
-                    .map((elem, index) => (index ? elem : elem.toUpperCase()))
-                    .join('')}
+                  <a>
+                    {el
+                      .split('')
+                      .map((elem, index) => (index ? elem : elem.toUpperCase()))
+                      .join('')}
+                  </a>
                 </Link>
               </Breadcrumb.Item>
             ))}

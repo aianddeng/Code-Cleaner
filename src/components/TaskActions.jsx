@@ -26,7 +26,16 @@ const TaskActions = ({ data, showManage, size, index, storeId, states }) => {
     <>
       {showManage ? (
         <Button type="primary" className="flex-auto">
-          <Link href={'/tasks/' + data.id}>Manage</Link>
+          <Link
+            href={{
+              pathname: '/tasks/[slug]',
+              query: {
+                slug: data.id,
+              },
+            }}
+          >
+            <a>Manage</a>
+          </Link>
         </Button>
       ) : (
         <>

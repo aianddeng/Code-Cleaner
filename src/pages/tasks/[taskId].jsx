@@ -159,7 +159,9 @@ const TaskManage = ({ initialData }) => {
             title="Ops, not found any coupons in this tab!"
             extra={
               <Link href="/tasks">
-                <Button type="primary">Back</Button>
+                <Button type="primary">
+                  <a>Back</a>
+                </Button>
               </Link>
             }
           />
