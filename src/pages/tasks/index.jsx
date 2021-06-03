@@ -1,93 +1,60 @@
-import { useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
 import useSWR from 'swr'
 import axios from 'axios'
 import moment from 'moment'
-import usePageSize from '@hook/usePageSize'
+import useTaskQuery from '@hook/useTaskQuery'
 import useTaskActions from '@hook/useTaskActions'
 
 import { Table, Button, Progress } from 'antd'
 import { PlayCircleOutlined, PauseCircleOutlined } from '@ant-design/icons'
 import TaskActions from '@comp/TaskActions'
 
-const fetcher = (url, size, index, storeId, states) =>
-  axios
-    .get(url, { params: { size, index, storeId, states } })
-    .then((res) => res.data)
+const defineStates = [
+  {
+    text: 'Active',
+    value: 'active',
+  },
+  {
+    text: 'Completed',
+    value: 'completed',
+  },
+  {
+    text: 'Delayed',
+    value: 'delayed',
+  },
+  {
+    text: 'Failed',
+    value: 'failed',
+  },
+  {
+    text: 'Paused',
+    value: 'paused',
+  },
+  {
+    text: 'Waiting',
+    value: 'waiting',
+  },
+]
+
+const fetcher = (url, query) =>
+  axios.get(url, { params: query }).then((res) => res.data)
 
 const Tasks = ({ initialData }) => {
   const { checkLoading, handleControllerTask } = useTaskActions()
 
-  // 任务列表
-  const router = useRouter()
-  const {
-    states: queryStates,
-    storeId,
-    index: queryIndex,
-    size: querySize,
-  } = router.query
-
-  const [states, setStates] = useState(
-    queryStates ? queryStates.split(',') : []
-  )
-  const { index, size, setPageSize } = usePageSize(queryIndex, querySize)
+  const [query, dispatchQuery] = useTaskQuery()
+  const { size, page, storeId, states } = query
 
   const {
-    data: { total, datas: taskList, paused },
-  } = useSWR(
-    ['/api/tasks', size, index, storeId, states ? states.join(',') : null],
-    fetcher,
-    {
-      initialData,
-      revalidateOnMount: true,
-      refreshInterval: 1 * 1000,
-    }
-  )
-
-  useSWR(
-    () =>
-      total > index * size
-        ? [
-            '/api/tasks',
-            size,
-            index + 1,
-            storeId,
-            states ? states.join(',') : null,
-          ]
-        : null,
-    fetcher
-  )
+    data: { total, datas, paused },
+  } = useSWR(['/api/tasks', query], fetcher, {
+    initialData,
+    revalidateOnMount: true,
+    refreshInterval: 1 * 1000,
+  })
 
   // 列表筛选
-  const [taskStates] = useState([
-    {
-      text: 'Active',
-      value: 'active',
-    },
-    {
-      text: 'Completed',
-      value: 'completed',
-    },
-    {
-      text: 'Delayed',
-      value: 'delayed',
-    },
-    {
-      text: 'Failed',
-      value: 'failed',
-    },
-    {
-      text: 'Paused',
-      value: 'paused',
-    },
-    {
-      text: 'Waiting',
-      value: 'waiting',
-    },
-  ])
-
   return (
     <>
       <Head>
@@ -97,18 +64,13 @@ const Tasks = ({ initialData }) => {
         sticky
         bordered
         rowKey="id"
-        dataSource={taskList}
+        dataSource={datas}
         scroll={{ y: 420, x: 600 }}
         title={() => (
           <div className="flex">
-            <h2>Task List</h2>
+            <h2>Task List {storeId ? `- ID: ${storeId}` : null}</h2>
             <div className="ml-auto space-x-2">
-              <Button
-                hidden={
-                  !Object.keys(router.query).filter((el) => el !== 'settings')
-                    .length
-                }
-              >
+              <Button hidden={false}>
                 <Link href="/tasks">
                   <a>Show All</a>
                 </Link>
@@ -117,9 +79,7 @@ const Tasks = ({ initialData }) => {
                 type="primary"
                 loading={checkLoading('controller')}
                 icon={paused ? <PlayCircleOutlined /> : <PauseCircleOutlined />}
-                onClick={() =>
-                  handleControllerTask({ size, index, storeId, states })
-                }
+                onClick={() => handleControllerTask()}
               >
                 {paused ? 'Resume' : 'Pause'}
               </Button>
@@ -127,15 +87,21 @@ const Tasks = ({ initialData }) => {
           </div>
         )}
         pagination={{
-          total,
-          current: Number(index),
+          total: Number(total),
+          current: Number(page),
           pageSize: Number(size),
+          defaultPageSize: Number(size),
           showSizeChanger: true,
-          defaultPageSize: size,
         }}
         onChange={(pagination, filters) => {
-          setPageSize({ index: pagination.current, size: pagination.pageSize })
-          setStates(filters.state)
+          dispatchQuery({
+            type: 'change',
+            data: {
+              page: pagination.current,
+              size: pagination.pageSize,
+              states: filters.state,
+            },
+          })
         }}
       >
         <Table.Column
@@ -152,7 +118,7 @@ const Tasks = ({ initialData }) => {
           key="state"
           title="Task State"
           dataIndex="state"
-          filters={taskStates}
+          filters={defineStates}
         />
         <Table.Column
           key="failedReason"
@@ -222,18 +188,7 @@ const Tasks = ({ initialData }) => {
           fixed="right"
           render={(value, record) => (
             <div className="flex flex-col space-y-2">
-              {value ? (
-                <TaskActions
-                  data={record}
-                  showManage={true}
-                  size={size}
-                  index={index}
-                  storeId={storeId}
-                  states={states}
-                />
-              ) : (
-                false
-              )}
+              {value ? <TaskActions data={record} showManage={true} /> : null}
             </div>
           )}
         />
@@ -243,10 +198,8 @@ const Tasks = ({ initialData }) => {
 }
 
 export const getServerSideProps = async ({ query }) => {
-  const { size, index, storeId, states } = query
-
   const { data } = await axios.get('/api/tasks', {
-    params: { size, index, storeId, states },
+    params: query,
   })
 
   return {

@@ -1,23 +1,30 @@
 const Settings = require('../models/Settings')
 const queue = require('../jobs/queue')
 const axios = require('axios')
+
 let paused = false
+const defineStates = [
+  'active',
+  'completed',
+  'delayed',
+  'failed',
+  'paused',
+  'waiting',
+]
 
 module.exports = class {
   static async GET(ctx) {
     const query = {
+      page: 1,
       size: 10,
-      index: 1,
-      states: null,
-      storeId: null,
+      states: '',
+      storeId: '',
       ...ctx.request.query,
     }
 
-    const states = query.states
-      ? query.states.split(',')
-      : ['active', 'completed', 'delayed', 'failed', 'paused', 'waiting']
-    const start = (query.index - 1) * query.size
-    const end = query.index * query.size
+    const states = query.states ? query.states.split(',') : defineStates
+    const start = (query.page - 1) * query.size
+    const end = query.page * query.size
 
     const jobs = (await queue.getJobs(states))
       .sort((a, b) => b.id - a.id)

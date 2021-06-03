@@ -27,8 +27,8 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
     })
 
     if (
-      (changeProductLink && formData.productLink.startsWith('http')) ||
-      !formData.productLink
+      changeProductLink &&
+      (formData.productLink.startsWith('http') || !formData.productLink)
     ) {
       await axios.put('/api/product', formData)
     }
