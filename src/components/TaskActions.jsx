@@ -1,16 +1,16 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Button, Popconfirm, Modal, Transfer } from 'antd'
 import Link from 'next/link'
 
 import useTaskActions from '@hook/useTaskActions'
 
-const TaskActions = ({ data, showManage }) => {
+const TaskActions = ({ data, showManage, mutate }) => {
   const {
     checkLoading,
     handleRetryTask,
     handleRemoveTask,
     handleDeactiveCode,
-  } = useTaskActions()
+  } = useTaskActions(mutate)
 
   const [isModal, setIsModal] = useState(false)
   const [allDeactivateCode, setAllDeactivateCode] = useState([])
@@ -21,6 +21,10 @@ const TaskActions = ({ data, showManage }) => {
     setAllDeactivateCode(invalidCoupons)
     setTargetDeactivateCode(invalidCoupons.map((el) => el.id))
   }, [data])
+
+  useEffect(() => {
+    return () => {}
+  }, [])
 
   return (
     <>

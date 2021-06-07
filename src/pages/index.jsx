@@ -2,9 +2,11 @@ import { useState, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import Head from 'next/head'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import axios from 'axios'
 
 import { Input, Table, Button } from 'antd'
+import { CloudSyncOutlined } from '@ant-design/icons'
 const TaskSubmit = dynamic(() => import('@comp/TaskSubmit'))
 
 const Index = ({ initialData }) => {
@@ -32,6 +34,11 @@ const Index = ({ initialData }) => {
     productLink: null,
   })
 
+  const router = useRouter()
+  const refreshData = useCallback(() => {
+    router.replace(router.asPath)
+  }, [router.asPath])
+
   return (
     <>
       <Head>
@@ -48,16 +55,35 @@ const Index = ({ initialData }) => {
         enterButton
         className="mb-3"
         placeholder="Search Now"
+        list="countries"
         onSearch={(e) => handleFilterStore(e)}
         onBlur={(e) => handleFilterStore(e.target.value)}
       />
+      <datalist id="countries">
+        {initialData.map((el) => (
+          <option key={el.id} value={el.name} />
+        ))}
+      </datalist>
       <Table
         sticky
         bordered
         rowKey="id"
         dataSource={storesList}
         scroll={{ y: 380, x: 300 }}
-        title={() => <h2>Store List</h2>}
+        title={() => (
+          <div className="flex">
+            <h2>Stores List</h2>
+            <div className="ml-auto space-x-2">
+              <Button
+                type="primary"
+                onClick={refreshData}
+                icon={<CloudSyncOutlined />}
+              >
+                Refresh Data
+              </Button>
+            </div>
+          </div>
+        )}
         pagination={{
           showSizeChanger: true,
           defaultPageSize: 50,

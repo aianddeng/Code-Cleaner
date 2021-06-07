@@ -48,9 +48,15 @@ const SideBar = ({ visible, handleSwitchVisible }) => {
         <Form form={form} layout="vertical" initialValues={data}>
           <Form.Item name="promoType" label="Promo Code Type" required={true}>
             <Select placeholder="Please select a promocode type">
-              <Select.Option value="all">ALL</Select.Option>
-              <Select.Option value="public">PUBLIC</Select.Option>
-              <Select.Option value="exclusive">EXCLUSIVE</Select.Option>
+              <Select.Option key="all" value="all">
+                ALL
+              </Select.Option>
+              <Select.Option key="public" value="public">
+                PUBLIC
+              </Select.Option>
+              <Select.Option key="exclusive" value="exclusive">
+                EXCLUSIVE
+              </Select.Option>
             </Select>
           </Form.Item>
           {/* <Form.Item

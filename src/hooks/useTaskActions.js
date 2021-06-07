@@ -1,12 +1,13 @@
 import useActionLoading from '@hook/useActionLoading'
 import { useCallback } from 'react'
-import Router from 'next/router'
-import { mutate } from 'swr'
+import Router, { useRouter } from 'next/router'
 import axios from 'axios'
 
 import { message } from 'antd'
 
-const useTaskActions = () => {
+const useTaskActions = (mutate) => {
+  const router = useRouter()
+
   const { actionKey, checkLoading, pushLoading, popLoading } =
     useActionLoading('taskActions')
 
@@ -20,6 +21,7 @@ const useTaskActions = () => {
 
     // 重新运行任务并重载任务列表
     await axios.post('/api/tasks/' + id)
+    mutate && (await mutate())
 
     message.success({
       content: `Switch the task: ${id}`,
@@ -39,16 +41,16 @@ const useTaskActions = () => {
 
     // 删除任务并重新加载任务列表
     await axios.delete('/api/tasks/' + id)
+    mutate && (await mutate())
 
     message.success({
       content: `Delete the task: ${id}`,
       duration: 6,
       key: actionKey.current,
     })
-    popLoading(id)
 
     // 如果是任务页，跳转到tasks页面
-    await Router.push('/tasks')
+    router.route.includes('[taskId]') && (await Router.push('/tasks'))
   }, [])
 
   const handleDeactiveCode = useCallback(async (id, couponIds) => {
@@ -82,6 +84,7 @@ const useTaskActions = () => {
     })
 
     await axios.post('/api/tasks')
+    mutate && (await mutate())
 
     message.success({
       content: `Pause / Resume the task process.`,

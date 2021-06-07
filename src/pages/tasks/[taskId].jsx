@@ -182,10 +182,7 @@ export const getServerSideProps = async ({ query }) => {
         },
       }
     : {
-        redirect: {
-          destination: '/tasks',
-          permanent: false,
-        },
+        notFound: true,
       }
 }
 

@@ -1,12 +1,15 @@
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import useSWR from 'swr'
 import axios from 'axios'
 import moment from 'moment'
-import { Table, Button, Progress } from 'antd'
+import { Table, Button } from 'antd'
 import { PlayCircleOutlined, PauseCircleOutlined } from '@ant-design/icons'
-import TaskActions from '@comp/TaskActions'
 import useTaskActions from '@hook/useTaskActions'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+
+import CouponState from '@comp/CouponState'
+import TaskActions from '@comp/TaskActions'
 
 const defineStates = [
   {
@@ -52,26 +55,30 @@ const TaskTable = ({
   size,
   storeId,
   states,
-  firstPage,
   initialData,
+  setInitialData,
   dispatchQuery,
 }) => {
-  const { checkLoading, handleControllerTask } = useTaskActions()
-
-  const { data, error } = useSWR(
+  const { data, mutate } = useSWR(
     ['/api/tasks', page, size, storeId, states],
     fetcher,
     {
-      initialData: firstPage ? initialData : undefined,
-      refreshInterval: 10 * 1000,
+      initialData,
+      refreshInterval: 2000,
+      revalidateOnMount: true,
     }
   )
+  const { total, datas, paused } = data
 
-  const { total, datas, paused } = data || {
-    total: 0,
-    datas: [],
-    paused: false,
-  }
+  const { checkLoading, handleControllerTask } = useTaskActions(mutate)
+
+  const [loading, setLoading] = useState(false)
+  useEffect(() => {
+    setLoading(false)
+    setInitialData(data)
+  }, [data])
+
+  const router = useRouter()
 
   return (
     <Table
@@ -79,13 +86,13 @@ const TaskTable = ({
       bordered
       rowKey="id"
       dataSource={datas}
-      loading={!data && !error}
+      loading={loading}
       scroll={{ y: 420, x: 600 }}
       title={() => (
         <div className="flex">
           <h2>Task List {storeId ? `- ID: ${storeId}` : null}</h2>
           <div className="ml-auto space-x-2">
-            <Button hidden={false}>
+            <Button hidden={!Object.keys(router.query).length}>
               <Link href="/tasks">
                 <a>Show All</a>
               </Link>
@@ -109,6 +116,7 @@ const TaskTable = ({
         showSizeChanger: true,
       }}
       onChange={(pagination, filters) => {
+        setLoading(true)
         dispatchQuery({
           type: 'change',
           data: {
@@ -148,37 +156,7 @@ const TaskTable = ({
         key="coupons"
         title="Coupons"
         dataIndex="promotype"
-        render={(value, record) => {
-          return (
-            <ul className="m-0 p-0 list-none">
-              <li>All: {record.allLength}</li>
-              <li className="text-blue-500">
-                Valid: {record.validLength || '-'}
-              </li>
-              <li className="text-red-500">
-                Invalid: {record.invalidLength || '-'}
-              </li>
-              <li className="text-gray-500">Promotype: {value || 'all'}</li>
-              <li>
-                <Progress
-                  size="small"
-                  showInfo={false}
-                  percent={
-                    ((record.validLength + record.invalidLength) /
-                      record.allLength) *
-                    100
-                  }
-                  status="exception"
-                  strokeColor="rgba(239, 68, 68)"
-                  success={{
-                    percent: (record.validLength / record.allLength) * 100,
-                    strokeColor: 'rgba(59, 130, 246)',
-                  }}
-                />
-              </li>
-            </ul>
-          )
-        }}
+        render={(_, record) => <CouponState {...record} />}
       />
       <Table.Column
         key="createdAt"
@@ -203,7 +181,9 @@ const TaskTable = ({
         fixed="right"
         render={(value, record) => (
           <div className="flex flex-col space-y-2">
-            {value ? <TaskActions data={record} showManage={true} /> : null}
+            {value ? (
+              <TaskActions data={record} showManage={true} mutate={mutate} />
+            ) : null}
           </div>
         )}
       />

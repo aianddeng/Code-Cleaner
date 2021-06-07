@@ -1,19 +1,13 @@
 import Head from 'next/head'
 import axios from 'axios'
+import { useState } from 'react'
 import useTaskQuery from '@hook/useTaskQuery'
+
 import TaskTable from '@comp/TaskTable'
-import { useEffect, useState } from 'react'
 
-const Tasks = ({ initialData }) => {
+const Tasks = ({ initialData: serverSideInitialData }) => {
   const [query, dispatchQuery] = useTaskQuery()
-  const [firstPage, setFirstPage] = useState(true)
-
-  useEffect(
-    () => () => {
-      setFirstPage(false)
-    },
-    [query]
-  )
+  const [initialData, setInitialData] = useState(serverSideInitialData)
 
   return (
     <>
@@ -22,8 +16,8 @@ const Tasks = ({ initialData }) => {
       </Head>
       <TaskTable
         {...query}
-        firstPage={firstPage}
         initialData={initialData}
+        setInitialData={setInitialData}
         dispatchQuery={dispatchQuery}
       />
     </>

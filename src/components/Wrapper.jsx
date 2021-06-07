@@ -96,8 +96,8 @@ const Wrapper = ({ children }) => {
             ))}
         </Breadcrumb>
         <div className="bg-white dark:bg-[#1f1f1f] p-2 md:p-6">
-          <Skeleton loading={loading} active />
-          <Skeleton loading={loading} active>
+          <Skeleton key="1" loading={loading} active />
+          <Skeleton key="2" loading={loading} active>
             {children}
           </Skeleton>
         </div>
