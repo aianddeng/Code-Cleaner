@@ -2,10 +2,11 @@ import useActionLoading from '@hook/useActionLoading'
 import { useCallback } from 'react'
 import Router, { useRouter } from 'next/router'
 import axios from 'axios'
+import { mutate } from 'swr'
 
 import { message } from 'antd'
 
-const useTaskActions = (mutate) => {
+const useTaskActions = (mutateTaskList) => {
   const router = useRouter()
 
   const { actionKey, checkLoading, pushLoading, popLoading } =
@@ -21,7 +22,7 @@ const useTaskActions = (mutate) => {
 
     // 重新运行任务并重载任务列表
     await axios.post('/api/tasks/' + id)
-    mutate && (await mutate())
+    mutateTaskList && (await mutateTaskList())
 
     message.success({
       content: `Switch the task: ${id}`,
@@ -41,7 +42,7 @@ const useTaskActions = (mutate) => {
 
     // 删除任务并重新加载任务列表
     await axios.delete('/api/tasks/' + id)
-    mutate && (await mutate())
+    mutateTaskList && (await mutateTaskList())
 
     message.success({
       content: `Delete the task: ${id}`,
@@ -84,7 +85,7 @@ const useTaskActions = (mutate) => {
     })
 
     await axios.post('/api/tasks')
-    mutate && (await mutate())
+    mutateTaskList && (await mutateTaskList())
 
     message.success({
       content: `Pause / Resume the task process.`,

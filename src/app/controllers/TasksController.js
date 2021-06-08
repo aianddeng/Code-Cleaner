@@ -1,6 +1,7 @@
+const FatCoupon = require('../apis/FatCoupon')
 const Settings = require('../models/Settings')
 const queue = require('../jobs/queue')
-const axios = require('axios')
+const redis = require('../db/redis')
 
 let paused = false
 const defineStates = [
@@ -17,18 +18,17 @@ module.exports = class {
     const query = {
       page: 1,
       size: 10,
-      states: '',
-      storeId: '',
       ...ctx.request.query,
     }
 
+    const storeId = query.storeId
     const states = query.states ? query.states.split(',') : defineStates
     const start = (query.page - 1) * query.size
     const end = query.page * query.size
 
     const jobs = (await queue.getJobs(states))
       .sort((a, b) => b.id - a.id)
-      .filter((el) => !query.storeId || query.storeId === el.data.storeId)
+      .filter((el) => !storeId || storeId === el.data.storeId)
 
     const total = jobs.length
     const datas = await Promise.all(
@@ -59,44 +59,17 @@ module.exports = class {
   }
 
   static async PUT(ctx) {
+    const { storeId, autoDeactive, promoType, priority = 10 } = ctx.request.body
     const [settings] = await Settings.find({}).sort({ _id: -1 }).limit(1)
 
-    // 手动添加的任务高优先级
-    const {
-      storeId,
-      storeName,
-      autoDeactive,
-      promoType,
-      priority = 10,
-    } = ctx.request.body
+    const storeData = JSON.parse(await redis.get('fatcoupon:store'))
+    const store = storeData.find((el) => el.id === storeId)
 
-    const {
-      data: {
-        data: { data },
-      },
-    } = await axios.get(
-      `https://apis.fatcoupon.com/stores/${storeId}/coupons/all`,
-      {
-        params: {
-          key: '6Jl4CDXyYddTK7V2erVY9jcmpXqozfu',
-        },
-      }
-    )
+    const data = await FatCoupon.getFullCoupons(storeId)
 
     const coupons = data
-      .map((el) => ({
-        id: el.id,
-        storeId: el.storeId,
-        code: el.code,
-        type: el.type,
-        priority: el.priority,
-        description: el.description,
-      }))
       .map((el, index) =>
-        data
-          .slice()
-          .map((el) => el.code)
-          .indexOf(el.code) === index
+        data.map((el) => el.code).indexOf(el.code) === index
           ? { ...el }
           : { ...el, validStatus: -1 }
       )
@@ -126,7 +99,7 @@ module.exports = class {
         ip: ctx.request.formatIP,
         coupons,
         storeId,
-        storeName,
+        storeName: store.name,
         autoDeactive,
         promotype: promoType
           ? promoType

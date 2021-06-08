@@ -1,4 +1,5 @@
 const Queue = require('bull')
+const axios = require('axios')
 const redis = require('../db/redis')
 const cleanCode = require('./cleanCode')
 
@@ -57,47 +58,10 @@ queue.on('completed', async (job) => {
       .filter((el) => el.validStatus === -1)
       .map((el) => el.id)
 
-    job.data.coupons.map(
-      (el) =>
-        coupons.includes(el.id) &&
-        el.validStatus === -1 &&
-        (el.validStatus = -2)
-    )
-    await job.update(job.data)
-
-    await job.log(
-      JSON.stringify({
-        label: Date.now(),
-        content:
-          'Auto deactivate codes: ' +
-          job.data.coupons
-            .filter((el) => el.validStatus === -2)
-            .filter((el) => coupons.includes(el.id))
-            .map((el) => el.code)
-            .join(', '),
-      })
-    )
-
-    if (process.env.NODE_ENV === 'production') {
-      await axios.post(
-        'https://apis.fatcoupon.com/api/extension/coupons/deactivate',
-        {
-          coupons: coupons,
-          key: 'NKla7OByeWoYikvnO1Auj0vrfdM8pxq',
-        }
-      )
-    } else {
-      console.log('event - remove code:')
-      console.table(
-        job.data.coupons
-          .filter((el) => el.validStatus === -2)
-          .filter((el) => coupons.includes(el.id))
-          .map((el) => ({
-            id: el.id,
-            code: el.code,
-          }))
-      )
-    }
+    await axios.post('/api/coupons/deactivate', {
+      taskId: id,
+      coupons,
+    })
 
     console.log(
       `Task <${storeName}> (id: ${id}) auto deactived invalid coupons.`

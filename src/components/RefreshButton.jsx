@@ -14,7 +14,6 @@ const RefreshButton = () => {
 
   return (
     <Button
-      type="primary"
       onClick={refreshData}
       loading={refreshLoading}
       icon={<CloudSyncOutlined />}

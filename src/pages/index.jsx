@@ -32,6 +32,7 @@ const Index = ({ initialData }) => {
     storeName: null,
     productLink: null,
   })
+  const [selectStoreIds, setSelectStoreIds] = useState([])
 
   return (
     <>
@@ -62,12 +63,32 @@ const Index = ({ initialData }) => {
         sticky
         bordered
         rowKey="id"
+        rowSelection={{
+          type: 'checkbox',
+          fixed: true,
+          preserveSelectedRowKeys: true,
+          selectedRowKeys: selectStoreIds,
+          onChange: setSelectStoreIds,
+        }}
         dataSource={storesList}
         scroll={{ y: 380, x: 300 }}
         title={() => (
           <div className="flex">
             <h2>Stores List</h2>
             <div className="ml-auto space-x-2">
+              <Button
+                type="primary"
+                disabled={!selectStoreIds.length}
+                // hidden={!selectStoreIds.length}
+                onClick={() => {
+                  setTaskData({
+                    storeId: selectStoreIds.join(','),
+                  })
+                  setIsModal(true)
+                }}
+              >
+                Add Multi Tasks
+              </Button>
               <RefreshButton />
             </div>
           </div>

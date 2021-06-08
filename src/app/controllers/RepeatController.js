@@ -5,18 +5,7 @@ const repeatQueue = require('../jobs/repeatQueue')
 
 class RepeatController {
   static async GET(ctx) {
-    let storeData = JSON.parse((await redis.get('fatcoupon:store')) || '{}')
-
-    if (!storeData || !Object.keys(storeData).length) {
-      const { data } = await axios.get(
-        'https://apis.fatcoupon.com/api/extension/stores'
-      )
-
-      storeData = data.data.data
-
-      await redis.set('fatcoupon:store', JSON.stringify(storeData))
-      await redis.expire('fatcoupon:store', 6 * 60 * 60)
-    }
+    const storeData = JSON.parse(await redis.get('fatcoupon:store'))
 
     const allRepeatable = await repeatQueue.getRepeatableJobs()
 

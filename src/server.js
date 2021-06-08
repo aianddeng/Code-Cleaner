@@ -1,21 +1,22 @@
 require('./app/db/mongodb')
 require('./app/db/redis')
 
-const globalConfig = require('./config')
-const axios = require('axios')
-axios.defaults.baseURL = `http://127.0.0.1:${globalConfig.port}`
-
 const path = require('path')
 const Koa = require('koa')
 const koaBody = require('koa-body')
 const cors = require('koa2-cors')
-const router = require('./app/router')
+
+const axios = require('axios')
+const globalConfig = require('./config')
+axios.defaults.baseURL = `http://127.0.0.1:${globalConfig.port}`
 
 const next = require('next')
 const app = next({ dev: process.env.NODE_ENV !== 'production' })
 const handle = app.getRequestHandler()
 
 app.prepare().then(() => {
+  const router = require('./app/router')
+
   const server = new Koa()
   server.proxy = true
   server

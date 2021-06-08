@@ -1,3 +1,5 @@
+const fs = require('fs').promises
+const path = require('path')
 const Product = require('../models/Product')
 
 class ProductController {
@@ -5,22 +7,34 @@ class ProductController {
     const { storeId } = ctx.request.query
 
     if (storeId) {
-      const storeConfig = require('../chrome/mappings/' + storeId)
-
       const [product] = await Product.find({ storeId })
         .sort({ _id: -1 })
         .limit(1)
-      if (product && product.link) {
-        storeConfig['product'] = product.link
-      }
 
-      ctx.body = {
-        productLink: storeConfig['product'],
+      if (product && product.link) {
+        ctx.body = {
+          productLink: product.link,
+        }
+        return
+      } else {
+        const mappingsId = (
+          await fs.readdir(path.join(__dirname, '../chrome/mappings'))
+        ).map((el) => el.replace(/\.js$/, ''))
+
+        if (mappingsId.includes(storeId)) {
+          const storeConfig = require('../chrome/mappings/' + storeId)
+          if (storeConfig && storeConfig.product) {
+            ctx.body = {
+              productLink: storeConfig.product,
+            }
+            return
+          }
+        }
       }
-    } else {
-      ctx.body = {
-        status: 'failed',
-      }
+    }
+
+    ctx.body = {
+      productLink: '',
     }
   }
   static async PUT(ctx) {

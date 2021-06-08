@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
 import axios from 'axios'
-import { mutate } from 'swr'
 import useActionLoading from '@hook/useActionLoading'
 
 import { Input, message, Modal, Radio, Form } from 'antd'
@@ -35,7 +34,6 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
 
     if (formData.taskType === 'once') {
       const { data } = await axios.put('/api/tasks', formData)
-      await mutate(['/api/tasks', 10, 1, undefined])
 
       message.success({
         content: `Create a new task: ${data.id}`,
@@ -44,7 +42,6 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
       })
     } else if (formData.taskType === 'repeat') {
       const { data } = await axios.put('/api/tasks/repeat', formData)
-      await mutate('/api/tasks/repeat', data, false)
 
       message.success({
         content: `Create a new repeat task: ${formData.storeName}`,
@@ -60,6 +57,20 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
     setChangeProductLink(false)
     form.setFieldsValue(taskData)
   }, [taskData])
+
+  useEffect(async () => {
+    form.setFieldsValue({
+      productLink: 'Loading...',
+    })
+
+    const { data } = await axios.get('/api/product', {
+      params: {
+        storeId: taskData.storeId,
+      },
+    })
+
+    form.setFieldsValue(data)
+  }, [taskData.storeId])
 
   return (
     <Modal
@@ -88,14 +99,11 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
             taskType: 'once',
             repeatRule: 'day',
             repeatTime: 'current',
-            promoType: '',
+            promoType: 'exclusive',
             autoDeactive: false,
             productLink: '',
           }}
         >
-          <Form.Item lable="Store Name" name="storeName" className="hidden">
-            <Input disabled />
-          </Form.Item>
           <Form.Item label="Store ID" name="storeId" required>
             <Input disabled />
           </Form.Item>
@@ -138,7 +146,7 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
               <Radio.Button value={false}>No</Radio.Button>
             </Radio.Group>
           </Form.Item>
-          <Form.Item label="Promo Type" name="promoType">
+          <Form.Item label="Promo Type" name="promoType" required>
             <Radio.Group>
               <Radio.Button value="all">All</Radio.Button>
               <Radio.Button value="public">Public</Radio.Button>

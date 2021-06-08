@@ -1,5 +1,5 @@
-const axios = require('axios')
 const queue = require('../jobs/queue')
+const FatCoupon = require('../apis/FatCoupon')
 
 module.exports = class {
   static async POST(ctx) {
@@ -28,26 +28,7 @@ module.exports = class {
         })
       )
 
-      if (process.env.NODE_ENV === 'production') {
-        await axios.post(
-          'https://apis.fatcoupon.com/api/extension/coupons/deactivate',
-          {
-            coupons: coupons,
-            key: 'NKla7OByeWoYikvnO1Auj0vrfdM8pxq',
-          }
-        )
-      } else {
-        console.log('event - remove code:')
-        console.table(
-          job.data.coupons
-            .filter((el) => el.validStatus === -2)
-            .filter((el) => coupons.includes(el.id))
-            .map((el) => ({
-              id: el.id,
-              code: el.code,
-            }))
-        )
-      }
+      await FatCoupon.deactiveCoupons(coupons)
     }
 
     ctx.body = {
