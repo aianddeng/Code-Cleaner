@@ -59,6 +59,7 @@ const TaskTable = ({
   setInitialData,
   dispatchQuery,
 }) => {
+  useSWR(['/api/tasks', page + 1, size, storeId, states], fetcher)
   const { data, mutate } = useSWR(
     ['/api/tasks', page, size, storeId, states],
     fetcher,
@@ -92,7 +93,12 @@ const TaskTable = ({
         <div className="flex">
           <h2>Task List {storeId ? `- ID: ${storeId}` : null}</h2>
           <div className="ml-auto space-x-2">
-            <Button hidden={!Object.keys(router.query).length}>
+            <Button
+              hidden={
+                !Object.keys(router.query).filter((el) => !(el === 'settings'))
+                  .length
+              }
+            >
               <Link href="/tasks">
                 <a>Show All</a>
               </Link>

@@ -13,12 +13,14 @@ import {
   CloudUploadOutlined,
 } from '@ant-design/icons'
 import SideBar from '@comp/SideBar'
+import { useRouter } from 'next/router'
 
 const { Header, Content } = Layout
 
 const Wrapper = ({ children }) => {
+  const router = useRouter()
   const { pushLocalMessage } = useMessagePop()
-  const { router, loading } = useRouterLoading()
+  const { routerLoading } = useRouterLoading()
   const { visible, handleSwitchVisible } = useSideBarLoader()
 
   return (
@@ -96,8 +98,8 @@ const Wrapper = ({ children }) => {
             ))}
         </Breadcrumb>
         <div className="bg-white dark:bg-[#1f1f1f] p-2 md:p-6">
-          <Skeleton key="1" loading={loading} active />
-          <Skeleton key="2" loading={loading} active>
+          <Skeleton key="1" loading={routerLoading} active />
+          <Skeleton key="2" loading={routerLoading} active>
             {children}
           </Skeleton>
         </div>

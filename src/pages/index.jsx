@@ -2,11 +2,10 @@ import { useState, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import Head from 'next/head'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
 import axios from 'axios'
 
 import { Input, Table, Button } from 'antd'
-import { CloudSyncOutlined } from '@ant-design/icons'
+import RefreshButton from '@comp/RefreshButton'
 const TaskSubmit = dynamic(() => import('@comp/TaskSubmit'))
 
 const Index = ({ initialData }) => {
@@ -33,11 +32,6 @@ const Index = ({ initialData }) => {
     storeName: null,
     productLink: null,
   })
-
-  const router = useRouter()
-  const refreshData = useCallback(() => {
-    router.replace(router.asPath)
-  }, [router.asPath])
 
   return (
     <>
@@ -74,13 +68,7 @@ const Index = ({ initialData }) => {
           <div className="flex">
             <h2>Stores List</h2>
             <div className="ml-auto space-x-2">
-              <Button
-                type="primary"
-                onClick={refreshData}
-                icon={<CloudSyncOutlined />}
-              >
-                Refresh Data
-              </Button>
+              <RefreshButton />
             </div>
           </div>
         )}

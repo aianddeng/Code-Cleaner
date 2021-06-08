@@ -16,10 +16,15 @@ import {
   Popconfirm,
   Empty,
 } from 'antd'
-import { ClockCircleOutlined } from '@ant-design/icons'
+import { ClockCircleOutlined, LoadingOutlined } from '@ant-design/icons'
 
 const Countdown = dynamic(() => import('@comp/Countdown'), {
   ssr: false,
+  loading: () => (
+    <div className="flex justify-center items-center">
+      <LoadingOutlined />
+    </div>
+  ),
 })
 
 const RepeatSection = ({ initialData }) => {

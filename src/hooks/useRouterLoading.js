@@ -3,17 +3,22 @@ import { useState, useEffect } from 'react'
 
 const useRouterLoading = () => {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const [routerLoading, setRouterLoading] = useState(false)
 
   useEffect(() => {
-    const enLoading = (url, { shallow }) => {
-      if (!loading && !shallow && url !== router.asPath) {
-        setLoading(true)
+    const enLoading = (url) => {
+      if (url !== router.asPath) {
+        if (
+          !url.includes('settings=true') &&
+          !router.asPath.includes('settings=true')
+        ) {
+          setRouterLoading(true)
+        }
       }
     }
 
     const deLoading = () => {
-      setLoading(false)
+      setRouterLoading(false)
     }
 
     router.events.on('routeChangeStart', enLoading)
@@ -23,9 +28,9 @@ const useRouterLoading = () => {
       router.events.off('routeChangeStart', enLoading)
       router.events.off('routeChangeComplete', deLoading)
     }
-  })
+  }, [router.asPath])
 
-  return { router, loading }
+  return { routerLoading }
 }
 
 export default useRouterLoading
