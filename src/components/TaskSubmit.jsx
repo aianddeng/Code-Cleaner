@@ -36,15 +36,17 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
       const { data } = await axios.put('/api/tasks', formData)
 
       message.success({
-        content: `Create a new task: ${data.id}`,
+        content: `Create new task: ${data.ids.join(', ')}`,
         duration: 6,
         key: actionKey.current,
       })
     } else if (formData.taskType === 'repeat') {
-      const { data } = await axios.put('/api/tasks/repeat', formData)
+      await axios.put('/api/tasks/repeat', formData)
 
       message.success({
-        content: `Create a new repeat task: ${formData.storeName}`,
+        content: `Create new repeat task: ${
+          formData.storeName || '<Bulk Task Submit>'
+        }`,
         duration: 6,
         key: actionKey.current,
       })
@@ -89,7 +91,10 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
     >
       <div className="max-h-[70vh] overflow-y-scroll">
         <h2 className="mb-6 font-normal">
-          Store Name: <span className="font-bold">{taskData.storeName}</span>
+          Store Name:
+          <span className="font-bold">
+            {taskData.storeName || '<Bulk Task Submit>'}
+          </span>
         </h2>
         <Form
           form={form}
@@ -153,12 +158,14 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
               <Radio.Button value="exclusive">Exclusive</Radio.Button>
             </Radio.Group>
           </Form.Item>
-          <Form.Item label="Product Link" name="productLink">
-            <Input
-              placeholder="Submit blank product link to use default"
-              onChange={() => setChangeProductLink(true)}
-            />
-          </Form.Item>
+          {taskData.storeId.includes(',') ? null : (
+            <Form.Item label="Product Link" name="productLink">
+              <Input
+                placeholder="Submit blank product link to use default"
+                onChange={() => setChangeProductLink(true)}
+              />
+            </Form.Item>
+          )}
         </Form>
       </div>
     </Modal>

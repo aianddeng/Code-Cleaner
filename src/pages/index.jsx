@@ -4,7 +4,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import axios from 'axios'
 
-import { Input, Table, Button } from 'antd'
+import { Input, Table, Button, Dropdown, Menu } from 'antd'
 import RefreshButton from '@comp/RefreshButton'
 const TaskSubmit = dynamic(() => import('@comp/TaskSubmit'))
 
@@ -68,7 +68,10 @@ const Index = ({ initialData }) => {
           fixed: true,
           preserveSelectedRowKeys: true,
           selectedRowKeys: selectStoreIds,
-          onChange: setSelectStoreIds,
+          onChange: (ids, records) => setSelectStoreIds(ids),
+          getCheckboxProps: (record) => ({
+            disabled: !record.mapping,
+          }),
         }}
         dataSource={storesList}
         scroll={{ y: 380, x: 300 }}
@@ -76,19 +79,25 @@ const Index = ({ initialData }) => {
           <div className="flex">
             <h2>Stores List</h2>
             <div className="ml-auto space-x-2">
-              <Button
+              <Dropdown.Button
                 type="primary"
                 disabled={!selectStoreIds.length}
-                // hidden={!selectStoreIds.length}
                 onClick={() => {
                   setTaskData({
                     storeId: selectStoreIds.join(','),
                   })
                   setIsModal(true)
                 }}
+                overlay={
+                  <Menu>
+                    <Menu.Item key="1" onClick={() => setSelectStoreIds([])}>
+                      Clear Select
+                    </Menu.Item>
+                  </Menu>
+                }
               >
-                Add Multi Tasks
-              </Button>
+                Batch Add Tasks
+              </Dropdown.Button>
               <RefreshButton />
             </div>
           </div>

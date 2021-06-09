@@ -32,49 +32,66 @@ class RepeatController {
   }
 
   static async PUT(ctx) {
-    const { storeId, repeatRule, repeatTime } = ctx.request.body
+    const {
+      storeId,
+      storeIds = storeId.split(','),
+      repeatRule,
+      repeatTime,
+    } = ctx.request.body
 
-    // 同一个店铺只允许添加一个循环任务
-    const allRepeatable = await repeatQueue.getRepeatableJobs()
-    const hasRepeatable = allRepeatable.find((el) => el.name === storeId)
-    if (hasRepeatable) {
-      await repeatQueue.removeRepeatableByKey(hasRepeatable.key)
+    await Promise.all(
+      storeIds.map(async (storeId) => {
+        const allRepeatable = await repeatQueue.getRepeatableJobs()
+        const hasRepeatable = allRepeatable.find((el) => el.name === storeId)
+        if (hasRepeatable) {
+          await repeatQueue.removeRepeatableByKey(hasRepeatable.key)
+        }
+
+        const currentDate = moment(Date.now())
+        const repeat = {
+          cron: null,
+        }
+        switch (repeatRule) {
+          case 'hour':
+            repeat.cron =
+              repeatTime === 'current'
+                ? `${currentDate.second()} ${currentDate.minute()} * * * ?`
+                : '0 0 * * * ?'
+            break
+          case 'day':
+            repeat.cron =
+              repeatTime === 'current'
+                ? `${currentDate.second()} ${currentDate.minute()} ${currentDate.hour()} * * ?`
+                : '0 0 0 * * ?'
+            break
+          case 'week':
+            repeat.cron =
+              repeatTime === 'current'
+                ? `${currentDate.second()} ${currentDate.minute()} ${currentDate.hour()} * * ${currentDate.weekday()}`
+                : '0 0 0 * * MON'
+            break
+          default:
+            repeat.cron = repeatTime === 'current' ? '' : '0 * * * * ?'
+            break
+        }
+
+        repeatQueue.add(storeId, ctx.request.body, {
+          repeat,
+        })
+
+        return {
+          name: storeId,
+          data: ctx.request.body,
+          opts: {
+            repeat,
+          },
+        }
+      })
+    )
+
+    ctx.body = {
+      status: 'success',
     }
-
-    const currentDate = moment(Date.now())
-    const repeat = {
-      cron: null,
-      every: null,
-    }
-    switch (repeatRule) {
-      case 'hour':
-        repeat.cron =
-          repeatTime === 'current'
-            ? `${currentDate.second()} ${currentDate.minute()} * * * ?`
-            : '0 0 * * * ?'
-        break
-      case 'day':
-        repeat.cron =
-          repeatTime === 'current'
-            ? `${currentDate.second()} ${currentDate.minute()} ${currentDate.hour()} * * ?`
-            : '0 0 0 * * ?'
-        break
-      case 'week':
-        repeat.cron =
-          repeatTime === 'current'
-            ? `${currentDate.second()} ${currentDate.minute()} ${currentDate.hour()} * * ${currentDate.weekday()}`
-            : '0 0 0 * * MON'
-        break
-      default:
-        repeat.cron = repeatTime === 'current' ? '' : '0 * * * * ?'
-        break
-    }
-
-    await repeatQueue.add(storeId, ctx.request.body, {
-      repeat,
-    })
-
-    await RepeatController.GET(ctx)
   }
 
   static async POST(ctx) {

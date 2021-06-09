@@ -59,73 +59,78 @@ module.exports = class {
   }
 
   static async PUT(ctx) {
-    const { storeId, autoDeactive, promoType, priority = 10 } = ctx.request.body
     const [settings] = await Settings.find({}).sort({ _id: -1 }).limit(1)
 
+    const {
+      storeId,
+      storeIds = storeId.split(','),
+      autoDeactive,
+      promoType,
+      priority = 10,
+    } = ctx.request.body
+    const { formatIP: ip } = ctx.request
+
     const storeData = JSON.parse(await redis.get('fatcoupon:store'))
-    const store = storeData.find((el) => el.id === storeId)
 
-    const data = await FatCoupon.getFullCoupons(storeId)
+    const jobs = await queue.addBulk(
+      await Promise.all(
+        storeIds.map(async (storeId) => {
+          const storeName = storeData.find((el) => el.id === storeId).name
 
-    const coupons = data
-      .map((el, index) =>
-        data.map((el) => el.code).indexOf(el.code) === index
-          ? { ...el }
-          : { ...el, validStatus: -1 }
+          const data = await FatCoupon.getFullCoupons(storeId)
+
+          const coupons = data
+            .map((el, index) =>
+              data.map((el) => el.code).indexOf(el.code) === index
+                ? { ...el }
+                : { ...el, validStatus: -1 }
+            )
+            .filter((el) => {
+              if (promoType) {
+                if (promoType !== 'all') {
+                  return el.type === promoType
+                }
+              } else if (settings) {
+                if (settings.promoType !== 'all') {
+                  return el.type === settings.promoType
+                }
+              }
+              return true
+            })
+
+          if (process.env.NODE_ENV !== 'production' && coupons.length >= 5) {
+            coupons.splice(20)
+
+            coupons[1].code = 'fakeCode1'
+            coupons[3].code = 'fakeCode3'
+          }
+
+          return {
+            name: 'clean-code',
+            data: {
+              ip,
+              coupons,
+              storeId,
+              storeName,
+              autoDeactive,
+              promotype: promoType
+                ? promoType
+                : settings
+                ? settings.promoType
+                : 'all',
+            },
+            opts: {
+              attempts: settings ? settings.attempts : 3,
+              priority,
+            },
+          }
+        })
       )
-      .filter((el) => {
-        if (promoType) {
-          if (promoType !== 'all') {
-            return el.type === promoType
-          }
-        } else if (settings) {
-          if (settings.promoType !== 'all') {
-            return el.type === settings.promoType
-          }
-        }
-        return true
-      })
-
-    if (process.env.NODE_ENV !== 'production' && coupons.length >= 5) {
-      coupons.splice(20)
-
-      coupons[1].code = 'fakeCode1'
-      coupons[3].code = 'fakeCode3'
-    }
-
-    const job = await queue.add(
-      'clean-code',
-      {
-        ip: ctx.request.formatIP,
-        coupons,
-        storeId,
-        storeName: store.name,
-        autoDeactive,
-        promotype: promoType
-          ? promoType
-          : settings
-          ? settings.promoType
-          : 'all',
-      },
-      {
-        attempts: settings ? settings.attempts : 3,
-        priority,
-      }
     )
 
-    const datas = {
-      ...job.data,
-      id: job.id,
-      state: await job.getState(),
-      createdOn: job.timestamp,
-      finishedOn: job.finishedOn,
-      processedOn: job.processedOn,
-      allLength: job.data.coupons.length,
-      validLength: job.data.coupons.filter((el) => el.validStatus === 1).length,
-      invalidLength: job.data.coupons.filter((el) => el.validStatus <= -1)
-        .length,
+    ctx.body = {
+      ids: jobs.map((el) => el.id),
     }
-    ctx.body = datas
   }
 
   static async POST(ctx) {
