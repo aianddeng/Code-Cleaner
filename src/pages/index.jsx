@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import Head from 'next/head'
 import Link from 'next/link'
@@ -8,7 +8,27 @@ import { Input, Table, Button, Dropdown, Menu } from 'antd'
 import RefreshButton from '@comp/RefreshButton'
 const TaskSubmit = dynamic(() => import('@comp/TaskSubmit'))
 
+function getTableScroll() {
+  // 32 pagination height
+  // 16 * 2 pagination margin
+  // 70 footer height
+  const bottomHeight = 32 + 16 * 2 + 70
+
+  const topHeight = document
+    .getElementsByClassName('ant-table-thead')[0]
+    .getBoundingClientRect().bottom
+
+  const height = `calc(100vh - ${topHeight}px - ${bottomHeight}px - 1rem)`
+
+  return height
+}
+
 const Index = ({ initialData }) => {
+  const [scrollY, setScrollY] = useState('')
+  useEffect(() => {
+    setScrollY(getTableScroll())
+  }, [])
+
   const [storesList, setStoresList] = useState(initialData)
 
   const handleFilterStore = useCallback(
@@ -74,11 +94,11 @@ const Index = ({ initialData }) => {
           }),
         }}
         dataSource={storesList}
-        scroll={{ y: 380, x: 300 }}
+        scroll={{ x: 300, y: scrollY }}
         title={() => (
-          <div className="flex">
+          <div className="flex flex-col md:flex-row">
             <h2>Stores List</h2>
-            <div className="ml-auto space-x-2">
+            <div className="ml-auto space-y-2 md:space-x-2">
               <Dropdown.Button
                 type="primary"
                 disabled={!selectStoreIds.length}

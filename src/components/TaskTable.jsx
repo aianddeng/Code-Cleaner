@@ -11,6 +11,21 @@ import { useEffect, useState } from 'react'
 import CouponState from '@comp/CouponState'
 import TaskActions from '@comp/TaskActions'
 
+function getTableScroll() {
+  // 32 pagination height
+  // 16 * 2 pagination margin
+  // 70 footer height
+  const bottomHeight = 32 + 16 * 2 + 70
+
+  const topHeight = document
+    .getElementsByClassName('ant-table-thead')[0]
+    .getBoundingClientRect().bottom
+
+  const height = `calc(100vh - ${topHeight}px - ${bottomHeight}px - 1rem)`
+
+  return height
+}
+
 const defineStates = [
   {
     text: 'Active',
@@ -59,6 +74,11 @@ const TaskTable = ({
   setInitialData,
   dispatchQuery,
 }) => {
+  const [scrollY, setScrollY] = useState('')
+  useEffect(() => {
+    setScrollY(getTableScroll())
+  }, [])
+
   useSWR(['/api/tasks', page + 1, size, storeId, states], fetcher)
   const { data, mutate } = useSWR(
     ['/api/tasks', page, size, storeId, states],
@@ -88,7 +108,7 @@ const TaskTable = ({
       rowKey="id"
       dataSource={datas}
       loading={loading}
-      scroll={{ y: 420, x: 600 }}
+      scroll={{ x: 600, y: scrollY }}
       title={() => (
         <div className="flex">
           <h2>Task List {storeId ? `- ID: ${storeId}` : null}</h2>

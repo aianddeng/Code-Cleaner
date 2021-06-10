@@ -4,7 +4,24 @@ import moment from 'moment'
 
 import TaskActions from '@comp/TaskActions'
 
+function getTableScroll() {
+  const bottomHeight = 24 + 70 + 2
+
+  const topHeight = document
+    .getElementsByClassName('topElement')[0]
+    .getBoundingClientRect().bottom
+
+  const height = `calc(100vh - ${topHeight}px - ${bottomHeight}px - 1.5rem * calc(1 - var(--tw-space-y-reverse)) - 1rem)`
+
+  return height
+}
+
 const TaskSummary = ({ data }) => {
+  const [scrollY, setScrollY] = useState('')
+  useEffect(() => {
+    setScrollY(getTableScroll())
+  }, [])
+
   const [logs, setLogs] = useState([])
 
   useEffect(() => {
@@ -21,10 +38,15 @@ const TaskSummary = ({ data }) => {
 
   return (
     <div className="space-y-6">
-      <div className="max-w-xs flex space-y-2 flex-col md:flex-row md:space-x-2 md:space-y-0">
+      <div className="max-w-xs flex space-y-2 flex-col md:flex-row md:space-x-2 md:space-y-0 topElement">
         <TaskActions data={data} showManage={false} />
       </div>
-      <div className="bg-[#031527] dark:bg-[#1f1f1f] rounded-sm pl-5 pt-5 h-96 w-full overflow-y-auto overflow-x-hidden">
+      <div
+        style={{
+          height: scrollY,
+        }}
+        className="bg-[#031527] dark:bg-[#1f1f1f] rounded-sm pl-5 pt-5 w-full overflow-y-auto overflow-x-hidden"
+      >
         <Timeline
           reverse={true}
           className="text-white"

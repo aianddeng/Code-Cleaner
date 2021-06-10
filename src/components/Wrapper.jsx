@@ -15,7 +15,7 @@ import {
 import SideBar from '@comp/SideBar'
 import { useRouter } from 'next/router'
 
-const { Header, Content } = Layout
+const { Header, Content, Footer } = Layout
 
 const Wrapper = ({ children }) => {
   const router = useRouter()
@@ -97,13 +97,21 @@ const Wrapper = ({ children }) => {
               </Breadcrumb.Item>
             ))}
         </Breadcrumb>
-        <div className="bg-white dark:bg-[#1f1f1f] p-2 md:p-6">
+        <div className="bg-white dark:bg-[#1f1f1f] p-4 rounded-md shadow-md">
           <Skeleton key="1" loading={routerLoading} active />
           <Skeleton key="2" loading={routerLoading} active>
             {children}
           </Skeleton>
         </div>
       </Content>
+      <Footer>
+        <p className="text-center mb-0">
+          - Product By{' '}
+          <Link href="https://fatcoupon.com">
+            <a>FatCoupon</a>
+          </Link>
+        </p>
+      </Footer>
       <aside>
         <SideBar visible={visible} handleSwitchVisible={handleSwitchVisible} />
         <BackTop>
