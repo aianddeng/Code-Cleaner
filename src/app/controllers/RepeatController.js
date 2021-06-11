@@ -1,15 +1,25 @@
-const axios = require('axios')
 const moment = require('moment')
 const redis = require('../db/redis')
 const repeatQueue = require('../jobs/repeatQueue')
 
 class RepeatController {
   static async GET(ctx) {
+    const query = {
+      page: 1,
+      size: 10,
+      ...ctx.request.query,
+    }
+
+    const start = (query.page - 1) * query.size
+    const end = query.page * query.size
+
     const storeData = JSON.parse(await redis.get('fatcoupon:store'))
 
     const allRepeatable = await repeatQueue.getRepeatableJobs()
 
-    const afterAllRepeatable = allRepeatable
+    const total = allRepeatable.length
+    const datas = allRepeatable
+      .slice(start, end)
       .map((el) => ({
         storeName: storeData.find((store) => store.id === el.name).name,
         storeId: el.name,
@@ -24,10 +34,12 @@ class RepeatController {
         key: el.key,
       }))
       .reverse()
+    const nextPage = end < allRepeatable.length
 
     ctx.body = {
-      total: afterAllRepeatable.length,
-      datas: afterAllRepeatable,
+      total,
+      datas,
+      nextPage,
     }
   }
 
