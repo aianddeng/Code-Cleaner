@@ -101,6 +101,7 @@ const RepeatSection = ({ initialData }) => {
         {data.map((el) => el.datas).flat().length ? (
           <div>
             <List
+              split={false}
               grid={{
                 gutter: 8,
                 xs: 1,
