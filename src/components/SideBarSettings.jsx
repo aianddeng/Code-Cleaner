@@ -3,10 +3,11 @@ import useSWR from 'swr'
 import axios from 'axios'
 
 import { Drawer, Button, Form, Select, Input, Skeleton } from 'antd'
+import { SettingOutlined } from '@ant-design/icons'
 
 const { useForm } = Form
 
-const SideBar = ({ visible, handleSwitchVisible }) => {
+const SideBarSettings = ({ visible, handleSwitchVisible }) => {
   const [form] = useForm()
   const { data, mutate } = useSWR('/api/settings')
 
@@ -33,7 +34,12 @@ const SideBar = ({ visible, handleSwitchVisible }) => {
   return (
     <Drawer
       visible={visible}
-      title="Global Settings"
+      width={300}
+      title={
+        <Button icon={<SettingOutlined />} type="text" className="pl-0">
+          Global Settings
+        </Button>
+      }
       onClose={() => handleSwitchVisible()}
       footer={
         <div className="flex justify-end space-x-4">
@@ -82,4 +88,4 @@ const SideBar = ({ visible, handleSwitchVisible }) => {
   )
 }
 
-export default SideBar
+export default SideBarSettings

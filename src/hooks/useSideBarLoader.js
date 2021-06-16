@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import Router, { useRouter } from 'next/router'
 
-const useSideBarLoader = () => {
+const useSideBarLoader = (key) => {
   const router = useRouter()
   const [visible, setVisible] = useState(null)
 
@@ -9,7 +9,7 @@ const useSideBarLoader = () => {
     setVisible(!visible)
     const query = router.query
     if (visible) {
-      delete query.settings
+      delete query[key]
       Router.push(
         {
           pathname: router.pathname,
@@ -26,7 +26,7 @@ const useSideBarLoader = () => {
           pathname: router.pathname,
           query: {
             ...query,
-            settings: true,
+            [key]: true,
           },
         },
         undefined,
@@ -35,10 +35,10 @@ const useSideBarLoader = () => {
         }
       )
     }
-  })
+  }, [visible, router])
 
   useEffect(() => {
-    if (router.query.settings === 'true') setVisible(true)
+    if (router.query[key] === 'true') setVisible(true)
   }, [])
 
   return { visible, handleSwitchVisible }

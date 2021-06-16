@@ -38,8 +38,9 @@ queue.on('completed', async (job) => {
     'fatcoupon:message:' + ip,
     JSON.stringify({
       type: 'success',
-      message: 'Task Completed',
-      description: `Task <${storeName}> (id: ${id}) is completed. Check it now.`,
+      date: Date.now(),
+      id,
+      storeName,
     })
   )
 
@@ -70,15 +71,21 @@ queue.on('completed', async (job) => {
 })
 
 queue.on('failed', async (job) => {
-  const { attemptsMade, attempts, data, id } = job
+  const {
+    attemptsMade,
+    opts: { attempts },
+    data: { ip, storeName },
+    id,
+  } = job
 
   if (attemptsMade >= attempts) {
     await redis.lpush(
-      'fatcoupon:message:' + data.ip,
+      'fatcoupon:message:' + ip,
       JSON.stringify({
         type: 'error',
-        message: 'Task Error',
-        description: `Task <${data.storeName}> (id: ${id}) is failed. Please retry it now.`,
+        date: Date.now(),
+        id,
+        storeName,
       })
     )
   }
@@ -91,7 +98,7 @@ queue.on('failed', async (job) => {
     })
   )
 
-  console.log(`Task <${data.storeName}> (id: ${id}) failed`)
+  console.log(`Task <${storeName}> (id: ${id}) failed`)
 })
 
 queue.on('removed', async (job) => {

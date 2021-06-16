@@ -4,13 +4,16 @@ import { useState, useEffect } from 'react'
 const useRouterLoading = () => {
   const router = useRouter()
   const [routerLoading, setRouterLoading] = useState(false)
+  const exceptParams = ['settings', 'messages']
 
   useEffect(() => {
     const enLoading = (url) => {
       if (url !== router.asPath) {
         if (
-          !url.includes('settings=true') &&
-          !router.asPath.includes('settings=true')
+          !exceptParams.some(
+            (el) =>
+              url.includes(el + '=true') || router.asPath.includes(el + '=true')
+          )
         ) {
           setRouterLoading(true)
         }

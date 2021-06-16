@@ -1,10 +1,10 @@
 import Link from 'next/link'
-import useMessagePop from '@hook/useMessagePop'
 import useRouterLoading from '@hook/useRouterLoading'
 import useSideBarLoader from '@hook/useSideBarLoader'
 
 import { Layout, Menu, Breadcrumb, Skeleton, BackTop } from 'antd'
 import {
+  BellOutlined,
   SettingOutlined,
   UnorderedListOutlined,
   MenuUnfoldOutlined,
@@ -12,16 +12,25 @@ import {
   UpOutlined,
   CloudUploadOutlined,
 } from '@ant-design/icons'
-import SideBar from '@comp/SideBar'
+import SideBarSettings from '@comp/SideBarSettings'
+import SideBarMessages from '@comp/SideBarMessages'
 import { useRouter } from 'next/router'
 
 const { Header, Content, Footer } = Layout
 
 const Wrapper = ({ children }) => {
   const router = useRouter()
-  const { pushLocalMessage } = useMessagePop()
   const { routerLoading } = useRouterLoading()
-  const { visible, handleSwitchVisible } = useSideBarLoader()
+
+  const {
+    visible: settingsVisible,
+    handleSwitchVisible: handleSwitchSettingsVisible,
+  } = useSideBarLoader('settings')
+
+  const {
+    visible: messagesVisible,
+    handleSwitchVisible: handleSwitchMessagesVisible,
+  } = useSideBarLoader('messages')
 
   return (
     <Layout className="min-h-screen">
@@ -53,10 +62,15 @@ const Wrapper = ({ children }) => {
             </Link>
           </Menu.Item>
           <Menu.Item
+            icon={<BellOutlined />}
+            key="/messages"
+            className="ml-auto"
+            onClick={() => handleSwitchMessagesVisible()}
+          ></Menu.Item>
+          <Menu.Item
             icon={<SettingOutlined />}
             key="/settings"
-            className="ml-auto"
-            onClick={() => handleSwitchVisible()}
+            onClick={() => handleSwitchSettingsVisible()}
           ></Menu.Item>
         </Menu>
       </Header>
@@ -113,7 +127,14 @@ const Wrapper = ({ children }) => {
         </p>
       </Footer>
       <aside>
-        <SideBar visible={visible} handleSwitchVisible={handleSwitchVisible} />
+        <SideBarSettings
+          visible={settingsVisible}
+          handleSwitchVisible={handleSwitchSettingsVisible}
+        />
+        <SideBarMessages
+          visible={messagesVisible}
+          handleSwitchVisible={handleSwitchMessagesVisible}
+        />
         <BackTop>
           <div className="rounded bg-blue-500 w-10 h-10 text-white font-blod text-lg flex items-center justify-center">
             <UpOutlined />

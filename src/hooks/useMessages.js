@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import useSWR from 'swr'
 import axios from 'axios'
 
@@ -10,11 +10,13 @@ const openNotificationWithIcon = (props) => {
   notification[type]({
     message,
     description,
-    duration: 6,
+    duration: 3,
   })
 }
 
 const useMessagePop = () => {
+  const [messages, setMessages] = useState([])
+
   const { data: serverMessage } = useSWR('/api/message', {
     refreshInterval: 1 * 1000,
   })
@@ -27,11 +29,19 @@ const useMessagePop = () => {
 
   useEffect(() => {
     if (serverMessage && serverMessage.type) {
-      openNotificationWithIcon(serverMessage)
+      setMessages([serverMessage, ...messages])
+      openNotificationWithIcon({
+        type: serverMessage.type,
+        message: serverMessage.type,
+        description:
+          serverMessage.type === 'success'
+            ? `Task <${serverMessage.storeName}> (id: ${serverMessage.id}) is completed. Check it now.`
+            : `Task <${serverMessage.storeName}> (id: ${serverMessage.id}) is failed. Retry it now.`,
+      })
     }
   }, [serverMessage])
 
-  return { pushLocalMessage }
+  return { messages, pushLocalMessage }
 }
 
 export default useMessagePop
