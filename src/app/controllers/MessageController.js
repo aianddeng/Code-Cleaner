@@ -9,15 +9,9 @@ module.exports = class {
     ctx.body = message || {}
   }
   static async PUT(ctx) {
-    const { type, message, description } = ctx.request.body
-
     await redis.lpush(
       'fatcoupon:message:' + ctx.request.formatIP,
-      JSON.stringify({
-        type,
-        message,
-        description,
-      })
+      JSON.stringify(ctx.request.body)
     )
 
     ctx.body = {

@@ -2,7 +2,7 @@ import moment from 'moment'
 import Link from 'next/link'
 import useMessages from '@hook/useMessages'
 
-import { Drawer, Skeleton, Comment, Tooltip, Button } from 'antd'
+import { Drawer, Comment, Tooltip, Button, Empty } from 'antd'
 import {
   CheckCircleTwoTone,
   CloseCircleTwoTone,
@@ -23,22 +23,24 @@ const SideBarMessages = ({ visible, handleSwitchVisible }) => {
       }
       onClose={() => handleSwitchVisible()}
     >
-      <Skeleton loading={false} active>
-        {messages.map((el) => (
+      {messages.length ? (
+        messages.map((el) => (
           <Comment
-            key={el.id}
+            key={el.date}
             author={
-              el.storeName
-              // <Link
-              //   href={{
-              //     pathname: '/tasks',
-              //     query: {
-              //       storeId: '',
-              //     },
-              //   }}
-              // >
-              //   <span>{el.storeName}</span>
-              // </Link>
+              <Link
+                href={{
+                  pathname: '/tasks',
+                  query: {
+                    storeId: el.storeId,
+                  },
+                }}
+                prefetch={false}
+              >
+                <a>
+                  <span>{el.storeName}</span>
+                </a>
+              </Link>
             }
             avatar={
               el.type === 'success' ? (
@@ -55,11 +57,12 @@ const SideBarMessages = ({ visible, handleSwitchVisible }) => {
             actions={[
               <Link
                 href={{
-                  pathname: '/tasks/' + el.id,
+                  pathname: '/tasks/[slug]',
                   query: {
-                    messages: true,
+                    slug: el.id,
                   },
                 }}
+                prefetch={false}
               >
                 <span>Task ID: {el.id}</span>
               </Link>,
@@ -70,8 +73,10 @@ const SideBarMessages = ({ visible, handleSwitchVisible }) => {
               </Tooltip>
             }
           />
-        ))}
-      </Skeleton>
+        ))
+      ) : (
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+      )}
     </Drawer>
   )
 }

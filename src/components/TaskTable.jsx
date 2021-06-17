@@ -115,8 +115,9 @@ const TaskTable = ({
           <div className="ml-auto space-x-2">
             <Button
               hidden={
-                !Object.keys(router.query).filter((el) => !(el === 'settings'))
-                  .length
+                !Object.keys(router.query).filter(
+                  (el) => !(el === 'settings' || el === 'messages')
+                ).length
               }
             >
               <Link href="/tasks">

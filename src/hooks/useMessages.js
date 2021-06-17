@@ -21,10 +21,8 @@ const useMessagePop = () => {
     refreshInterval: 1 * 1000,
   })
 
-  const pushLocalMessage = useCallback(async (el) => {
-    await axios.put('/api/message', {
-      ...el,
-    })
+  const pushLocalMessage = useCallback(async (data) => {
+    await axios.put('/api/message', data)
   })
 
   useEffect(() => {

@@ -7,15 +7,12 @@ const useRouterLoading = () => {
   const exceptParams = ['settings', 'messages']
 
   useEffect(() => {
-    const enLoading = (url) => {
+    const enLoading = (url, { shallow }) => {
       if (url !== router.asPath) {
-        if (
-          !exceptParams.some(
-            (el) =>
-              url.includes(el + '=true') || router.asPath.includes(el + '=true')
-          )
-        ) {
-          setRouterLoading(true)
+        if (!shallow) {
+          if (!exceptParams.some((el) => url.includes(el + '=true'))) {
+            setRouterLoading(true)
+          }
         }
       }
     }

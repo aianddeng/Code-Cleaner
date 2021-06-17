@@ -38,8 +38,8 @@ const useSideBarLoader = (key) => {
   }, [visible, router])
 
   useEffect(() => {
-    if (router.query[key] === 'true') setVisible(true)
-  }, [])
+    setVisible(router.query[key] === 'true')
+  }, [router.query])
 
   return { visible, handleSwitchVisible }
 }

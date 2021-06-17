@@ -30,7 +30,7 @@ queue.on('active', async (job) => {
 
 queue.on('completed', async (job) => {
   const {
-    data: { ip, storeName, autoDeactive },
+    data: { ip, storeName, autoDeactive, storeId },
     id,
   } = job
 
@@ -41,6 +41,7 @@ queue.on('completed', async (job) => {
       date: Date.now(),
       id,
       storeName,
+      storeId,
     })
   )
 
@@ -74,7 +75,7 @@ queue.on('failed', async (job) => {
   const {
     attemptsMade,
     opts: { attempts },
-    data: { ip, storeName },
+    data: { ip, storeName, storeId },
     id,
   } = job
 
@@ -86,6 +87,7 @@ queue.on('failed', async (job) => {
         date: Date.now(),
         id,
         storeName,
+        storeId,
       })
     )
   }
