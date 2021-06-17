@@ -2,7 +2,7 @@ const moment = require('moment')
 const redis = require('../db/redis')
 const repeatQueue = require('../jobs/repeatQueue')
 
-class RepeatController {
+module.exports = class {
   static async GET(ctx) {
     const query = {
       page: 1,
@@ -111,8 +111,8 @@ class RepeatController {
 
     await repeatQueue.removeRepeatableByKey(key)
 
-    await RepeatController.GET(ctx)
+    return {
+      status: 'success',
+    }
   }
 }
-
-module.exports = RepeatController

@@ -10,16 +10,20 @@ module.exports = {
       button: '#form_validate_sign_in .submit-button button',
     },
   },
-  cart: async (page)=>{
+  cart: async (page) => {
     await page.goto('https://www.farfetch.com/checkout/basket/GoToCheckout', {
       waitUntil: 'domcontentloaded',
       timeout: 60000,
     })
-    await page.waitForNavigation({
-      waitUntil: 'domcontentloaded',
-      timeout: 60000,
-    })
-    return 'https://secure.farfetch.com/v2/ShippingAddress';
+
+    await page.waitForFunction(
+      "location.origin.includes('secure.farfetch.com')",
+      {
+        timeout: 60000,
+      }
+    )
+
+    return page.url()
   },
   useLocalScript: true,
 }

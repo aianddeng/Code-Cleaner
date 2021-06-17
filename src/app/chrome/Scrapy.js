@@ -339,13 +339,26 @@ class Scrapy {
       this.config.login.selector.username,
       this.config.login.username
     )
+    await Helpers.wait(1)
+
     await page.type(
       this.config.login.selector.password,
       this.config.login.password
     )
-    await page.click(this.config.login.selector.button)
+    await Helpers.wait(1)
 
-    await Helpers.wait(2)
+    try {
+      await page.evaluate((selector) => {
+        const button = document.querySelector(selector)
+        button && button.click()
+      }, this.config.login.selector.button)
+    } catch {}
+    await Helpers.wait(1)
+
+    try {
+      await page.click(this.config.login.selector.button)
+    } catch {}
+    await Helpers.wait(10)
   }
 
   async handleAddProduct() {
@@ -370,36 +383,38 @@ class Scrapy {
         .concat(Helpers.wait(globalConfig.timeout / 1000 - 1))
     )
 
-    for (const selector of this.config.button) {
-      if (await page.$(selector)) {
-        const tagName = await page.$eval(selector, (el) => el.tagName)
-        if (tagName === 'SELECT') {
-          try {
-            await page.select(
-              selector,
-              await page.$eval(selector, (el) =>
-                [...el.options]
-                  .map((el) => !el.disabled && el.value)
-                  .filter(Boolean)
-                  .pop()
+    try {
+      for (const selector of this.config.button) {
+        if (await page.$(selector)) {
+          const tagName = await page.$eval(selector, (el) => el.tagName)
+          if (tagName === 'SELECT') {
+            try {
+              await page.select(
+                selector,
+                await page.$eval(selector, (el) =>
+                  [...el.options]
+                    .map((el) => !el.disabled && el.value)
+                    .filter(Boolean)
+                    .pop()
+                )
               )
-            )
-          } catch {}
-        } else {
-          try {
-            await page.evaluate((selector) => {
-              const button = document.querySelector(selector)
-              button && button.click()
-            }, selector)
-          } catch {}
+            } catch {}
+          } else {
+            try {
+              await page.evaluate((selector) => {
+                const button = document.querySelector(selector)
+                button && button.click()
+              }, selector)
+            } catch {}
 
-          try {
-            await page.click(selector)
-          } catch {}
+            try {
+              await page.click(selector)
+            } catch {}
+          }
+          await Helpers.wait(1)
         }
-        await Helpers.wait(1)
       }
-    }
+    } catch {}
 
     if (
       typeof this.config.cart === 'string' &&

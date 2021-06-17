@@ -57,10 +57,10 @@ const RepeatSection = ({ initialData }) => {
       key: actionKey.current,
     })
 
-    const { data } = await axios.post('/api/tasks/repeat', {
+    await axios.post('/api/tasks/repeat', {
       key,
     })
-    await mutate(data, false)
+    await mutate()
 
     message.success({
       content: `Remove the repeat task: ${storeName}`,

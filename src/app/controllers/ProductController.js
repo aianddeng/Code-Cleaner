@@ -2,7 +2,7 @@ const fs = require('fs').promises
 const path = require('path')
 const Product = require('../models/Product')
 
-class ProductController {
+module.exports = class {
   static async GET(ctx) {
     const { storeId } = ctx.request.query
 
@@ -53,5 +53,3 @@ class ProductController {
     }
   }
 }
-
-module.exports = ProductController
