@@ -10,7 +10,7 @@ import {
 } from '@ant-design/icons'
 
 const SideBarMessages = ({ visible, handleSwitchVisible }) => {
-  const { messages, pushLocalMessage } = useMessages()
+  const { messages, pushLocalMessage, clearMessages } = useMessages()
 
   return (
     <Drawer
@@ -22,6 +22,11 @@ const SideBarMessages = ({ visible, handleSwitchVisible }) => {
         </Button>
       }
       onClose={() => handleSwitchVisible()}
+      footer={
+        <div className="flex justify-end space-x-4">
+          <Button onClick={() => clearMessages()}>Clear all messages</Button>
+        </div>
+      }
     >
       {messages.length ? (
         messages.map((el) => (

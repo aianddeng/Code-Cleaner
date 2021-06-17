@@ -14,7 +14,7 @@ const openNotificationWithIcon = (props) => {
   })
 }
 
-const useMessagePop = () => {
+const useMessages = () => {
   const [messages, setMessages] = useState([])
 
   const { data: serverMessage } = useSWR('/api/message', {
@@ -24,6 +24,18 @@ const useMessagePop = () => {
   const pushLocalMessage = useCallback(async (data) => {
     await axios.put('/api/message', data)
   })
+
+  const clearMessages = useCallback(() => {
+    setMessages([])
+  }, [])
+
+  useEffect(() => {
+    setMessages(JSON.parse(localStorage.getItem('messages') || '[]'))
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('messages', JSON.stringify(messages))
+  }, [messages])
 
   useEffect(() => {
     if (serverMessage && serverMessage.type) {
@@ -39,7 +51,7 @@ const useMessagePop = () => {
     }
   }, [serverMessage])
 
-  return { messages, pushLocalMessage }
+  return { messages, pushLocalMessage, clearMessages }
 }
 
-export default useMessagePop
+export default useMessages
