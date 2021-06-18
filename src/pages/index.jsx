@@ -5,6 +5,8 @@ import Link from 'next/link'
 import axios from 'axios'
 
 import { Input, Table, Button, Dropdown, Menu } from 'antd'
+import { FileAddOutlined, FolderViewOutlined } from '@ant-design/icons'
+
 import RefreshButton from '@comp/RefreshButton'
 const TaskSubmit = dynamic(() => import('@comp/TaskSubmit'))
 
@@ -20,7 +22,7 @@ function getTableScroll() {
 
   const height = `calc(100vh - ${topHeight}px - ${bottomHeight}px - 1rem)`
 
-  return height
+  return window.innerHeight > 500 ? height : null
 }
 
 const Index = ({ initialData }) => {
@@ -94,7 +96,7 @@ const Index = ({ initialData }) => {
           }),
         }}
         dataSource={storesList}
-        scroll={{ x: 300, y: scrollY }}
+        scroll={{ x: 375, y: scrollY }}
         title={() => (
           <div className="flex flex-col md:flex-row">
             <h2>Stores List</h2>
@@ -160,6 +162,7 @@ const Index = ({ initialData }) => {
           render={(value, record) => (
             <div className="space-y-2 flex flex-col md:flex-row md:space-x-2 md:space-y-0">
               <Button
+                icon={<FileAddOutlined />}
                 type="primary"
                 disabled={!value}
                 onClick={() => {
@@ -173,16 +176,14 @@ const Index = ({ initialData }) => {
               >
                 Add To Task
               </Button>
-              <Button>
-                <Link
-                  href={{
-                    pathname: '/tasks',
-                    query: { storeId: record.id },
-                  }}
-                >
-                  <a>Check Tasks</a>
-                </Link>
-              </Button>
+              <Link
+                href={{
+                  pathname: '/tasks',
+                  query: { storeId: record.id },
+                }}
+              >
+                <Button icon={<FolderViewOutlined />}>Check Tasks</Button>
+              </Link>
             </div>
           )}
         />

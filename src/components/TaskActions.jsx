@@ -1,8 +1,14 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { Button, Popconfirm, Modal, Transfer } from 'antd'
 import Link from 'next/link'
-
 import useTaskActions from '@hook/useTaskActions'
+
+import {
+  RedoOutlined,
+  ProfileOutlined,
+  DeleteOutlined,
+  ClearOutlined,
+} from '@ant-design/icons'
 
 const TaskActions = ({ data, showManage, mutate }) => {
   const {
@@ -22,26 +28,22 @@ const TaskActions = ({ data, showManage, mutate }) => {
     setTargetDeactivateCode(invalidCoupons.map((el) => el.id))
   }, [data])
 
-  useEffect(() => {
-    return () => {}
-  }, [])
-
   return (
     <>
       <div className="flex-auto">
         {showManage ? (
-          <Button block type="primary">
-            <Link
-              href={{
-                pathname: '/tasks/[slug]',
-                query: {
-                  slug: data.id,
-                },
-              }}
-            >
-              <a>Manage</a>
-            </Link>
-          </Button>
+          <Link
+            href={{
+              pathname: '/tasks/[slug]',
+              query: {
+                slug: data.id,
+              },
+            }}
+          >
+            <Button block icon={<ProfileOutlined />} type="primary">
+              Manage
+            </Button>
+          </Link>
         ) : (
           <>
             <Modal
@@ -78,6 +80,7 @@ const TaskActions = ({ data, showManage, mutate }) => {
             </Modal>
             <Button
               block
+              icon={<ClearOutlined />}
               type="primary"
               onClick={() => {
                 filterDeactivateCode()
@@ -92,6 +95,7 @@ const TaskActions = ({ data, showManage, mutate }) => {
       <div className="flex-auto">
         <Button
           block
+          icon={<RedoOutlined />}
           loading={checkLoading(data.id)}
           disabled={data.state !== 'failed'}
           onClick={() => handleRetryTask(data.id)}
@@ -109,6 +113,7 @@ const TaskActions = ({ data, showManage, mutate }) => {
         >
           <Button
             block
+            icon={<DeleteOutlined />}
             disabled={data.state === 'active' || data.state === 'completed'}
             danger
             block={true}

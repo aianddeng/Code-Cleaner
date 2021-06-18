@@ -23,7 +23,7 @@ function getTableScroll() {
 
   const height = `calc(100vh - ${topHeight}px - ${bottomHeight}px - 1rem)`
 
-  return height
+  return window.innerHeight > 500 ? height : null
 }
 
 const defineStates = [
@@ -166,10 +166,10 @@ const TaskTable = ({
       />
       <Table.Column
         key="state"
-        title="Task State"
+        title="State"
         dataIndex="state"
         filters={defineStates}
-        responsive={['lg']}
+        responsive={['md']}
         render={(value, record) =>
           value === 'failed' ? (
             <Popover

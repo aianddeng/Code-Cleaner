@@ -18,7 +18,12 @@ import {
   List,
   Spin,
 } from 'antd'
-import { ClockCircleOutlined, LoadingOutlined } from '@ant-design/icons'
+import {
+  ClockCircleOutlined,
+  LoadingOutlined,
+  DeleteOutlined,
+  FolderViewOutlined,
+} from '@ant-design/icons'
 
 const Countdown = dynamic(() => import('@comp/Countdown'), {
   ssr: false,
@@ -86,7 +91,7 @@ const RepeatSection = ({ initialData }) => {
       }
       document.addEventListener('scroll', loadMore)
 
-      if (document.body.scrollHeight <= window.innerHeight) {
+      if (document.body.scrollHeight < window.innerHeight) {
         loadMore()
       }
 
@@ -131,16 +136,16 @@ const RepeatSection = ({ initialData }) => {
                     title={el.storeName}
                     key={el.storeId}
                     actions={[
-                      <Button>
-                        <Link
-                          href={{
-                            pathname: '/tasks',
-                            query: { storeId: el.storeId },
-                          }}
-                        >
-                          <a>Check Tasks</a>
-                        </Link>
-                      </Button>,
+                      <Link
+                        href={{
+                          pathname: '/tasks',
+                          query: { storeId: el.storeId },
+                        }}
+                      >
+                        <Button icon={<FolderViewOutlined />}>
+                          Check Tasks
+                        </Button>
+                      </Link>,
                       <Popconfirm
                         okText="Yes"
                         cancelText="No"
@@ -149,7 +154,11 @@ const RepeatSection = ({ initialData }) => {
                           handleRemoveRepeatTask(el.key, el.storeName)
                         }
                       >
-                        <Button danger loading={checkLoading(el.key)}>
+                        <Button
+                          icon={<DeleteOutlined />}
+                          danger
+                          loading={checkLoading(el.key)}
+                        >
                           Remove
                         </Button>
                       </Popconfirm>,
