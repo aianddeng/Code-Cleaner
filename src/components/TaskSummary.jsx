@@ -13,7 +13,7 @@ function getTableScroll() {
 
   const height = `calc(100vh - ${topHeight}px - ${bottomHeight}px - 1.5rem * calc(1 - var(--tw-space-y-reverse)) - 1rem)`
 
-  return window.innerHeight > 500 ? height : null
+  return window.innerHeight < 768 ? null : height
 }
 
 const TaskSummary = ({ data }) => {

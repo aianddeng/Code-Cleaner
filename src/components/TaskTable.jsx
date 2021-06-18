@@ -23,7 +23,7 @@ function getTableScroll() {
 
   const height = `calc(100vh - ${topHeight}px - ${bottomHeight}px - 1rem)`
 
-  return window.innerHeight > 500 ? height : null
+  return window.innerHeight < 768 ? null : height
 }
 
 const defineStates = [
