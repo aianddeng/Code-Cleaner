@@ -187,15 +187,11 @@ const TaskTable = ({
       />
       <Table.Column
         key="createdAt"
-        title="Processed / Finished"
+        title="Created / Finished"
         dataIndex="finishedOn"
         render={(value, record) => (
           <>
-            <p>
-              {moment(record.processedOn || record.createdOn).format(
-                'YYYY-MM-DD HH:mm:ss'
-              )}
-            </p>
+            <p>{moment(record.createdOn).format('YYYY-MM-DD HH:mm:ss')}</p>
             <p>{value ? moment(value).format('YYYY-MM-DD HH:mm:ss') : '-'}</p>
           </>
         )}
