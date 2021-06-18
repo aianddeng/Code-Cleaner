@@ -28,90 +28,96 @@ const TaskActions = ({ data, showManage, mutate }) => {
 
   return (
     <>
-      {showManage ? (
-        <Button type="primary" className="flex-auto">
-          <Link
-            href={{
-              pathname: '/tasks/[slug]',
-              query: {
-                slug: data.id,
-              },
-            }}
-          >
-            <a>Manage</a>
-          </Link>
-        </Button>
-      ) : (
-        <>
-          <Modal
-            centered
-            title="Choice promo code that need deactive"
-            okText="Submit"
-            visible={isModal}
-            onOk={() => {
-              handleDeactiveCode(data.id, targetDeactivateCode)
-              setIsModal(false)
-            }}
-            onCancel={() => {
-              setIsModal(false)
-            }}
-          >
-            <Transfer
-              oneWay
-              titles={['Keep', 'Deactive']}
-              listStyle={{
-                width: 600,
-                height: 400,
+      <div className="flex-auto">
+        {showManage ? (
+          <Button block type="primary">
+            <Link
+              href={{
+                pathname: '/tasks/[slug]',
+                query: {
+                  slug: data.id,
+                },
               }}
-              rowKey={(el) => el.id}
-              dataSource={allDeactivateCode}
-              render={(el) => ({
-                label: el.code,
-                value: el.id,
-              })}
-              targetKeys={targetDeactivateCode}
-              onChange={(nextTargetKeys) => {
-                setTargetDeactivateCode(nextTargetKeys)
-              }}
-            />
-          </Modal>
-          <Button
-            className="flex-auto"
-            type="primary"
-            onClick={() => {
-              filterDeactivateCode()
-              setIsModal(true)
-            }}
-          >
-            Deactive All Invalid Coupons
+            >
+              <a>Manage</a>
+            </Link>
           </Button>
-        </>
-      )}
-      <Button
-        loading={checkLoading(data.id)}
-        disabled={data.state !== 'failed'}
-        onClick={() => handleRetryTask(data.id)}
-        className="flex-auto"
-      >
-        Retry
-      </Button>
-      <Popconfirm
-        disabled={data.state === 'active'}
-        okText="Yes"
-        cancelText="No"
-        title="Are you sure to delete this task?"
-        onConfirm={() => handleRemoveTask(data.id)}
-      >
+        ) : (
+          <>
+            <Modal
+              centered
+              title="Choice promo code that need deactive"
+              okText="Submit"
+              visible={isModal}
+              onOk={() => {
+                handleDeactiveCode(data.id, targetDeactivateCode)
+                setIsModal(false)
+              }}
+              onCancel={() => {
+                setIsModal(false)
+              }}
+            >
+              <Transfer
+                oneWay
+                titles={['Keep', 'Deactive']}
+                listStyle={{
+                  width: 600,
+                  height: 400,
+                }}
+                rowKey={(el) => el.id}
+                dataSource={allDeactivateCode}
+                render={(el) => ({
+                  label: el.code,
+                  value: el.id,
+                })}
+                targetKeys={targetDeactivateCode}
+                onChange={(nextTargetKeys) => {
+                  setTargetDeactivateCode(nextTargetKeys)
+                }}
+              />
+            </Modal>
+            <Button
+              block
+              type="primary"
+              onClick={() => {
+                filterDeactivateCode()
+                setIsModal(true)
+              }}
+            >
+              Deactive All Invalid Coupons
+            </Button>
+          </>
+        )}
+      </div>
+      <div className="flex-auto">
         <Button
-          disabled={data.state === 'active' || data.state === 'completed'}
-          danger
-          block={true}
+          block
           loading={checkLoading(data.id)}
-          className="flex-auto"
+          disabled={data.state !== 'failed'}
+          onClick={() => handleRetryTask(data.id)}
         >
-          Delete
+          Retry
         </Button>
-      </Popconfirm>
+      </div>
+      <div className="flex-auto">
+        <Popconfirm
+          disabled={data.state === 'active'}
+          okText="Yes"
+          cancelText="No"
+          title="Are you sure to delete this task?"
+          onConfirm={() => handleRemoveTask(data.id)}
+        >
+          <Button
+            block
+            disabled={data.state === 'active' || data.state === 'completed'}
+            danger
+            block={true}
+            loading={checkLoading(data.id)}
+          >
+            Delete
+          </Button>
+        </Popconfirm>
+      </div>
     </>
   )
 }

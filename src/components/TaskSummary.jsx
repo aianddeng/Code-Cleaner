@@ -49,7 +49,6 @@ const TaskSummary = ({ data }) => {
       >
         <Timeline
           reverse={true}
-          className="text-white"
           pending={
             ['completed', 'failed', 'waiting'].includes(data.state)
               ? false
@@ -59,7 +58,23 @@ const TaskSummary = ({ data }) => {
         >
           {logs.slice().map((el) => (
             <Timeline.Item {...el} key={el.time + el.content}>
-              {el.time + ' | ' + el.content}
+              <>
+                <span
+                  style={{
+                    color: '#fff6',
+                  }}
+                >
+                  {el.time}
+                </span>
+                <span>{' | '}</span>
+                <span
+                  style={{
+                    color: '#fff',
+                  }}
+                >
+                  {el.content}
+                </span>
+              </>
             </Timeline.Item>
           ))}
         </Timeline>

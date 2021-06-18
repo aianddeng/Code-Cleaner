@@ -6,7 +6,7 @@ import moment from 'moment'
 import { useEffect, useState } from 'react'
 import useTaskActions from '@hook/useTaskActions'
 
-import { Table, Button } from 'antd'
+import { Table, Button, Popover } from 'antd'
 import { PlayCircleOutlined, PauseCircleOutlined } from '@ant-design/icons'
 import CouponState from '@comp/CouponState'
 import TaskActions from '@comp/TaskActions'
@@ -108,9 +108,9 @@ const TaskTable = ({
       rowKey="id"
       dataSource={datas}
       loading={loading}
-      scroll={{ x: 600, y: scrollY }}
+      scroll={{ x: !!datas.length, y: scrollY }}
       title={() => (
-        <div className="flex">
+        <div className="flex flex-col md:flex-row">
           <h2>Task List {storeId ? `- ID: ${storeId}` : null}</h2>
           <div className="ml-auto space-x-2">
             <Button
@@ -159,7 +159,7 @@ const TaskTable = ({
         title="ID / Title"
         dataIndex="id"
         render={(value, record) => (
-          <p>
+          <p className="mb-0">
             {value} - {record.storeName}
           </p>
         )}
@@ -169,15 +169,25 @@ const TaskTable = ({
         title="Task State"
         dataIndex="state"
         filters={defineStates}
-      />
-      <Table.Column
-        key="failedReason"
-        title="Failed Reason"
-        dataIndex="failedReason"
+        responsive={['lg']}
         render={(value, record) =>
-          value ? `${value}(tries: ${record.attemptsMade})` : '-'
+          value === 'failed' ? (
+            <Popover
+              placement="topLeft"
+              content={
+                <div className="max-w-xs">
+                  <p>{record.failedReason}</p>
+                  <p>Tries: {record.attemptsMade}</p>
+                </div>
+              }
+              title="Failed Reason"
+            >
+              <a>{value}</a>
+            </Popover>
+          ) : (
+            value
+          )
         }
-        responsive={['xl']}
       />
       <Table.Column
         key="coupons"
@@ -190,10 +200,14 @@ const TaskTable = ({
         title="Created / Finished"
         dataIndex="finishedOn"
         render={(value, record) => (
-          <>
-            <p>{moment(record.createdOn).format('YYYY-MM-DD HH:mm:ss')}</p>
-            <p>{value ? moment(value).format('YYYY-MM-DD HH:mm:ss') : '-'}</p>
-          </>
+          <div className="space-y-1">
+            <p className="m-0">
+              {moment(record.createdOn).format('YYYY-MM-DD HH:mm:ss')}
+            </p>
+            <p className="m-0">
+              {value ? moment(value).format('YYYY-MM-DD HH:mm:ss') : '-'}
+            </p>
+          </div>
         )}
         responsive={['lg']}
       />
@@ -203,7 +217,7 @@ const TaskTable = ({
         dataIndex="id"
         fixed="right"
         render={(value, record) => (
-          <div className="flex flex-col space-y-2">
+          <div className="flex flex-col space-y-2  xl:flex-row xl:space-y-0 xl:space-x-2 max-w-xs">
             {value ? (
               <TaskActions data={record} showManage={true} mutate={mutate} />
             ) : null}

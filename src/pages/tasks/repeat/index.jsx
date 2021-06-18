@@ -4,7 +4,7 @@ import moment from 'moment'
 import Head from 'next/head'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import useActionLoading from '@hook/useActionLoading'
 
 import {
@@ -86,6 +86,10 @@ const RepeatSection = ({ initialData }) => {
       }
       document.addEventListener('scroll', loadMore)
 
+      if (document.body.scrollHeight <= window.innerHeight) {
+        loadMore()
+      }
+
       return () => {
         document.removeEventListener('scroll', loadMore)
       }
@@ -134,7 +138,7 @@ const RepeatSection = ({ initialData }) => {
                             query: { storeId: el.storeId },
                           }}
                         >
-                          <a>Check Store Tasks</a>
+                          <a>Check Tasks</a>
                         </Link>
                       </Button>,
                       <Popconfirm

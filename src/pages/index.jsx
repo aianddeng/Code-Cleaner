@@ -98,7 +98,8 @@ const Index = ({ initialData }) => {
         title={() => (
           <div className="flex flex-col md:flex-row">
             <h2>Stores List</h2>
-            <div className="ml-auto space-y-2 md:space-x-2">
+            <div className="ml-auto space-y-2 md:space-y-0 md:space-x-2">
+              <RefreshButton />
               <Dropdown.Button
                 type="primary"
                 disabled={!selectStoreIds.length}
@@ -118,7 +119,6 @@ const Index = ({ initialData }) => {
               >
                 Batch Add Tasks
               </Dropdown.Button>
-              <RefreshButton />
             </div>
           </div>
         )}
@@ -180,7 +180,7 @@ const Index = ({ initialData }) => {
                     query: { storeId: record.id },
                   }}
                 >
-                  <a>Check Store Tasks</a>
+                  <a>Check Tasks</a>
                 </Link>
               </Button>
             </div>

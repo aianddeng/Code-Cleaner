@@ -16,30 +16,30 @@ const CouponState = ({
   promotype = 'all',
   autoDeactive = false,
 }) => (
-  <div className="flex flex-wrap flex-grow">
+  <div className="flex flex-col md:flex-row flex-wrap">
     {validLength ? (
-      <Tag icon={<CheckCircleOutlined />} color="success" className="mb-2">
+      <Tag icon={<CheckCircleOutlined />} color="success" className="my-1">
         Valid: {validLength}
       </Tag>
     ) : null}
     {invalidLength ? (
-      <Tag icon={<CloseCircleOutlined />} color="error" className="mb-2">
+      <Tag icon={<CloseCircleOutlined />} color="error" className="my-1">
         Invalid: {invalidLength}
       </Tag>
     ) : null}
     {waitingLength ? (
-      <Tag icon={<ClockCircleOutlined />} color="warning" className="mb-2">
+      <Tag icon={<ClockCircleOutlined />} color="warning" className="my-1">
         Waiting: {waitingLength}
       </Tag>
     ) : null}
-    <Tag color="default" className="mb-2">
+    <Tag color="default" className="my-1">
       {promotype
         .split('')
         .map((el, index) => (!index ? el.toUpperCase() : el))
         .join('')}
     </Tag>
     {autoDeactive ? (
-      <Tag color="default" className="mb-2">
+      <Tag color="default" className="my-1">
         Auto Deactive
       </Tag>
     ) : null}
@@ -47,19 +47,3 @@ const CouponState = ({
 )
 
 export default CouponState
-
-{
-  /* <span>
-      <Progress
-        size="small"
-        showInfo={false}
-        percent={((validLength + invalidLength) / allLength) * 100}
-        status="exception"
-        strokeColor="rgba(239, 68, 68)"
-        success={{
-          percent: (validLength / allLength) * 100,
-          strokeColor: 'rgba(59, 130, 246)',
-        }}
-      />
-    </span> */
-}
