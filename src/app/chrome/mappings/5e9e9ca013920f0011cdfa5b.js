@@ -5,9 +5,10 @@ module.exports = {
     username: 'deng@fatcoupon.com',
     password: 'Az6dJfJafg_E_Qg',
     selector: {
-      username: '#email-input-login',
-      password: '#password-input-login',
-      button: '#form_validate_sign_in .submit-button button',
+      username: '#email-input-login, #login-email',
+      password: '#password-input-login, #login-password',
+      button:
+        '#form_validate_sign_in .submit-button button, [data-tstid=slice-login-sign-in-button]',
     },
   },
   cart: async (page) => {
