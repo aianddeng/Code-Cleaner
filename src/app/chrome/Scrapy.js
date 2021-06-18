@@ -320,7 +320,7 @@ class Scrapy {
       page.waitForSelector(this.config.login.urlAfterBtn, {
         timeout: globalConfig.timeout,
       })
-      await page.click(this.config.login.urlAfterBtn)
+      await page.tap(this.config.login.urlAfterBtn)
     }
 
     await Promise.all([
@@ -356,7 +356,7 @@ class Scrapy {
     await Helpers.wait(1)
 
     try {
-      await page.click(this.config.login.selector.button)
+      await page.tap(this.config.login.selector.button)
     } catch {}
     await Helpers.wait(10)
   }
@@ -408,7 +408,7 @@ class Scrapy {
             } catch {}
 
             try {
-              await page.click(selector)
+              await page.tap(selector)
             } catch {}
           }
           await Helpers.wait(1)

@@ -162,7 +162,7 @@ const RepeatSection = ({ initialData }) => {
                         prefix={<ClockCircleOutlined />}
                         suffix="..."
                         title="Waiting"
-                        value={moment.duration(el.next - Date.now()).humanize()}
+                        value={moment(el.next).fromNow()}
                       />
                     ) : (
                       <Countdown

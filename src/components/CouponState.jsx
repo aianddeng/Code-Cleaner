@@ -1,12 +1,55 @@
-import { Progress } from 'antd'
+import { Tag } from 'antd'
+import {
+  CheckCircleOutlined,
+  SyncOutlined,
+  CloseCircleOutlined,
+  ExclamationCircleOutlined,
+  ClockCircleOutlined,
+  MinusCircleOutlined,
+} from '@ant-design/icons'
 
-const CouponState = ({ allLength, validLength, invalidLength, promotype }) => (
-  <ul className="m-0 p-0 list-none">
-    <li>All: {allLength}</li>
-    <li className="text-blue-500">Valid: {validLength || '-'}</li>
-    <li className="text-red-500">Invalid: {invalidLength || '-'}</li>
-    <li className="text-gray-500">Promotype: {promotype || 'all'}</li>
-    <li>
+const CouponState = ({
+  allLength,
+  validLength,
+  invalidLength,
+  waitingLength = allLength - validLength - invalidLength,
+  promotype = 'all',
+  autoDeactive = false,
+}) => (
+  <div className="flex flex-wrap flex-grow">
+    {validLength ? (
+      <Tag icon={<CheckCircleOutlined />} color="success" className="mb-2">
+        Valid: {validLength}
+      </Tag>
+    ) : null}
+    {invalidLength ? (
+      <Tag icon={<CloseCircleOutlined />} color="error" className="mb-2">
+        Invalid: {invalidLength}
+      </Tag>
+    ) : null}
+    {waitingLength ? (
+      <Tag icon={<ClockCircleOutlined />} color="warning" className="mb-2">
+        Waiting: {waitingLength}
+      </Tag>
+    ) : null}
+    <Tag color="default" className="mb-2">
+      {promotype
+        .split('')
+        .map((el, index) => (!index ? el.toUpperCase() : el))
+        .join('')}
+    </Tag>
+    {autoDeactive ? (
+      <Tag color="default" className="mb-2">
+        Auto Deactive
+      </Tag>
+    ) : null}
+  </div>
+)
+
+export default CouponState
+
+{
+  /* <span>
       <Progress
         size="small"
         showInfo={false}
@@ -18,8 +61,5 @@ const CouponState = ({ allLength, validLength, invalidLength, promotype }) => (
           strokeColor: 'rgba(59, 130, 246)',
         }}
       />
-    </li>
-  </ul>
-)
-
-export default CouponState
+    </span> */
+}

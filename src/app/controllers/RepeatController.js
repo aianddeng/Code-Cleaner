@@ -19,6 +19,7 @@ module.exports = class {
 
     const total = allRepeatable.length
     const datas = allRepeatable
+      .sort((a, b) => a.next - b.next)
       .slice(start, end)
       .map((el) => ({
         storeName: storeData.find((store) => store.id === el.name).name,
@@ -33,7 +34,6 @@ module.exports = class {
         next: el.next,
         key: el.key,
       }))
-      .reverse()
     const nextPage = end < allRepeatable.length
 
     ctx.body = {
@@ -111,7 +111,7 @@ module.exports = class {
 
     await repeatQueue.removeRepeatableByKey(key)
 
-    return {
+    ctx.body = {
       status: 'success',
     }
   }
