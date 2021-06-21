@@ -1,6 +1,7 @@
 module.exports = {
   storeId: '5e900ef297ae8d00118d9485',
   login: {
+    url: 'https://www.columbia.com/cart',
     username: 'fatcouponrondo@gmail.com',
     password: 'Lebron123456',
     selector: {
