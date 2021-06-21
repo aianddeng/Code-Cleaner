@@ -15,6 +15,7 @@ const app = next({ dev: process.env.NODE_ENV !== 'production' })
 const handle = app.getRequestHandler()
 
 app.prepare().then(() => {
+  const ips = require('./white')
   const router = require('./app/router')
 
   const server = new Koa()
@@ -30,7 +31,12 @@ app.prepare().then(() => {
         ctx.request.connection.socket.remoteAddress
 
       ctx.request.formatIP = ip ? ip.replace('::ffff:', '') : ''
-      await next()
+
+      if (ips.includes(ctx.request.formatIP)) {
+        await next()
+      } else {
+        ctx.body = `No Access. (ip: ${ip})`
+      }
     })
     .use(
       koaBody({
