@@ -50,7 +50,9 @@ app.prepare().then(() => {
       const ip = ctx.request.formatIP
 
       if (ctx.session.accessIP || ips.includes(ip)) {
-        ctx.session.accessIP = ip
+        if (!ctx.session.accessIP) {
+          ctx.session.accessIP = ip
+        }
         await next()
       } else {
         ctx.status = 403
