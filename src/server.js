@@ -5,6 +5,7 @@ const path = require('path')
 const Koa = require('koa')
 const koaBody = require('koa-body')
 const cors = require('koa2-cors')
+const session = require('koa-session')
 
 const axios = require('axios')
 const globalConfig = require('./config')
@@ -20,8 +21,19 @@ app.prepare().then(() => {
 
   const server = new Koa()
   server.proxy = true
+  server.keys = ['admin.fatcoupon.com']
   server
     .use(cors())
+    .use(
+      session(
+        {
+          key: 'ip_access',
+          maxAge: 3.5 * 24 * 60 * 60 * 1000,
+          renew: true,
+        },
+        server
+      )
+    )
     .use(async (ctx, next) => {
       const ip =
         ctx.request.headers['x-forwarded-for'] ||
@@ -32,9 +44,16 @@ app.prepare().then(() => {
 
       ctx.request.formatIP = ip ? ip.replace('::ffff:', '') : ''
 
-      if (ips.includes(ctx.request.formatIP)) {
+      await next()
+    })
+    .use(async (ctx, next) => {
+      const ip = ctx.request.formatIP
+
+      if (ctx.session.accessIP || ips.includes(ip)) {
+        ctx.session.accessIP = ip
         await next()
       } else {
+        ctx.status = 403
         ctx.body = `No Access. (ip: ${ip})`
       }
     })
