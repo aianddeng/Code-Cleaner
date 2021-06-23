@@ -301,8 +301,24 @@ class Scrapy {
     })
   }
 
+  async handleCookie() {
+    const cookies = require('./cookies/' + this.config.storeId + '.js')
+    if (cookies && cookies.length) {
+      const page = await this.createNewpage(this.config.cart)
+
+      await page.setCookie(...cookies)
+
+      await Helpers.wait(2)
+    }
+  }
+
   async handleLogin() {
     if (!this.config.login) return
+
+    if (this.config.login.cookie) {
+      await this.handleCookie()
+      return true
+    }
 
     await this.job.log(
       JSON.stringify({
@@ -359,6 +375,8 @@ class Scrapy {
       await page.tap(this.config.login.selector.button)
     } catch {}
     await Helpers.wait(10)
+
+    console.log(await page.cookies())
   }
 
   async handleAddProduct() {
