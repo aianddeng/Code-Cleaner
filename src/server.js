@@ -54,7 +54,7 @@ app.prepare().then(() => {
       session(
         {
           key: 'ip_access',
-          maxAge: 3.5 * 24 * 60 * 60 * 1000,
+          maxAge: 2 * 24 * 60 * 60 * 1000,
           renew: true,
         },
         server
@@ -76,13 +76,13 @@ app.prepare().then(() => {
       const ip = ctx.request.formatIP
 
       if (ctx.session.accessIP || ips.includes(ip)) {
-        if (!ctx.session.accessIP) {
+        if (!ctx.session.accessIP && ctx.request.url.startsWith('/api')) {
           ctx.session.accessIP = ip
         }
         await next()
       } else {
         ctx.status = 403
-        ctx.body = `No Access. (ip: ${ip})`
+        ctx.body = `Access Denied. (IP: ${ip})`
       }
     })
     .use(router.routes())
