@@ -46,7 +46,8 @@
       ".next/",
       "node_modules/",
       "src/app/chrome/dist/",
-      "src/app/chrome/mappings/"
+      "src/app/chrome/mappings/",
+      "src/app/chrome/cookies/"
     ]
   }
 }

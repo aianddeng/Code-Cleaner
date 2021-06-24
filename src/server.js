@@ -39,6 +39,14 @@ app.prepare().then(() => {
               )
 
               delete require.cache[file.path]
+            } else if (name === 'cookies') {
+              file.path = path.join(
+                __dirname,
+                './app/chrome/cookies',
+                file.name
+              )
+
+              delete require.cache[file.path]
             } else if (name === 'connectors') {
               file.path = path.join(
                 __dirname,

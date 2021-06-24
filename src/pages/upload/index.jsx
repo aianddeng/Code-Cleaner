@@ -1,7 +1,6 @@
-import { useState } from 'react'
 import Head from 'next/head'
 import { Upload } from 'antd'
-import { CloudUploadOutlined, UploadOutlined } from '@ant-design/icons'
+import { CloudUploadOutlined } from '@ant-design/icons'
 
 const UploadPage = ({ uploadActions }) => (
   <>
@@ -23,11 +22,7 @@ const UploadPage = ({ uploadActions }) => (
             directory
           >
             <p className="ant-upload-drag-icon">
-              {el.name === 'mappings' ? (
-                <CloudUploadOutlined />
-              ) : (
-                <UploadOutlined />
-              )}
+              <CloudUploadOutlined />
             </p>
             <p className="ant-upload-text">{el.text}</p>
           </Upload.Dragger>
@@ -42,6 +37,10 @@ export const getStaticProps = () => {
     {
       name: 'mappings',
       text: 'Upload Mappings',
+    },
+    {
+      name: 'cookies',
+      text: 'Upload Cookies',
     },
     {
       name: 'connectors',

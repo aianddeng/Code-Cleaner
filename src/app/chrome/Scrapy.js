@@ -1,3 +1,5 @@
+const path = require('path')
+const fs = require('fs').promises
 const puppeteer = require('puppeteer')
 const globalConfig = require('../../config')
 const Helpers = require('../helpers/index')
@@ -264,6 +266,7 @@ class Scrapy {
 
         if (data.storeId === this.config.storeId) {
           if (data.type === 'applyDone') {
+            await this.handleSaveCookie()
             this.browser.disconnect()
             this.done()
           } else if (data.type === 'errorDone') {
@@ -301,14 +304,53 @@ class Scrapy {
     })
   }
 
-  async handleCookie() {
-    const cookies = require('./cookies/' + this.config.storeId + '.js')
-    if (cookies && cookies.length) {
+  async handleApplyCookie() {
+    const cookiesList = (await fs.readdir(path.join(__dirname, 'cookies'))).map(
+      (el) => el.replace(/\.js$/, '')
+    )
+
+    if (cookiesList.includes(this.config.storeId)) {
+      const cookiesFilePath = path.join(
+        __dirname,
+        'cookies',
+        this.config.storeId + '.js'
+      )
+      const cookies = require(cookiesFilePath)
+
+      if (cookies && cookies.length) {
+        const page = await this.createNewpage(this.config.cart)
+        await page.setCookie(...cookies)
+        await Helpers.wait(1)
+
+        return true
+      }
+    }
+
+    return false
+  }
+
+  async handleSaveCookie() {
+    if (!this.config.login) return
+
+    if (this.config.login.cookie) {
       const page = await this.createNewpage(this.config.cart)
+      const cookies = await page.cookies()
 
-      await page.setCookie(...cookies)
+      const cookiesFilePath = path.join(
+        __dirname,
+        'cookies',
+        this.config.storeId + '.js'
+      )
 
-      await Helpers.wait(2)
+      await fs.writeFile(
+        cookiesFilePath,
+        'module.exports = ' + JSON.stringify(cookies),
+        {
+          encoding: 'utf-8',
+        }
+      )
+
+      delete require.cache[cookiesFilePath]
     }
   }
 
@@ -316,8 +358,10 @@ class Scrapy {
     if (!this.config.login) return
 
     if (this.config.login.cookie) {
-      await this.handleCookie()
-      return true
+      const result = await this.handleApplyCookie()
+      if (result) {
+        return result
+      }
     }
 
     await this.job.log(
@@ -375,8 +419,6 @@ class Scrapy {
       await page.tap(this.config.login.selector.button)
     } catch {}
     await Helpers.wait(10)
-
-    console.log(await page.cookies())
   }
 
   async handleAddProduct() {
