@@ -95,7 +95,7 @@ module.exports = class {
                   return el.type === settings.promoType
                 }
               }
-              return true
+              return el.code !== 'FatCoupon'
             })
 
           if (process.env.NODE_ENV !== 'production' && coupons.length >= 5) {
