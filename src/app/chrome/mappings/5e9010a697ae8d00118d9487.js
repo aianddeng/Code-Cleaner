@@ -3,7 +3,7 @@ module.exports = {
   product:
     'https://www.dickssportinggoods.com/p/nike-utility-speed-training-backpack-20nikunktltyspdbktrv/20nikunktltyspdbktrv',
   button: ['.swatch-color:not(.selected-color-swatch)', '#add-to-cart'],
-  cart: 'cart-mini-cart a',
+  cart: 'cart-mini-cart a, [data-em=Header_ShoppingCart], .atc-cart-link a',
   useLocalScript: true,
 }
 
