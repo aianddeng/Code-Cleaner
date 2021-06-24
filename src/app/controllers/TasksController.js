@@ -134,7 +134,13 @@ module.exports = class {
   }
 
   static async POST(ctx) {
-    paused ? await queue.resume(true) : await queue.pause(true, true)
+    if (paused) {
+      await queue.resume(true)
+    } else {
+      await queue.pause(true, true)
+      await queue.whenCurrentJobsFinished()
+    }
+
     paused = !paused
 
     ctx.body = {
@@ -146,6 +152,12 @@ module.exports = class {
     const { id } = ctx.params
 
     const job = await queue.getJob(id)
+    await job.moveToFailed(
+      {
+        message: 'delete job',
+      },
+      true
+    )
     await job.remove()
 
     ctx.body = { status: 'success' }
