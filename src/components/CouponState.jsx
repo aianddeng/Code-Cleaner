@@ -15,6 +15,7 @@ const CouponState = ({
   waitingLength = allLength - validLength - invalidLength,
   promotype = 'all',
   autoDeactive = false,
+  deactived = false,
 }) => (
   <div className="flex flex-col md:flex-row flex-wrap">
     {validLength ? (
@@ -41,6 +42,11 @@ const CouponState = ({
     {autoDeactive ? (
       <Tag color="default" className="my-1">
         Auto Deactive
+      </Tag>
+    ) : null}
+    {deactived ? (
+      <Tag color="processing" className="my-1">
+        Deactived
       </Tag>
     ) : null}
   </div>

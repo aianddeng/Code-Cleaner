@@ -13,6 +13,7 @@ module.exports = class {
           el.validStatus === -1 &&
           (el.validStatus = -2)
       )
+      job.data.deactived = true
       await job.update(job.data)
 
       await job.log(
