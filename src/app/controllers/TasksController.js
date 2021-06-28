@@ -12,6 +12,7 @@ const defineStates = [
   'paused',
   'waiting',
 ]
+let format = false
 
 module.exports = class {
   static async GET(ctx) {
@@ -26,6 +27,35 @@ module.exports = class {
     const start = (query.page - 1) * query.size
     const end = query.page * query.size
     const storeFilter = query.filter
+
+    if (!format) {
+      const storeData = JSON.parse(await redis.get('fatcoupon:store'))
+      await Promise.all(
+        (
+          await queue.getJobs()
+        ).map(async (el) => {
+          if (!el.data.domain) {
+            const matchStore = storeData.find(
+              (store) => store.id === el.data.storeId
+            )
+            if (matchStore) {
+              el.data.domain = matchStore.domain
+            }
+          }
+          if (!el.data.deactived) {
+            const jobLogs = await queue.getJobLogs(el.id)
+            const matchDeactived = jobLogs.logs.find((content) =>
+              content.includes('Deactivate codes:')
+            )
+            if (matchDeactived) {
+              el.data.deactived = true
+            }
+          }
+          await el.update(el.data)
+        })
+      )
+      format = true
+    }
 
     const jobs = (await queue.getJobs(states))
       .filter((el) => {
