@@ -89,7 +89,9 @@ module.exports = class {
     const jobs = await queue.addBulk(
       await Promise.all(
         storeIds.map(async (storeId) => {
-          const storeName = storeData.find((el) => el.id === storeId).name
+          const matchStore = storeData.find((el) => el.id === storeId)
+          const storeName = matchStore.name
+          const domain = matchStore.domain
 
           const data = await FatCoupon.getFullCoupons(storeId)
 
