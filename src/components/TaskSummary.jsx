@@ -38,8 +38,8 @@ const TaskSummary = ({ data }) => {
 
   return (
     <div className="space-y-6">
-      <div className="max-w-xs flex space-y-2 flex-col md:flex-row md:space-x-2 md:space-y-0 topElement">
-        <TaskActions data={data} showManage={false} />
+      <div className="flex flex-row flex-wrap topElement">
+        <TaskActions data={data} />
       </div>
       <div
         style={{

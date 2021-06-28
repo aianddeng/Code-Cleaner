@@ -25,10 +25,24 @@ module.exports = class {
     const states = query.states ? query.states.split(',') : defineStates
     const start = (query.page - 1) * query.size
     const end = query.page * query.size
+    const storeFilter = query.filter
 
     const jobs = (await queue.getJobs(states))
+      .filter((el) => {
+        if (storeId) {
+          return storeId === el.data.storeId
+        }
+
+        if (storeFilter) {
+          const matchValue = new RegExp(storeFilter.replace(/\s/g, ''), 'i')
+          const storeInfos =
+            el.data.storeName + el.data.domain + el.data.storeId
+          return storeInfos.replace(/\s/g, '').match(matchValue)
+        }
+
+        return true
+      })
       .sort((a, b) => b.id - a.id)
-      .filter((el) => !storeId || storeId === el.data.storeId)
 
     const total = jobs.length
     const datas = await Promise.all(
@@ -109,6 +123,7 @@ module.exports = class {
             name: 'clean-code',
             data: {
               ip,
+              domain,
               coupons,
               storeId,
               storeName,

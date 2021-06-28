@@ -67,6 +67,7 @@ const useTaskActions = (mutateTaskList) => {
       coupons: couponIds,
     })
     await mutate('/api/tasks/' + id)
+    mutateTaskList && (await mutateTaskList())
 
     message.success({
       content: `Deactive codes total: ${couponIds.length}`,

@@ -9,6 +9,7 @@ const useTaskQuery = () => {
     size: 10,
     states: '',
     storeId: '',
+    filter: '',
     ...router.query,
   }
 

@@ -3,10 +3,10 @@ import { useRouter } from 'next/router'
 import useSWR from 'swr'
 import axios from 'axios'
 import moment from 'moment'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import useTaskActions from '@hook/useTaskActions'
 
-import { Table, Button, Popover } from 'antd'
+import { Table, Button, Popover, Input } from 'antd'
 import { PlayCircleOutlined, PauseCircleOutlined } from '@ant-design/icons'
 import CouponState from '@comp/CouponState'
 import TaskActions from '@comp/TaskActions'
@@ -53,7 +53,7 @@ const defineStates = [
   },
 ]
 
-const fetcher = (url, page, size, storeId, states) =>
+const fetcher = (url, page, size, storeId, states, filter) =>
   axios
     .get(url, {
       params: {
@@ -61,6 +61,7 @@ const fetcher = (url, page, size, storeId, states) =>
         size,
         storeId,
         states,
+        filter,
       },
     })
     .then((res) => res.data)
@@ -70,6 +71,7 @@ const TaskTable = ({
   size,
   storeId,
   states,
+  filter,
   initialData,
   setInitialData,
   dispatchQuery,
@@ -79,9 +81,9 @@ const TaskTable = ({
     setScrollY(getTableScroll())
   }, [])
 
-  useSWR(['/api/tasks', page + 1, size, storeId, states], fetcher)
-  const { data, mutate } = useSWR(
-    ['/api/tasks', page, size, storeId, states],
+  useSWR(['/api/tasks', page + 1, size, storeId, states, filter], fetcher)
+  const { data, mutate, isValidating } = useSWR(
+    ['/api/tasks', page, size, storeId, states, filter],
     fetcher,
     {
       initialData,
@@ -99,132 +101,159 @@ const TaskTable = ({
     setInitialData(data)
   }, [data])
 
+  useEffect(() => {
+    if (!isValidating) {
+      setLoading(false)
+      setInitialData(data)
+    }
+  }, [isValidating])
+
   const router = useRouter()
 
+  const handleFilterStore = useCallback(
+    (filter) => {
+      setLoading(true)
+      dispatchQuery({
+        type: 'change',
+        data: {
+          filter,
+        },
+      })
+    },
+    [loading]
+  )
+
   return (
-    <Table
-      sticky
-      bordered
-      rowKey="id"
-      dataSource={datas}
-      loading={loading}
-      scroll={{ x: !!datas.length, y: scrollY }}
-      title={() => (
-        <div className="flex flex-col md:flex-row">
-          <h2>Task List {storeId ? `- ID: ${storeId}` : null}</h2>
-          <div className="ml-auto space-x-2">
-            <Button
-              hidden={
-                !Object.keys(router.query).filter(
-                  (el) => !(el === 'settings' || el === 'messages')
-                ).length
-              }
-            >
-              <Link href="/tasks">
-                <a>Show All</a>
-              </Link>
-            </Button>
-            <Button
-              type="primary"
-              loading={checkLoading('controller')}
-              icon={paused ? <PlayCircleOutlined /> : <PauseCircleOutlined />}
-              onClick={() => handleControllerTask()}
-            >
-              {paused ? 'Resume' : 'Pause'}
-            </Button>
+    <>
+      <Input.Search
+        enterButton
+        className="mb-3"
+        placeholder="Search Now"
+        list="countries"
+        onSearch={(e) => handleFilterStore(e)}
+      />
+      <Table
+        sticky
+        bordered
+        rowKey="id"
+        dataSource={datas}
+        loading={loading}
+        scroll={{ x: !!datas.length, y: scrollY }}
+        title={() => (
+          <div className="flex flex-col md:flex-row">
+            <h2>Task List {storeId ? `- ID: ${storeId}` : null}</h2>
+            <div className="ml-auto space-x-2">
+              <Button
+                hidden={
+                  !Object.keys(router.query).filter(
+                    (el) => !(el === 'settings' || el === 'messages')
+                  ).length
+                }
+              >
+                <Link href="/tasks">
+                  <a>Show All</a>
+                </Link>
+              </Button>
+              <Button
+                type="primary"
+                loading={checkLoading('controller')}
+                icon={paused ? <PlayCircleOutlined /> : <PauseCircleOutlined />}
+                onClick={() => handleControllerTask()}
+              >
+                {paused ? 'Resume' : 'Pause'}
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
-      pagination={{
-        total: Number(total),
-        current: Number(page),
-        pageSize: Number(size),
-        defaultPageSize: Number(size),
-        showSizeChanger: true,
-      }}
-      onChange={(pagination, filters) => {
-        setLoading(true)
-        dispatchQuery({
-          type: 'change',
-          data: {
-            page: pagination.current,
-            size: pagination.pageSize,
-            states: filters.state,
-          },
-        })
-      }}
-    >
-      <Table.Column
-        key="id"
-        title="ID / Title"
-        dataIndex="id"
-        render={(value, record) => (
-          <p className="mb-0">
-            {value} - {record.storeName}
-          </p>
         )}
-      />
-      <Table.Column
-        key="state"
-        title="State"
-        dataIndex="state"
-        filters={defineStates}
-        responsive={['md']}
-        render={(value, record) =>
-          value === 'failed' ? (
-            <Popover
-              placement="topLeft"
-              content={
-                <div className="max-w-xs">
-                  <p>{record.failedReason}</p>
-                  <p>Tries: {record.attemptsMade}</p>
-                </div>
-              }
-              title="Failed Reason"
-            >
-              <a>{value}</a>
-            </Popover>
-          ) : (
-            value
-          )
-        }
-      />
-      <Table.Column
-        key="coupons"
-        title="Coupons"
-        dataIndex="promotype"
-        render={(_, record) => <CouponState {...record} />}
-      />
-      <Table.Column
-        key="createdAt"
-        title="Created / Finished"
-        dataIndex="finishedOn"
-        render={(value, record) => (
-          <div className="space-y-1">
-            <p className="m-0">
-              {moment(record.createdOn).format('YYYY-MM-DD HH:mm:ss')}
+        pagination={{
+          total: Number(total),
+          current: Number(page),
+          pageSize: Number(size),
+          defaultPageSize: Number(size),
+          showSizeChanger: true,
+        }}
+        onChange={(pagination, filters) => {
+          setLoading(true)
+          dispatchQuery({
+            type: 'change',
+            data: {
+              page: pagination.current,
+              size: pagination.pageSize,
+              states: filters.state,
+            },
+          })
+        }}
+      >
+        <Table.Column
+          key="id"
+          title="ID / Store"
+          dataIndex="id"
+          render={(value, record) => (
+            <p className="mb-0">
+              {value} - {record.storeName}
             </p>
-            <p className="m-0">
-              {value ? moment(value).format('YYYY-MM-DD HH:mm:ss') : '-'}
-            </p>
-          </div>
-        )}
-        responsive={['lg']}
-      />
-      <Table.Column
-        key="actions"
-        title="Actions"
-        dataIndex="id"
-        fixed="right"
-        render={(value, record) => (
-          <div className="flex flex-col space-y-2  xl:flex-row xl:space-y-0 xl:space-x-2 max-w-xs">
-            {value ? (
-              <TaskActions data={record} showManage={true} mutate={mutate} />
-            ) : null}
-          </div>
-        )}
-      />
-    </Table>
+          )}
+        />
+        <Table.Column
+          key="state"
+          title="State"
+          dataIndex="state"
+          filters={defineStates}
+          responsive={['md']}
+          render={(value, record) =>
+            value === 'failed' ? (
+              <Popover
+                placement="topLeft"
+                content={
+                  <div className="max-w-xs">
+                    <p>{record.failedReason}</p>
+                    <p>Tries: {record.attemptsMade}</p>
+                  </div>
+                }
+                title="Failed Reason"
+              >
+                <a>{value}</a>
+              </Popover>
+            ) : (
+              value
+            )
+          }
+        />
+        <Table.Column
+          key="coupons"
+          title="Coupons"
+          dataIndex="promotype"
+          render={(_, record) => <CouponState {...record} />}
+        />
+        <Table.Column
+          key="createdAt"
+          title="Created / Finished"
+          dataIndex="finishedOn"
+          render={(value, record) => (
+            <div className="space-y-1">
+              <p className="m-0">
+                {moment(record.createdOn).format('YYYY-MM-DD HH:mm:ss')}
+              </p>
+              <p className="m-0">
+                {value ? moment(value).format('YYYY-MM-DD HH:mm:ss') : '-'}
+              </p>
+            </div>
+          )}
+          responsive={['lg']}
+        />
+        <Table.Column
+          key="actions"
+          title="Actions"
+          dataIndex="id"
+          fixed="right"
+          render={(value, record) => (
+            <div className="flex flex-row flex-wrap max-w-xs">
+              {value ? <TaskActions data={record} mutate={mutate} /> : null}
+            </div>
+          )}
+        />
+      </Table>
+    </>
   )
 }
 

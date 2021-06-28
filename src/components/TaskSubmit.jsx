@@ -98,6 +98,7 @@ const TaskSubmit = ({ isModal, setIsModal, taskData }) => {
         </h2>
         <Form
           form={form}
+          preserve={false}
           layout="vertical"
           initialValues={{
             storeId: '',
