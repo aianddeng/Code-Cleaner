@@ -619,7 +619,7 @@ class Scrapy {
         })
       )
     } catch (e) {
-      this.browser.disconnect()
+      this.browser && this.browser.disconnect()
       await this.job.log(
         JSON.stringify({
           label: Date.now(),
