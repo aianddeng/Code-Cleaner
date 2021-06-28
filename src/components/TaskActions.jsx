@@ -9,6 +9,7 @@ import {
   ProfileOutlined,
   DeleteOutlined,
   ClearOutlined,
+  FolderViewOutlined,
 } from '@ant-design/icons'
 import axios from 'axios'
 
@@ -83,7 +84,7 @@ const TaskActions = ({ data, mutate }) => {
               <Button
                 block={!isListPage}
                 shape={isListPage ? 'circle' : false}
-                icon={<ProfileOutlined />}
+                icon={<FolderViewOutlined />}
                 type="primary"
               >
                 {isListPage ? null : 'Check Tasks'}

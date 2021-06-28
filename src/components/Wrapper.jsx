@@ -66,12 +66,12 @@ const Wrapper = ({ children }) => {
             key="/messages"
             className="ml-auto"
             onClick={() => handleSwitchMessagesVisible()}
-          ></Menu.Item>
+          />
           <Menu.Item
             icon={<SettingOutlined />}
             key="/settings"
             onClick={() => handleSwitchSettingsVisible()}
-          ></Menu.Item>
+          />
         </Menu>
       </Header>
       <Content className="mt-16 px-2 md:px-12">
