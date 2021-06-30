@@ -1,7 +1,7 @@
 module.exports = {
   storeId: '6077f65dcc0bce00113b4172',
+  cookie: true,
   login: {
-    cookie: true,
     url: 'https://drizly.com/session/new',
     username: 'deng@fatcoupon.com',
     password: 'Az6dJfJafg_E_Qg',

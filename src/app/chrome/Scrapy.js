@@ -330,9 +330,7 @@ class Scrapy {
   }
 
   async handleSaveCookie() {
-    if (!this.config.login) return
-
-    if (this.config.login.cookie) {
+    if (this.config.cookie) {
       const page = await this.createNewpage(this.config.cart)
       const cookies = await page.cookies()
 
@@ -356,13 +354,6 @@ class Scrapy {
 
   async handleLogin() {
     if (!this.config.login) return
-
-    if (this.config.login.cookie) {
-      const result = await this.handleApplyCookie()
-      if (result) {
-        return result
-      }
-    }
 
     await this.job.log(
       JSON.stringify({
@@ -592,6 +583,7 @@ class Scrapy {
           content: 'Created a new browser instance',
         })
       )
+
       await this.extensionLoaded()
       await this.job.log(
         JSON.stringify({
@@ -609,8 +601,18 @@ class Scrapy {
         })
       )
 
-      await this.handleLogin()
-      await this.handleAddProduct()
+      const applyCookie = this.config.cookie
+        ? await this.handleApplyCookie()
+        : false
+
+      if (!applyCookie) {
+        if (this.config.login) {
+          await this.handleLogin()
+        } else if (this.config.product) {
+          await this.handleAddProduct()
+        }
+      }
+
       await this.handleApplyCoupon()
       await this.job.log(
         JSON.stringify({
