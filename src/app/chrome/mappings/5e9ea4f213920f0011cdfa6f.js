@@ -1,6 +1,5 @@
 module.exports = {
   storeId: '5e9ea4f213920f0011cdfa6f',
-  cookie: true,
   login: {
     url: 'https://www.hsn.com/signin',
     username: 'deng@fatcoupon.com',
