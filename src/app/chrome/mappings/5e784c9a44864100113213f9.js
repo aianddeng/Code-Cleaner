@@ -2,6 +2,7 @@ module.exports = {
   storeId: '5e784c9a44864100113213f9',
   product: 'https://deals.dell.com/en-us/productdetail/8roq',
   button: [
+    '#add-to-cart-stack a',
     '[data-testid=addToCartButton]',
     '#affix-right-rail button.get-deal',
     '.accessories .btn + a.modal-proceed',
