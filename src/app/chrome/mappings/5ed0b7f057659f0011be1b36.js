@@ -6,6 +6,8 @@ module.exports = {
   button: [
     '#CybotCookiebotDialogBodyLevelButtonAccept',
     '.size-container a.selectable:not(.selected)',
+    '.size-container a.selectable:not(.selected)',
+    'button.add-to-cart',
     'button.add-to-cart',
   ],
   cart: 'https://www.colehaan.com/cart',
