@@ -55,11 +55,13 @@ module.exports = class {
         processedOn: job.processedOn,
         failedReason: job.failedReason,
         attemptsMade: job.attemptsMade,
-        allLength: job.data.coupons.length,
-        validLength: job.data.coupons.filter((el) => el.validStatus === 1)
-          .length,
-        invalidLength: job.data.coupons.filter((el) => el.validStatus <= -1)
-          .length,
+        allLength: job.data.coupons ? job.data.coupons.length : 0,
+        validLength: job.data.coupons
+          ? job.data.coupons.filter((el) => el.validStatus === 1).length
+          : 0,
+        invalidLength: job.data.coupons
+          ? job.data.coupons.filter((el) => el.validStatus <= -1).length
+          : 0,
       }))
     )
 
@@ -95,24 +97,27 @@ module.exports = class {
 
           const data = await FatCoupon.getFullCoupons(storeId)
 
-          const coupons = data
-            .map((el, index) =>
-              data.map((el) => el.code).indexOf(el.code) === index
-                ? { ...el }
-                : { ...el, validStatus: -1 }
-            )
-            .filter((el) => {
-              if (promoType) {
-                if (promoType !== 'all') {
-                  return el.type === promoType
-                }
-              } else if (settings) {
-                if (settings.promoType !== 'all') {
-                  return el.type === settings.promoType
-                }
-              }
-              return el.code !== 'FatCoupon'
-            })
+          const coupons =
+            data && data.length
+              ? data
+                  .map((el, index) =>
+                    data.map((el) => el.code).indexOf(el.code) === index
+                      ? { ...el }
+                      : { ...el, validStatus: -1 }
+                  )
+                  .filter((el) => {
+                    if (promoType) {
+                      if (promoType !== 'all') {
+                        return el.type === promoType
+                      }
+                    } else if (settings) {
+                      if (settings.promoType !== 'all') {
+                        return el.type === settings.promoType
+                      }
+                    }
+                    return el.code !== 'FatCoupon'
+                  })
+              : []
 
           if (process.env.NODE_ENV !== 'production' && coupons.length >= 5) {
             coupons.splice(20)
