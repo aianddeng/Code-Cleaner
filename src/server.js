@@ -62,7 +62,7 @@ app.prepare().then(() => {
       session(
         {
           key: 'ip_access',
-          maxAge: 2 * 24 * 60 * 60 * 1000,
+          maxAge: 5 * 24 * 60 * 60 * 1000,
           renew: true,
         },
         server

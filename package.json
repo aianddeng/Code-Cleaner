@@ -6,7 +6,7 @@
     "dev": "NODE_ENV=development nodemon src/server.js",
     "build": "NODE_ENV=production next build",
     "start": "NODE_ENV=production node src/server.js",
-    "server": "NODE_ENV=production pm2 stop all && pm2 start src/server.js"
+    "server": "pm2 start ecosystem.config.js"
   },
   "dependencies": {
     "antd": "^4.15.0",
