@@ -6,7 +6,8 @@
     "dev": "NODE_ENV=development nodemon src/server.js",
     "build": "NODE_ENV=production next build",
     "start": "NODE_ENV=production node src/server.js",
-    "server": "pm2 start ecosystem.config.js --env production"
+    "server": "pm2 start ecosystem.config.js --env production",
+    "ssh-link": "ssh ec2-user@35.161.21.198 -i src/server.pem"
   },
   "dependencies": {
     "antd": "^4.15.0",

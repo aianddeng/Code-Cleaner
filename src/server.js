@@ -83,7 +83,11 @@ app.prepare().then(() => {
     .use(async (ctx, next) => {
       const ip = ctx.request.formatIP
 
-      if (ctx.session.accessIP || ips.includes(ip)) {
+      if (
+        ctx.session.accessIP ||
+        ips.includes(ip) ||
+        ips.find((el) => ip.startsWith(el))
+      ) {
         if (!ctx.session.accessIP && ctx.request.url.startsWith('/api')) {
           ctx.session.accessIP = ip
         }
