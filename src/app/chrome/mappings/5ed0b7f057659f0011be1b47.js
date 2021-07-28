@@ -8,4 +8,5 @@ module.exports = {
     '.js-pdp-aplus-add-to-cart',
   ],
   cart: 'https://www.hannaandersson.com/cart',
+  useLocalScript: true,
 }
