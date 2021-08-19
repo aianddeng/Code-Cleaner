@@ -9,4 +9,5 @@ module.exports = [
   '139.28.233.8',
   '114.88.', // shanghai's office
   '73.96.', // american's office
+  '180.166',
 ]
