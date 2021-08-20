@@ -45,6 +45,7 @@ class Scrapy {
     }
 
     this.browser = await puppeteer.launch({
+      executablePath: process.env['PUPPETEER_EXECUTABLE_PATH'] || null,
       headless: globalConfig.headless,
       defaultViewport: null,
       args: [
