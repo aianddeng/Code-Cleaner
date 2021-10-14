@@ -84,6 +84,7 @@ app.prepare().then(() => {
       const ip = ctx.request.formatIP
 
       if (
+        ctx.request.url.startsWith('/git') ||
         ctx.session.accessIP ||
         ips.includes(ip) ||
         ips.find((el) => ip.startsWith(el))

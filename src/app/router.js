@@ -41,6 +41,7 @@ router.post('/settings', SettingsController.POST)
 router.get('/message', MessageController.GET)
 router.put('/message', MessageController.PUT)
 
+router.get('/git/events', GitEventController.GET)
 router.post('/git/events', GitEventController.POST)
 
 module.exports = router
