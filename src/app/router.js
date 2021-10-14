@@ -7,6 +7,7 @@ const CodesController = require('./controllers/CodesController')
 const SettingsController = require('./controllers/SettingsController')
 const MessageController = require('./controllers/MessageController')
 const UploadController = require('./controllers/UploadController')
+const GitEventController = require('./controllers/GitEventController')
 
 const router = new Router({
   prefix: '/api',
@@ -39,5 +40,7 @@ router.post('/settings', SettingsController.POST)
 
 router.get('/message', MessageController.GET)
 router.put('/message', MessageController.PUT)
+
+router.post('/message', GitEventController.POST)
 
 module.exports = router
